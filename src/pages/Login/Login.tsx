@@ -41,11 +41,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
   return (
     <div className="login-container-full">
       {error && (
-        <Toast
-          message={error}
-          type="error"
-          onClose={() => setError(null)}
-        />
+        <Toast message={error} type="error" onClose={() => setError(null)} />
       )}
       {/* Bloco da Esquerda */}
       <div className="login-left">
@@ -98,8 +94,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="***"
                 required
-              />
-            </div>
+              />            </div>
 
             <Button
               type="submit"
