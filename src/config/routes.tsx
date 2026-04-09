@@ -2,7 +2,6 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "@hooks/useAuth";
 import Login from "@pages/Login/Login";
 import Dashboard from "@pages/Dashboard/Dashboard";
-import { Welcome } from "@pages/Welcome/Welcome";
 import { ProtectedRoute } from "@components/common/ProtectedRoute";
 
 export function AppRoutes() {
@@ -23,8 +22,6 @@ export function AppRoutes() {
           </ProtectedRoute>
         }
       />
-
-      <Route path="/welcome" element={<Welcome />} />
 
       <Route path="*" element={<Navigate to="/welcome" replace />} />
     </Routes>
