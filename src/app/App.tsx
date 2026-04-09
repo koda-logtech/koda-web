@@ -1,6 +1,6 @@
 import { BrowserRouter as Router } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
-import { AppRoutes } from "@/routes";
+import { AppRoutes } from "@/config/routes";
 import "./App.css";
 
 function App() {
@@ -14,3 +14,4 @@ function App() {
 }
 
 export default App;
+

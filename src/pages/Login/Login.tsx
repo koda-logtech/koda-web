@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Button from "@components/Button";
-import Toast from "@components/Toast";
+import Button from "@components/common/Button";
+import Toast from "@components/common/Toast";
 import "./Login.css";
 import backgroundImage from "@/assets/background-login.png";
 
