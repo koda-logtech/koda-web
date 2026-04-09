@@ -5,7 +5,6 @@ import DashboardOverview from "./components/DashboardOverview";
 import Monitoring from "./components/Monitoring";
 import Trips from "./components/Trips";
 import Audit from "./components/Audit";
-import Header from "@components/common/Header";
 import "./Dashboard.css";
 
 function Dashboard() {
@@ -37,7 +36,6 @@ function Dashboard() {
 
   return (
     <div className="dashboard-layout">
-      <Header />
       <div className="dashboard-container">
         {/* Sidebar */}
         <aside className="dashboard-sidebar">
