@@ -169,7 +169,7 @@ export default function MotoristasView({ onViewAll }: MotoristasViewProps) {
         ) : (
           <>
             <div className="drivers-list">
-              {drivers.map((driver) => (
+              {drivers.map((driver: any) => (
                 <div key={driver.id} className="driver-mini-card">
                   <img
                     src={driver.avatar_url || `https://ui-avatars.com/api/?name=${driver.name}&background=random`}

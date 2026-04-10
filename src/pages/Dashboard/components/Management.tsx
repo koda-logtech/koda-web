@@ -4,7 +4,6 @@ import { useCaminhoes } from "@controllers/caminhaoController";
 import { useClientes } from "@controllers/clienteController";
 import { useArmazens } from "@controllers/armazemController";
 
-import ContentHeader from "./ContentHeader";
 import Button from "@components/common/Button";
 import Loading from "@components/common/Loading";
 import MotoristasView from "./MotoristasView";
@@ -128,7 +127,7 @@ export default function Management() {
                 </tr>
               </thead>
               <tbody>
-                {caminhoes.map((c) => (
+                {caminhoes.map((c: any) => (
                   <tr key={c.id}>
                     <td>{c.placa}</td>
                     <td>{c.modelo}</td>
@@ -164,7 +163,7 @@ export default function Management() {
                 </tr>
               </thead>
               <tbody>
-                {clientes.map((cl) => (
+                {clientes.map((cl: any) => (
                   <tr key={cl.id}>
                     <td>{cl.nome}</td>
                     <td>{cl.email || "-"}</td>
@@ -200,7 +199,7 @@ export default function Management() {
                 </tr>
               </thead>
               <tbody>
-                {armazens.map((a) => (
+                {armazens.map((a: any) => (
                   <tr key={a.id}>
                     <td>{a.nome}</td>
                     <td>{a.telefone || "-"}</td>
@@ -227,25 +226,38 @@ export default function Management() {
 
   return (
     <div className="dashboard-page management-container">
-      <ContentHeader 
-        title="Gerenciamento" 
-        subtitle="Administração centralizada de entidades do sistema."
-      />
+      {/* Header unificado com Tabs e Ícones */}
+      <header className="section-header" style={{ marginBottom: '2rem' }}>
+        <div className="header-left">
+          <div className="management-tabs" style={{ margin: 0, border: 'none', padding: 0 }}>
+            {(["Motoristas", "Caminhões", "Clientes", "Armazéns Parceiros"] as SubSection[]).map((tab) => (
+              <button
+                key={tab}
+                className={`tab-btn ${activeSubTab === tab ? "active" : ""}`}
+                onClick={() => {
+                  setActiveSubTab(tab);
+                  if (tab !== "Motoristas") setShowFullMotoristas(false);
+                }}
+              >
+                {tab}
+              </button>
+            ))}
+          </div>
+        </div>
 
-      <div className="management-tabs">
-        {(["Motoristas", "Caminhões", "Clientes", "Armazéns Parceiros"] as SubSection[]).map((tab) => (
-          <button
-            key={tab}
-            className={`tab-btn ${activeSubTab === tab ? "active" : ""}`}
-            onClick={() => {
-              setActiveSubTab(tab);
-              if (tab !== "Motoristas") setShowFullMotoristas(false);
-            }}
-          >
-            {tab}
+        <div className="header-right">
+          <button className="icon-btn" title="Histórico">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
           </button>
-        ))}
-      </div>
+          <button className="icon-btn" title="Notificações">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 01-3.46 0"></path></svg>
+            <span className="notification-badge"></span>
+          </button>
+          <div className="user-profile">
+            <img src="https://ui-avatars.com/api/?name=User&background=3498DB&color=fff" alt="User" />
+          </div>
+        </div>
+      </header>
 
       <div className="page-content">
         {renderTable()}
