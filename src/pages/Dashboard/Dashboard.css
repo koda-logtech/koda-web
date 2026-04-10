@@ -52,7 +52,9 @@
 }
 
 .sidebar-item button {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 12px;
   width: 100%;
   text-align: left;
   padding: 12px 20px;
