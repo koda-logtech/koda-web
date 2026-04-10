@@ -9,9 +9,25 @@
   --secondary-color: #1A2B3C;
   --tertiary-color: #E74C3C;
   --neutral-color: #1A2B3C;
-  --text-color: #2C3E50;
+  
+  /* Light (Default) */
   --bg-color: #F4F7F6;
+  --sidebar-bg: #f5f5f5;
+  --card-bg: #ffffff;
+  --text-color: #2C3E50;
+  --text-secondary: #666666;
   --border-color: #DCDDE1;
+  --input-bg: #f9f9f9;
+}
+
+[data-theme="dark"] {
+  --bg-color: #121212;
+  --sidebar-bg: #1e1e1e;
+  --card-bg: #2d2d2d;
+  --text-color: #e0e0e0;
+  --text-secondary: #b0b0b0;
+  --border-color: #444444;
+  --input-bg: #333333;
 }
 
 body {

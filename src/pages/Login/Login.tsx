@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@hooks/useAuth";
 import Button from "@components/common/Button";
 import Toast from "@components/common/Toast";
+import Input from "@components/common/Input";
 import "./Login.css";
 import backgroundImage from "@/assets/background-login.png";
 
@@ -65,28 +66,26 @@ export default function Login() {
           </header>
 
           <form onSubmit={handleSubmit} className="login-form">
-            <div className="form-group">
-              <label htmlFor="email">E-mail Corporativo</label>
-              <input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="exemplo@empresa.com"
-                required
-              />
-            </div>
+            <Input
+              label="E-mail Corporativo"
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="exemplo@empresa.com"
+              required
+            />
 
-            <div className="form-group">
-              <label htmlFor="password">Senha</label>
-              <input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="***"
-                required
-              />            </div>
+            <Input
+              label="Senha"
+              id="password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="***"
+              required
+              containerStyle={{ marginTop: '1.5rem' }}
+            />
 
             <Button
               type="submit"
