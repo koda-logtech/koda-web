@@ -5,15 +5,11 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
 export const api = axios.create({
   baseURL: API_URL,
+  withCredentials: true,
 });
 
-api.interceptors.request.use((config) => {
-  const token = storage.getAccessToken();
-  if (token && config.headers) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
+// Removido interceptor de request que injetava token manual,
+// pois agora usamos cookies com withCredentials: true.
 
 api.interceptors.response.use(
   (response) => response,
@@ -24,28 +20,17 @@ api.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        const refreshToken = storage.getRefreshToken();
-        if (!refreshToken) {
-          throw new Error('No refresh token available');
-        }
-
-        // Usamos axios puro aqui para evitar interceptors recursivos ou headers errados
-        const response = await axios.post(`${API_URL}/users/refresh`, {}, {
-          headers: { Authorization: `Bearer ${refreshToken}` }
+        // Rota de refresh agora também usa cookies para enviar o refresh_token
+        await axios.post(`${API_URL}/users/refresh`, {}, {
+          withCredentials: true
         });
 
-        const { accessToken } = response.data;
-        storage.setAccessToken(accessToken);
-
-        if (originalRequest.headers) {
-          originalRequest.headers.Authorization = `Bearer ${accessToken}`;
-        }
-        
+        // Se o refresh deu certo, o cookie access_token foi atualizado no browser.
+        // Podemos apenas repetir a requisição original.
         return api(originalRequest);
       } catch (refreshError) {
-        storage.clearTokens();
-        // Recarregar a página para o estado inicial ou redirecionar via window se necessário
-        // No AuthContext lidaremos com o estado de deslogado
+        // Se o refresh falhar, o cookie expirou.
+        // O AuthContext cuidará de resetar o estado do usuário.
         return Promise.reject(refreshError);
       }
     }

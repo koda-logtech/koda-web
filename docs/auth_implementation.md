@@ -1,67 +1,43 @@
-# Implementação de Autenticação JWT - Koda Web
+# Implementação de Autenticação JWT - Koda Web (Cookies HttpOnly)
 
-Este documento descreve como a autenticação baseada em JWT está integrada no frontend `koda-web`, consumindo os serviços do `koda-server`.
+Este documento descreve como a autenticação baseada em JWT e Cookies está integrada no frontend `koda-web`.
 
 ## 1. Visão Geral
-A autenticação utiliza dois tokens principais para manter a sessão segura e persistente:
-- **Access Token**: Token de curta duração (15m), enviado em todas as requisições protegidas no cabeçalho `Authorization: Bearer <token>`.
-- **Refresh Token**: Token de longa duração (7d), armazenado localmente para obter novos tokens de acesso quando estes expiram.
+A autenticação foi migrada de `localStorage` para **Cookies HttpOnly**, proporcionando maior segurança contra ataques XSS.
+- O navegador gerencia automaticamente o armazenamento e envio dos tokens.
+- O frontend não tem acesso direto aos tokens (por segurança), mas pode verificar o estado de autenticação através do carregamento inicial do perfil.
 
-## 2. Estrutura de Dados e Tipagem (`src/types/auth.ts`)
-A tipagem reflete exatamente o contrato do backend:
+## 2. Configuração do Cliente API (`src/services/api.ts`)
+O Axios está configurado com `withCredentials: true`. Isso é obrigatório para que o navegador inclua os cookies do backend em cada requisição Cross-Origin (CORS).
+
 ```typescript
-export interface User {
-  id: number;
-  email: string;
-  role: 'admin' | 'user';
-}
-
-export interface AuthResponse {
-  accessToken: string;
-  refreshToken: string;
-  user: User;
-}
+export const api = axios.create({
+  baseURL: import.meta.env.VITE_API_URL,
+  withCredentials: true,
+});
 ```
 
-## 3. Estratégia de Armazenamento (`src/utils/storage.ts`)
-Os tokens são armazenados no `localStorage` com prefixo e chaves configuráveis via variáveis de ambiente:
-- **Prefixo padrão**: `koda_`
-- **Chaves**: `access_token` e `refresh_token`
-- O utilitário `storage` centraliza a manipulação desses tokens.
+### Fluxo de Erro 401 (Refresh Automático)
+Quando o `access_token` expira, o interceptor de resposta captura o erro `401`.
+- Ele dispara uma requisição para `/users/refresh` (também com `withCredentials: true`).
+- Se a renovação for bem-sucedida (novos cookies setados), ele repete a requisição original.
+- Se falhar (refresh expirado), o usuário é considerado deslogado.
 
-## 4. Camada de Comunicação (`src/services/api.ts`)
-O Axios está configurado com interceptores para automação do fluxo:
-- **Interception de Requisição**: Injeta automaticamente o `accessToken` se disponível.
-- **Interception de Resposta (401)**: Quando um erro 401 (Unauthorized) ocorre:
-  1. O interceptor pausa a requisição original.
-  2. Tenta renovar o token chamando a rota `/users/refresh`.
-  3. Em caso de sucesso, atualiza o storage e repete a requisição original.
-  4. Em caso de falha (refresh token expirado), limpa os tokens e encerra a sessão.
+## 3. Gerenciamento de Estado (`src/contexts/AuthContext.tsx`)
+A fonte da verdade para o estado de autenticação é a resposta da rota `GET /users/profile`.
+- **Carregamento Inicial**: No `useEffect` de inicialização, o `AuthContext` tenta carregar os dados do usuário. Se a chamada retornar `200`, o usuário está logado.
+- **Login**: O serviço de login do backend agora retorna apenas os dados do usuário e uma mensagem, enquanto os tokens são injetados via cookies.
 
-## 5. Gerenciamento de Estado (`src/contexts/AuthContext.tsx`)
-O `AuthContext` é o "single source of truth" para a autenticação:
-- **Estado**: `user`, `isAuthenticated` e `isLoading`.
-- **Validação Inicial**: Ao carregar a aplicação, verifica se há tokens e tenta buscar o perfil do usuário (`/profile`).
-- **Loading State**: O `isLoading` impede redirecionamentos indevidos enquanto a sessão inicial está sendo validada.
-
-## 6. Proteção de Rotas (`src/components/common/ProtectedRoute.tsx`)
-As rotas privadas são protegidas por um componente wrapper que verifica `isAuthenticated` e aguarda o fim do `isLoading`.
+## 4. Remoção do `localStorage`
+Toda a lógica de armazenamento manual de tokens no `localStorage` foi removida em favor da gestão automática do navegador. Arquivos de utilitários como `storage.ts` devem ser usados apenas para metadados não sensíveis (ex: preferências de tema ou flag de "lembrar e-mail").
 
 ---
 
 ## 🛠 Diretrizes para Desenvolvedores e Agentes
 
-Ao trabalhar neste módulo, siga rigorosamente estas normas:
+Ao trabalhar neste módulo, siga estas normas:
 
-1. **TypeScript**: Sempre use os tipos definidos em `src/types/auth.ts`.
-2. **Segurança**:
-   - Nunca logue tokens no console em produção.
-   - O segredo JWT reside apenas no backend; o frontend apenas armazena e envia o token.
-3. **Padrão de Código**:
-   - Chamadas de API devem ser feitas via `authService` em `src/services/auth.ts`.
-   - Lógica de estado global reside no `AuthContext`.
-4. **Testes**:
-   - **NÃO** espalhe arquivos `.test.ts` ou `.spec.ts` pela `src/`.
-   - Utilize a pasta central de testes se houver uma, ou siga as instruções do projeto.
-5. **Variáveis de Ambiente**:
-   - Mantenha o `.env.example` atualizado com as configurações de storage e API.
+1. **CORS**: Se encontrar erros de CORS, certifique-se de que o backend está configurado com `credentials: true` e que a origem do frontend não é o curinga `*`.
+2. **Ambiente**: O arquivo `.env` deve apontar para o `VITE_API_URL` correto (ex: `http://localhost:3000`).
+3. **Debug de Tokens**: Como os cookies são `HttpOnly`, você não os verá em `console.log(document.cookie)`. Use a aba **Application -> Cookies** no Chrome DevTools para verificar se os tokens `access_token` e `refresh_token` estão presentes.
+4. **Logout**: O logout deve sempre ser feito via requisição ao backend (`POST /users/logout`) para que o servidor possa limpar os cookies HttpOnly de forma eficaz.

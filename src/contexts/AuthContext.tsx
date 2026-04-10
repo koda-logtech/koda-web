@@ -29,21 +29,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
   // Validação inicial da sessão ao carregar a aplicação
   useEffect(() => {
     async function loadSession() {
-      const accessToken = storage.getAccessToken();
-      const refreshToken = storage.getRefreshToken();
-      
-      if (accessToken || refreshToken) {
-        try {
-          const userData = await authService.me();
-          setUser(userData);
-        } catch (error) {
-          // Se falhar o /profile, os interceptors do axios já vão tentar fazer o refresh.
-          // Se o refresh falhar, ele limpará os tokens.
-          console.error("Falha ao recuperar sessão:", error);
-          setUser(null);
-        }
+      try {
+        // Tentamos buscar o perfil. Se houver cookies válidos, o profile retornará os dados.
+        // Se não houver cookies ou estiverem expirados, o catch lidará com isso.
+        const userData = await authService.me();
+        setUser(userData);
+      } catch (error) {
+        // Falha silenciosa no carregamento inicial (usuário não logado)
+        setUser(null);
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
     }
     
     loadSession();
@@ -52,10 +48,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const login = async (credentials: Record<string, unknown>) => {
     const data = await authService.login(credentials);
     
+    // O backend agora retorna apenas o user e message, os tokens estão nos Cookies
     if (data.user) {
       setUser(data.user);
     } else {
-      // Caso o backend não retorne o user no login, buscamos via /profile
+      // Caso não venha o user no corpo (depende do contrato), buscamos via /profile
       const userData = await authService.me();
       setUser(userData);
     }
@@ -68,18 +65,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
       await authService.logout();
     } finally {
       setUser(null);
-      // Redirecionamento pode ser feito pelos componentes ou hooks do router
     }
   }, []);
 
-  // Wrappers de compatibilidade para código legado
-  const handleLoginSuccess = async (token: string) => {
-    storage.setAccessToken(token);
+  // Wrapper de compatibilidade legado (pode ser removido futuramente)
+  const handleLoginSuccess = async () => {
     try {
       const userData = await authService.me();
       setUser(userData);
     } catch (error) {
-      console.error("Erro ao carregar usuário após login compat:", error);
+      console.error("Erro ao carregar usuário:", error);
     }
   };
 
