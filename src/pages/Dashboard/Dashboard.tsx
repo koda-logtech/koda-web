@@ -9,11 +9,11 @@ import "./Dashboard.css";
 
 function Dashboard() {
   const navigate = useNavigate();
-  const { handleLogout } = useAuth();
+  const { logout } = useAuth();
   const [activeTab, setActiveTab] = useState("Dashboard");
 
-  const handleLogoutClick = () => {
-    handleLogout();
+  const handleLogoutClick = async () => {
+    await logout();
     navigate("/login");
   };
 

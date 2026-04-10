@@ -5,13 +5,11 @@ import Dashboard from "@pages/Dashboard/Dashboard";
 import { ProtectedRoute } from "@components/common/ProtectedRoute";
 
 export function AppRoutes() {
-  const { handleLoginSuccess } = useAuth();
-
   return (
     <Routes>
       <Route
         path="/login"
-        element={<Login onLoginSuccess={handleLoginSuccess} />}
+        element={<Login />}
       />
 
       <Route
@@ -23,7 +21,7 @@ export function AppRoutes() {
         }
       />
 
-      <Route path="*" element={<Navigate to="/welcome" replace />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }

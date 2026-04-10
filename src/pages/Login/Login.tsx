@@ -1,16 +1,14 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@hooks/useAuth";
 import Button from "@components/common/Button";
 import Toast from "@components/common/Toast";
 import "./Login.css";
 import backgroundImage from "@/assets/background-login.png";
 
-interface LoginProps {
-  onLoginSuccess: (token: string) => void;
-}
-
-export default function Login({ onLoginSuccess }: LoginProps) {
+export default function Login() {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -21,18 +19,12 @@ export default function Login({ onLoginSuccess }: LoginProps) {
     setLoading(true);
     setError(null);
 
-    // Simulando uma requisição de login
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-
-      if (email === "admin@koda.com" && password === "123456") {
-        onLoginSuccess("fake-jwt-token");
-        navigate("/");
-      } else {
-        throw new Error("E-mail ou senha incorretos.");
-      }
+      await login({ email, password });
+      navigate("/");
     } catch (err: any) {
-      setError(err.message || "Ocorreu um erro ao fazer login.");
+      const errorMessage = err.response?.data?.error || err.message || "Ocorreu um erro ao fazer login.";
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
