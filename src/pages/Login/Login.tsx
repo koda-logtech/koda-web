@@ -80,7 +80,7 @@ export default function Login() {
               aria-label="Alternar tema"
               title={theme === 'light' ? 'Ativar modo escuro' : 'Ativar modo claro'}
               onClick={() => toggleTheme()}
-              className="theme-toggle-btn"
+              className="theme-toggle-btn theme-toggle-floating"
             >
               {theme === 'light' ? (
                 // Moon icon
