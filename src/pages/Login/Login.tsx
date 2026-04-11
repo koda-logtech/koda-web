@@ -11,6 +11,7 @@ import { useTheme } from "@hooks/useTheme";
 export default function Login() {
   const navigate = useNavigate();
   const { login, isAuthenticated, isLoading } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
