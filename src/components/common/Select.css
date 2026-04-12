@@ -1,0 +1,203 @@
+.custom-select-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+  position: relative;
+}
+
+.select-custom-container {
+  position: relative;
+  width: 100%;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.select-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.2s ease;
+}
+
+/* Variant: Outlined */
+.select-custom-container.outlined {
+  background-color: var(--input-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+}
+
+.select-custom-container.outlined .select-trigger {
+  padding: 0.85rem 1rem;
+}
+
+.select-custom-container.outlined:hover {
+  border-color: var(--primary-color);
+  background-color: var(--card-bg);
+}
+
+.select-custom-container.outlined.is-open {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.15);
+  background-color: var(--card-bg);
+}
+
+/* Variant: Underlined */
+.select-custom-container.underlined {
+  border-bottom: 2px solid var(--border-color);
+  background-color: transparent;
+  border-radius: 0;
+}
+
+.select-custom-container.underlined .select-trigger {
+  padding: 0.5rem 0;
+}
+
+.select-custom-container.underlined:hover {
+  border-bottom-color: var(--primary-color);
+}
+
+.select-custom-container.underlined.is-open {
+  border-bottom-color: var(--primary-color);
+}
+
+/* Trigger Text */
+.trigger-text {
+  font-size: 1rem;
+  color: var(--text-color);
+  font-weight: 500;
+}
+
+.trigger-text.placeholder {
+  color: var(--text-secondary);
+  opacity: 0.6;
+}
+
+.select-arrow-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  transition: transform 0.3s ease;
+}
+
+.is-open .select-arrow-icon {
+  transform: rotate(180deg);
+  color: var(--primary-color);
+}
+
+/* Dropdown Menu */
+.select-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  width: 100%;
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  overflow: hidden;
+  animation: dropdownSlideIn 0.2s ease-out;
+  transform-origin: top;
+}
+
+@keyframes dropdownSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scaleY(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scaleY(1);
+  }
+}
+
+.select-options-list {
+  max-height: 250px;
+  overflow-y: auto;
+  padding: 6px;
+}
+
+.select-options-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.select-options-list::-webkit-scrollbar-thumb {
+  background-color: var(--border-color);
+  border-radius: 10px;
+}
+
+.select-option-item {
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.95rem;
+  color: var(--text-color);
+  transition: all 0.2s ease;
+  font-weight: 500;
+}
+
+.select-option-item:hover {
+  background-color: rgba(52, 152, 219, 0.1);
+  color: var(--primary-color);
+  padding-left: 1.25rem;
+}
+
+.select-option-item.selected {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.select-option-item.selected:hover {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.check-icon {
+  opacity: 0;
+  transform: scale(0.5);
+  transition: all 0.2s ease;
+}
+
+.select-option-item.selected .check-icon {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.select-no-options {
+  padding: 1rem;
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+/* Error State */
+.select-custom-container.has-error {
+  border-color: var(--tertiary-color);
+}
+
+.select-error-message {
+  font-size: 0.75rem;
+  color: var(--tertiary-color);
+  margin-top: 0.25rem;
+}
+
+/* Label Styles (Reuse existing Input styles if possible, but redefined for safety) */
+.select-label {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text-color);
+}
+
+.select-label-underlined {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--primary-color);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}

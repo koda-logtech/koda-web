@@ -1,0 +1,71 @@
+.input-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.input-label {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text-color);
+}
+
+.input-base {
+  width: 100%;
+  padding: 0.85rem;
+  font-size: 1rem;
+  background-color: transparent;
+  color: var(--text-color);
+  transition: all 0.2s ease;
+}
+
+.input-base::placeholder {
+  color: var(--text-secondary);
+  opacity: 0.5;
+}
+
+/* Variant: Outlined (Default) */
+.input-outlined {
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background-color: var(--input-bg);
+}
+
+.input-outlined:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  background-color: var(--card-bg);
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+/* Variant: Underlined */
+.input-underlined {
+  padding: 0.5rem 0;
+  border: none;
+  border-bottom: 2px solid var(--border-color);
+  border-radius: 0;
+}
+
+.input-underlined:focus {
+  outline: none;
+  border-bottom-color: var(--primary-color);
+}
+
+.input-label-underlined {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--primary-color);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.input-error {
+  border-color: var(--tertiary-color) !important;
+}
+
+.input-error-message {
+  font-size: 0.75rem;
+  color: var(--tertiary-color);
+  margin-top: 0.25rem;
+}
