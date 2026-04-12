@@ -4,6 +4,7 @@ import { useClientes, useCreateCliente } from "@controllers/clienteController";
 import Button from "@components/common/Button";
 import Loading from "@components/common/Loading";
 import Input from "@components/common/Input";
+import Select from "@components/common/Select";
 
 interface ClientesViewProps {
   onViewAll: () => void;
@@ -99,19 +100,17 @@ export default function ClientesView({ onViewAll }: ClientesViewProps) {
               value={formData.documento}
               onChange={handleInputChange}
             />
-            <div className="modern-form-group">
-              <label htmlFor="is_ativo" className="input-label-underlined">Status</label>
-              <select
-                id="is_ativo"
-                name="is_ativo"
-                className="input-base input-underlined"
-                value={formData.is_ativo ? "true" : "false"}
-                onChange={(e) => setFormData(prev => ({ ...prev, is_ativo: e.target.value === "true" }))}
-              >
-                <option value="true">Ativo</option>
-                <option value="false">Inativo</option>
-              </select>
-            </div>
+            <Select
+              label="Status"
+              variant="underlined"
+              name="is_ativo"
+              value={formData.is_ativo ? "true" : "false"}
+              onChange={(e) => setFormData(prev => ({ ...prev, is_ativo: e.target.value === "true" }))}
+              options={[
+                { value: "true", label: "Ativo" },
+                { value: "false", label: "Inativo" }
+              ]}
+            />
           </div>
 
           <Input

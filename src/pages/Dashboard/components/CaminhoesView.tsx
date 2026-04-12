@@ -5,6 +5,7 @@ import { useUsers } from "@controllers/userController";
 import Button from "@components/common/Button";
 import Loading from "@components/common/Loading";
 import Input from "@components/common/Input";
+import Select from "@components/common/Select";
 
 interface CaminhoesViewProps {
   onViewAll: () => void;
@@ -116,39 +117,33 @@ export default function CaminhoesView({ onViewAll }: CaminhoesViewProps) {
               onChange={handleInputChange}
               required
             />
-            <div className="modern-form-group">
-              <label htmlFor="status" className="input-label-underlined">Status Inicial</label>
-              <select
-                id="status"
-                name="status"
-                className="input-base input-underlined"
-                value={formData.status}
-                onChange={handleInputChange}
-              >
-                <option value="disponivel">Disponível</option>
-                <option value="em_rota">Em Rota</option>
-                <option value="manutencao">Manutenção</option>
-                <option value="inativo">Inativo</option>
-              </select>
-            </div>
+            <Select
+              label="Status Inicial"
+              variant="underlined"
+              name="status"
+              value={formData.status}
+              onChange={handleInputChange}
+              options={[
+                { value: "disponivel", label: "Disponível" },
+                { value: "em_rota", label: "Em Rota" },
+                { value: "manutencao", label: "Manutenção" },
+                { value: "inativo", label: "Inativo" }
+              ]}
+            />
           </div>
 
-          <div className="modern-form-group">
-            <label htmlFor="id_usuario" className="input-label-underlined">Motorista Responsável</label>
-            <select
-              id="id_usuario"
-              name="id_usuario"
-              className="input-base input-underlined"
-              value={formData.id_usuario}
-              onChange={handleInputChange}
-              required
-            >
-              <option value={0}>Selecione um motorista...</option>
-              {users.map((user: any) => (
-                <option key={user.id} value={user.id}>{user.name}</option>
-              ))}
-            </select>
-          </div>
+          <Select
+            label="Motorista Responsável"
+            variant="underlined"
+            name="id_usuario"
+            value={formData.id_usuario}
+            onChange={handleInputChange}
+            required
+            options={[
+              { value: 0, label: "Selecione um motorista..." },
+              ...users.map((user: any) => ({ value: user.id, label: user.name }))
+            ]}
+          />
 
           <div style={{ marginTop: '1rem' }}>
             <Button type="submit" variant="primary" size="medium">
