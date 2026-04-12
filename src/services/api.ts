@@ -1,7 +1,6 @@
-import axios from 'axios';
-import { storage } from '../utils/storage';
+import axios from "axios";
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001/api";
 
 export const api = axios.create({
   baseURL: API_URL,
@@ -21,9 +20,13 @@ api.interceptors.response.use(
 
       try {
         // Rota de refresh agora também usa cookies para enviar o refresh_token
-        await axios.post(`${API_URL}/users/refresh`, {}, {
-          withCredentials: true
-        });
+        await axios.post(
+          `${API_URL}/users/refresh`,
+          {},
+          {
+            withCredentials: true,
+          },
+        );
 
         // Se o refresh deu certo, o cookie access_token foi atualizado no browser.
         // Podemos apenas repetir a requisição original.
@@ -36,5 +39,5 @@ api.interceptors.response.use(
     }
 
     return Promise.reject(error);
-  }
+  },
 );

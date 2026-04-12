@@ -1,12 +1,15 @@
 import { useState } from "react";
 import { useUsers, useDeleteUser } from "@controllers/userController";
-import { useCaminhoes } from "@controllers/caminhaoController";
-import { useClientes } from "@controllers/clienteController";
-import { useArmazens } from "@controllers/armazemController";
+import { useCaminhoes, useDeleteCaminhao } from "@controllers/caminhaoController";
+import { useClientes, useDeleteCliente } from "@controllers/clienteController";
+import { useArmazens, useDeleteArmazem } from "@controllers/armazemController";
 
 import Button from "@components/common/Button";
 import Loading from "@components/common/Loading";
 import MotoristasView from "./MotoristasView";
+import CaminhoesView from "./CaminhoesView";
+import ClientesView from "./ClientesView";
+import ArmazensView from "./ArmazensView";
 import ConfirmModal from "@components/common/ConfirmModal";
 import "./Management.css";
 
@@ -15,6 +18,9 @@ type SubSection = "Motoristas" | "Caminhões" | "Clientes" | "Armazéns Parceiro
 export default function Management() {
   const [activeSubTab, setActiveSubTab] = useState<SubSection>("Motoristas");
   const [showFullMotoristas, setShowFullMotoristas] = useState(false);
+  const [showFullCaminhoes, setShowFullCaminhoes] = useState(false);
+  const [showFullClientes, setShowFullClientes] = useState(false);
+  const [showFullArmazens, setShowFullArmazens] = useState(false);
 
   // State for deletion
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -22,20 +28,28 @@ export default function Management() {
 
   // Queries (enabled per active tab)
   const { data: motoristas = [], isLoading: loadingMotoristas } = useUsers(1, 0, { enabled: activeSubTab === "Motoristas" && showFullMotoristas });
-  const { data: caminhoes = [], isLoading: loadingCaminhoes } = useCaminhoes({ enabled: activeSubTab === "Caminhões" });
-  const { data: clientes = [], isLoading: loadingClientes } = useClientes({ enabled: activeSubTab === "Clientes" });
-  const { data: armazens = [], isLoading: loadingArmazens } = useArmazens({ enabled: activeSubTab === "Armazéns Parceiros" });
+  const { data: caminhoes = [], isLoading: loadingCaminhoes } = useCaminhoes(1, 0, { enabled: activeSubTab === "Caminhões" && showFullCaminhoes });
+  const { data: clientes = [], isLoading: loadingClientes } = useClientes(1, 0, { enabled: activeSubTab === "Clientes" && showFullClientes });
+  const { data: armazens = [], isLoading: loadingArmazens } = useArmazens(1, 0, { enabled: activeSubTab === "Armazéns Parceiros" && showFullArmazens });
 
-  const loading = (activeSubTab === "Motoristas" && !showFullMotoristas)
+  const loading = (activeSubTab === "Motoristas" && !showFullMotoristas) || 
+                  (activeSubTab === "Caminhões" && !showFullCaminhoes) ||
+                  (activeSubTab === "Clientes" && !showFullClientes) ||
+                  (activeSubTab === "Armazéns Parceiros" && !showFullArmazens)
     ? false
     : (loadingMotoristas || loadingCaminhoes || loadingClientes || loadingArmazens);
 
   const deleteUser = useDeleteUser();
+  const deleteCaminhao = useDeleteCaminhao();
+  const deleteCliente = useDeleteCliente();
+  const deleteArmazem = useDeleteArmazem();
 
   const handleDeleteClick = (id: number, name: string) => {
     setEntityToDelete({ id, name });
     setIsDeleteModalOpen(true);
   };
+
+  const [searchTerm, setSearchTerm] = useState("");
 
   const confirmDelete = async () => {
     if (!entityToDelete) return;
@@ -43,6 +57,12 @@ export default function Management() {
     try {
       if (activeSubTab === "Motoristas") {
         await deleteUser.mutateAsync(entityToDelete.id);
+      } else if (activeSubTab === "Caminhões") {
+        await deleteCaminhao.mutateAsync(entityToDelete.id);
+      } else if (activeSubTab === "Clientes") {
+        await deleteCliente.mutateAsync(entityToDelete.id);
+      } else if (activeSubTab === "Armazéns Parceiros") {
+        await deleteArmazem.mutateAsync(entityToDelete.id);
       }
 
       setIsDeleteModalOpen(false);
@@ -54,59 +74,94 @@ export default function Management() {
   };
 
   const renderTable = () => {
-    if (loading && activeSubTab !== "Motoristas") return <Loading message={`Carregando ${activeSubTab}...`} />;
+    if (loading && 
+        activeSubTab !== "Motoristas" && 
+        activeSubTab !== "Caminhões" && 
+        activeSubTab !== "Clientes" &&
+        activeSubTab !== "Armazéns Parceiros") {
+      return <Loading message={`Carregando ${activeSubTab}...`} />;
+    }
+
+    const filteredData = (data: any[], key: string) => {
+      if (!searchTerm) return data;
+      return data.filter(item => 
+        item[key]?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    };
 
     switch (activeSubTab) {
       case "Motoristas":
         if (!showFullMotoristas) {
           return <MotoristasView onViewAll={() => setShowFullMotoristas(true)} />;
         }
+        const filteredMotoristas = filteredData(motoristas, "name");
         return (
           <div className="table-container">
-            <div style={{ padding: '1rem', display: 'flex', justifyContent: 'flex-end' }}>
-              <Button variant="secondary" size="small" onClick={() => setShowFullMotoristas(false)}>
-                ← Voltar para Cadastro
-              </Button>
+            <div className="table-header-modern">
+              <div className="table-header-left">
+                <Button variant="primary" size="small" onClick={() => { setShowFullMotoristas(false); setSearchTerm(""); }}>
+                  ← Voltar
+                </Button>
+                <h3 className="table-title">Listagem de Motoristas</h3>
+              </div>
+              <div className="table-search-wrapper">
+                <svg className="search-icon-fixed" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <input 
+                  type="text" 
+                  placeholder="Pesquisar por nome..." 
+                  className="table-search-input"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
             </div>
             <table className="data-table">
               <thead>
                 <tr>
-                  <th>Nome</th>
-                  <th>Email</th>
-                  <th>Telefone</th>
-                  <th>Cargo</th>
-                  <th>Status</th>
+                  <th>Motorista</th>
+                  <th>Contato</th>
+                  <th>Cargo / Status</th>
                   <th style={{ textAlign: 'right' }}>Ações</th>
                 </tr>
               </thead>
               <tbody>
-                {motoristas.map((m: any) => (
+                {filteredMotoristas.map((m: any) => (
                   <tr key={m.id}>
-                    <td>{m.name}</td>
-                    <td>{m.email}</td>
-                    <td>{m.phone || "-"}</td>
-                    <td>{m.role}</td>
                     <td>
-                      <span className={`status-badge ${m.is_active ? "active" : "inactive"}`}>
-                        {m.is_active ? "Ativo" : "Inativo"}
-                      </span>
+                      <span className="cell-main-text">{m.name}</span>
+                      <span className="cell-sub-text">ID: #{m.id}</span>
+                    </td>
+                    <td>
+                      <span className="cell-main-text">{m.email}</span>
+                      <span className="cell-sub-text">{m.phone || "Sem telefone"}</span>
+                    </td>
+                    <td>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <span className="cell-main-text" style={{ fontSize: '0.85rem' }}>{m.role}</span>
+                        <span className={`status-badge ${m.is_active ? "active" : "inactive"}`}>
+                          {m.is_active ? "Ativo" : "Inativo"}
+                        </span>
+                      </div>
                     </td>
                     <td>
                       <div className="table-actions">
+                        <button className="btn-icon-action" title="Editar">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                        </button>
                         <button 
-                          className="btn-icon-danger" 
+                          className="btn-icon-action danger" 
                           title="Excluir"
                           onClick={() => handleDeleteClick(m.id, m.name)}
                         >
-                          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
                         </button>
                       </div>
                     </td>
                   </tr>
                 ))}
-                {motoristas.length === 0 && (
+                {filteredMotoristas.length === 0 && (
                   <tr>
-                    <td colSpan={6} style={{ textAlign: "center" }}>Nenhum motorista encontrado.</td>
+                    <td colSpan={4} style={{ textAlign: "center", padding: '3rem', color: '#999' }}>Nenhum motorista encontrado.</td>
                   </tr>
                 )}
               </tbody>
@@ -114,35 +169,74 @@ export default function Management() {
           </div>
         );
       case "Caminhões":
+        if (!showFullCaminhoes) {
+          return <CaminhoesView onViewAll={() => setShowFullCaminhoes(true)} />;
+        }
+        const filteredCaminhoes = filteredData(caminhoes, "placa");
         return (
           <div className="table-container">
+            <div className="table-header-modern">
+              <div className="table-header-left">
+                <Button variant="primary" size="small" onClick={() => { setShowFullCaminhoes(false); setSearchTerm(""); }}>
+                                  ← Voltar
+                                </Button>
+                <h3 className="table-title">Gestão de Frota</h3>
+              </div>
+              <div className="table-search-wrapper">
+                <svg className="search-icon-fixed" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <input 
+                  type="text" 
+                  placeholder="Pesquisar por placa..." 
+                  className="table-search-input"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+            </div>
             <table className="data-table">
               <thead>
                 <tr>
-                  <th>Placa</th>
-                  <th>Modelo</th>
-                  <th>Marca</th>
-                  <th>Ano</th>
+                  <th>Veículo</th>
+                  <th>Especificações</th>
                   <th>Status</th>
+                  <th style={{ textAlign: 'right' }}>Ações</th>
                 </tr>
               </thead>
               <tbody>
-                {caminhoes.map((c: any) => (
+                {filteredCaminhoes.map((c: any) => (
                   <tr key={c.id}>
-                    <td>{c.placa}</td>
-                    <td>{c.modelo}</td>
-                    <td>{c.marca}</td>
-                    <td>{c.ano}</td>
+                    <td>
+                      <span className="cell-main-text">{c.placa}</span>
+                      <span className="cell-sub-text">{c.modelo}</span>
+                    </td>
+                    <td>
+                      <span className="cell-main-text">{c.marca}</span>
+                      <span className="cell-sub-text">Ano: {c.ano}</span>
+                    </td>
                     <td>
                       <span className={`status-badge ${c.status}`}>
                         {c.status.replace("_", " ")}
                       </span>
                     </td>
+                    <td>
+                      <div className="table-actions">
+                        <button className="btn-icon-action" title="Histórico">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </button>
+                        <button 
+                          className="btn-icon-action danger" 
+                          title="Excluir"
+                          onClick={() => handleDeleteClick(c.id, c.placa)}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                        </button>
+                      </div>
+                    </td>
                   </tr>
                 ))}
-                {caminhoes.length === 0 && (
+                {filteredCaminhoes.length === 0 && (
                   <tr>
-                    <td colSpan={5} style={{ textAlign: "center" }}>Nenhum caminhão encontrado.</td>
+                    <td colSpan={4} style={{ textAlign: "center", padding: '3rem', color: '#999' }}>Nenhum caminhão encontrado.</td>
                   </tr>
                 )}
               </tbody>
@@ -150,35 +244,74 @@ export default function Management() {
           </div>
         );
       case "Clientes":
+        if (!showFullClientes) {
+          return <ClientesView onViewAll={() => setShowFullClientes(true)} />;
+        }
+        const filteredClientes = filteredData(clientes, "nome");
         return (
           <div className="table-container">
+            <div className="table-header-modern">
+              <div className="table-header-left">
+                <Button variant="primary" size="small" onClick={() => { setShowFullClientes(false); setSearchTerm(""); }}>
+                  ← Voltar
+                </Button>
+                <h3 className="table-title">Base de Clientes</h3>
+              </div>
+              <div className="table-search-wrapper">
+                <svg className="search-icon-fixed" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <input 
+                  type="text" 
+                  placeholder="Pesquisar por nome..." 
+                  className="table-search-input"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+            </div>
             <table className="data-table">
               <thead>
                 <tr>
-                  <th>Nome</th>
-                  <th>Email</th>
-                  <th>Telefone</th>
-                  <th>Documento</th>
+                  <th>Cliente</th>
+                  <th>Contato / Documento</th>
                   <th>Status</th>
+                  <th style={{ textAlign: 'right' }}>Ações</th>
                 </tr>
               </thead>
               <tbody>
-                {clientes.map((cl: any) => (
+                {filteredClientes.map((cl: any) => (
                   <tr key={cl.id}>
-                    <td>{cl.nome}</td>
-                    <td>{cl.email || "-"}</td>
-                    <td>{cl.telefone || "-"}</td>
-                    <td>{cl.documento || "-"}</td>
+                    <td>
+                      <span className="cell-main-text">{cl.nome}</span>
+                      <span className="cell-sub-text">{cl.endereco || "Endereço não informado"}</span>
+                    </td>
+                    <td>
+                      <span className="cell-main-text">{cl.email || "Sem email"}</span>
+                      <span className="cell-sub-text">DOC: {cl.documento || "-"}</span>
+                    </td>
                     <td>
                       <span className={`status-badge ${cl.is_ativo ? "active" : "inactive"}`}>
                         {cl.is_ativo ? "Ativo" : "Inativo"}
                       </span>
                     </td>
+                    <td>
+                      <div className="table-actions">
+                        <button className="btn-icon-action" title="Mapa">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                        </button>
+                        <button 
+                          className="btn-icon-action danger" 
+                          title="Excluir"
+                          onClick={() => handleDeleteClick(cl.id, cl.nome)}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                        </button>
+                      </div>
+                    </td>
                   </tr>
                 ))}
-                {clientes.length === 0 && (
+                {filteredClientes.length === 0 && (
                   <tr>
-                    <td colSpan={5} style={{ textAlign: "center" }}>Nenhum cliente encontrado.</td>
+                    <td colSpan={4} style={{ textAlign: "center", padding: '3rem', color: '#999' }}>Nenhum cliente encontrado.</td>
                   </tr>
                 )}
               </tbody>
@@ -186,35 +319,74 @@ export default function Management() {
           </div>
         );
       case "Armazéns Parceiros":
+        if (!showFullArmazens) {
+          return <ArmazensView onViewAll={() => setShowFullArmazens(true)} />;
+        }
+        const filteredArmazens = filteredData(armazens, "nome");
         return (
           <div className="table-container">
+            <div className="table-header-modern">
+              <div className="table-header-left">
+                <Button variant="primary" size="small" onClick={() => { setShowFullArmazens(false); setSearchTerm(""); }}>
+                  ← Voltar
+                </Button>
+                <h3 className="table-title">Rede de Armazéns</h3>
+              </div>
+              <div className="table-search-wrapper">
+                <svg className="search-icon-fixed" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <input 
+                  type="text" 
+                  placeholder="Pesquisar por nome..." 
+                  className="table-search-input"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+            </div>
             <table className="data-table">
               <thead>
                 <tr>
-                  <th>Nome</th>
-                  <th>Telefone</th>
-                  <th>Email</th>
-                  <th>Capacidade (kg)</th>
+                  <th>Unidade</th>
+                  <th>Contato / Capacidade</th>
                   <th>Status</th>
+                  <th style={{ textAlign: 'right' }}>Ações</th>
                 </tr>
               </thead>
               <tbody>
-                {armazens.map((a: any) => (
+                {filteredArmazens.map((a: any) => (
                   <tr key={a.id}>
-                    <td>{a.nome}</td>
-                    <td>{a.telefone || "-"}</td>
-                    <td>{a.email || "-"}</td>
-                    <td>{a.capacidade_kg || "-"}</td>
+                    <td>
+                      <span className="cell-main-text">{a.nome}</span>
+                      <span className="cell-sub-text">{a.endereco || "Localização não definida"}</span>
+                    </td>
+                    <td>
+                      <span className="cell-main-text">{a.email || a.telefone || "Sem contato"}</span>
+                      <span className="cell-sub-text">Capacidade: {a.capacidade_kg}kg</span>
+                    </td>
                     <td>
                       <span className={`status-badge ${a.is_ativo ? "active" : "inactive"}`}>
                         {a.is_ativo ? "Ativo" : "Inativo"}
                       </span>
                     </td>
+                    <td>
+                      <div className="table-actions">
+                        <button className="btn-icon-action" title="Detalhes">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                        </button>
+                        <button 
+                          className="btn-icon-action danger" 
+                          title="Excluir"
+                          onClick={() => handleDeleteClick(a.id, a.nome)}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                        </button>
+                      </div>
+                    </td>
                   </tr>
                 ))}
-                {armazens.length === 0 && (
+                {filteredArmazens.length === 0 && (
                   <tr>
-                    <td colSpan={5} style={{ textAlign: "center" }}>Nenhum armazém encontrado.</td>
+                    <td colSpan={4} style={{ textAlign: "center", padding: '3rem', color: '#999' }}>Nenhum armazém encontrado.</td>
                   </tr>
                 )}
               </tbody>
@@ -237,6 +409,9 @@ export default function Management() {
                 onClick={() => {
                   setActiveSubTab(tab);
                   if (tab !== "Motoristas") setShowFullMotoristas(false);
+                  if (tab !== "Caminhões") setShowFullCaminhoes(false);
+                  if (tab !== "Clientes") setShowFullClientes(false);
+                  if (tab !== "Armazéns Parceiros") setShowFullArmazens(false);
                 }}
               >
                 {tab}
@@ -268,7 +443,7 @@ export default function Management() {
         onClose={() => setIsDeleteModalOpen(false)}
         onConfirm={confirmDelete}
         title="Confirmar Exclusão"
-        message={`Tem certeza que deseja excluir o motorista "${entityToDelete?.name}"? Esta ação não pode ser desfeita.`}
+        message={`Tem certeza que deseja excluir "${entityToDelete?.name}"? Esta ação não pode ser desfeita.`}
       />
     </div>
   );
