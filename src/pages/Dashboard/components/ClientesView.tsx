@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useClientes, useCreateCliente } from "@controllers/clienteController";
+import { useToast } from "@/contexts/ToastContext";
 
 import Button from "@components/common/Button";
 import Loading from "@components/common/Loading";
@@ -11,6 +12,7 @@ interface ClientesViewProps {
 }
 
 export default function ClientesView({ onViewAll }: ClientesViewProps) {
+  const { addToast } = useToast();
   const [formData, setFormData] = useState({
     nome: "",
     email: "",
@@ -38,7 +40,7 @@ export default function ClientesView({ onViewAll }: ClientesViewProps) {
     e.preventDefault();
     try {
       await createCliente.mutateAsync(formData);
-      alert("Cliente cadastrado com sucesso!");
+      addToast({ message: "Cliente cadastrado com sucesso!", type: "success" });
       setFormData({
         nome: "",
         email: "",
@@ -51,7 +53,7 @@ export default function ClientesView({ onViewAll }: ClientesViewProps) {
       });
     } catch (error) {
       console.error("Erro ao cadastrar cliente:", error);
-      alert("Erro ao cadastrar cliente.");
+      addToast({ message: "Erro ao cadastrar cliente.", type: "error" });
     }
   };
 

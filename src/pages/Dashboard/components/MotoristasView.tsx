@@ -1,5 +1,6 @@
 import { useState, useRef } from "react";
 import { useUsers, useCreateUser } from "@controllers/userController";
+import { useToast } from "@/contexts/ToastContext";
 
 import Button from "@components/common/Button";
 import Loading from "@components/common/Loading";
@@ -13,6 +14,7 @@ interface MotoristasViewProps {
 export default function MotoristasView({ onViewAll }: MotoristasViewProps) {
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { addToast } = useToast();
 
   const [formData, setFormData] = useState({
     name: "",
@@ -58,7 +60,7 @@ export default function MotoristasView({ onViewAll }: MotoristasViewProps) {
     e.preventDefault();
     try {
       await createUser.mutateAsync(formData);
-      alert("Motorista cadastrado com sucesso!");
+      addToast({ message: "Motorista cadastrado com sucesso!", type: "success" });
       setFormData({
         name: "",
         email: "",
@@ -71,7 +73,7 @@ export default function MotoristasView({ onViewAll }: MotoristasViewProps) {
       setAvatarPreview(null);
     } catch (error) {
       console.error("Erro ao cadastrar motorista:", error);
-      alert("Erro ao cadastrar motorista.");
+      addToast({ message: "Erro ao cadastrar motorista.", type: "error" });
     }
   };
 

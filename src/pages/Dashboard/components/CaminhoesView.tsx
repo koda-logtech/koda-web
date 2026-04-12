@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useCaminhoes, useCreateCaminhao } from "@controllers/caminhaoController";
 import { useUsers } from "@controllers/userController";
+import { useToast } from "@/contexts/ToastContext";
 
 import Button from "@components/common/Button";
 import Loading from "@components/common/Loading";
@@ -12,6 +13,7 @@ interface CaminhoesViewProps {
 }
 
 export default function CaminhoesView({ onViewAll }: CaminhoesViewProps) {
+  const { addToast } = useToast();
   const [formData, setFormData] = useState({
     placa: "",
     modelo: "",
@@ -38,12 +40,12 @@ export default function CaminhoesView({ onViewAll }: CaminhoesViewProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (formData.id_usuario === 0) {
-      alert("Por favor, selecione um motorista responsável.");
+      addToast({ message: "Por favor, selecione um motorista responsável.", type: "info" });
       return;
     }
     try {
       await createCaminhao.mutateAsync(formData);
-      alert("Caminhão cadastrado com sucesso!");
+      addToast({ message: "Caminhão cadastrado com sucesso!", type: "success" });
       setFormData({
         placa: "",
         modelo: "",
@@ -55,7 +57,7 @@ export default function CaminhoesView({ onViewAll }: CaminhoesViewProps) {
       });
     } catch (error) {
       console.error("Erro ao cadastrar caminhão:", error);
-      alert("Erro ao cadastrar caminhão.");
+      addToast({ message: "Erro ao cadastrar caminhão.", type: "error" });
     }
   };
 

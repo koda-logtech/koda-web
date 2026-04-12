@@ -13,6 +13,8 @@ import ArmazensView from "./ArmazensView";
 import ConfirmModal from "@components/common/ConfirmModal";
 import "./Management.css";
 
+import { useToast } from "@/contexts/ToastContext";
+
 type SubSection = "Motoristas" | "Caminhões" | "Clientes" | "Armazéns Parceiros";
 
 export default function Management() {
@@ -21,6 +23,7 @@ export default function Management() {
   const [showFullCaminhoes, setShowFullCaminhoes] = useState(false);
   const [showFullClientes, setShowFullClientes] = useState(false);
   const [showFullArmazens, setShowFullArmazens] = useState(false);
+  const { addToast } = useToast();
 
   // State for deletion
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -65,11 +68,12 @@ export default function Management() {
         await deleteArmazem.mutateAsync(entityToDelete.id);
       }
 
+      addToast({ message: "Excluído com sucesso!", type: "success" });
       setIsDeleteModalOpen(false);
       setEntityToDelete(null);
     } catch (error) {
       console.error("Erro ao deletar entidade:", error);
-      alert("Erro ao excluir. Tente novamente.");
+      addToast({ message: "Erro ao excluir. Tente novamente.", type: "error" });
     }
   };
 

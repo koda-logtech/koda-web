@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useArmazens, useCreateArmazem } from "@controllers/armazemController";
+import { useToast } from "@/contexts/ToastContext";
 
 import Button from "@components/common/Button";
 import Loading from "@components/common/Loading";
@@ -11,6 +12,7 @@ interface ArmazensViewProps {
 }
 
 export default function ArmazensView({ onViewAll }: ArmazensViewProps) {
+  const { addToast } = useToast();
   const [formData, setFormData] = useState({
     nome: "",
     endereco: "",
@@ -38,7 +40,7 @@ export default function ArmazensView({ onViewAll }: ArmazensViewProps) {
     e.preventDefault();
     try {
       await createArmazem.mutateAsync(formData);
-      alert("Armazém cadastrado com sucesso!");
+      addToast({ message: "Armazém cadastrado com sucesso!", type: "success" });
       setFormData({
         nome: "",
         endereco: "",
@@ -51,7 +53,7 @@ export default function ArmazensView({ onViewAll }: ArmazensViewProps) {
       });
     } catch (error) {
       console.error("Erro ao cadastrar armazém:", error);
-      alert("Erro ao cadastrar armazém.");
+      addToast({ message: "Erro ao cadastrar armazém.", type: "error" });
     }
   };
 
