@@ -1,15 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import ContentHeader from "./ContentHeader";
-import TripCreateModal from "./TripCreateModal";
+import CargaCreateModal from "./CargaCreateModal";
 import Button from "@components/common/Button";
-import Select from "@components/common/Select";
 import Loading from "@components/common/Loading";
-import { useUsers } from "@controllers/userController";
-import { useEntregasCompleto, useDeleteEntrega } from "@controllers/entregaController";
-import type { User } from "@/types/models";
-import type { EntregaCompleta } from "@/types/models";
 import ConfirmModal from "@components/common/ConfirmModal";
+import { useCaminhoes } from "@controllers/caminhaoController";
+import { useCargas, useDeleteCarga } from "@controllers/cargaController";
 import { useToast } from "@/contexts/ToastContext";
+import type { CaminhaoCompleto, Carga } from "@/types/models";
 
 import "./Management.css";
 import "./Trips.css";
@@ -23,7 +21,6 @@ function parseTemp(v: number | string | null | undefined): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
-/** Vermelho fora do intervalo; amarelo próximo dos limites (15% da faixa válida). */
 function tempKind(
   atual: number | null,
   min: number | null,
@@ -43,112 +40,48 @@ function formatTempDisplay(n: number): string {
   return `${Number.isInteger(n) ? String(n) : n.toFixed(1)}°C`;
 }
 
-const ENTREGA_STATUS_OPTIONS = [
-  { value: "all", label: "Todos os status" },
-  { value: "pendente", label: "Pendente" },
-  { value: "em_transito", label: "Em trânsito" },
-  { value: "no_armazem", label: "No armazém" },
-  { value: "entregue", label: "Entregue" },
-  { value: "cancelada", label: "Cancelada" },
-];
-
-function labelEntregaStatus(status: string): string {
-  const map: Record<string, string> = {
-    pendente: "Pendente",
-    em_transito: "Em trânsito",
-    no_armazem: "No armazém",
-    entregue: "Entregue",
-    cancelada: "Cancelada",
-  };
-  return map[status] ?? status;
-}
-
-function initials(nome: string): string {
-  const safe = nome.trim() || "?";
-  const p = safe.split(/\s+/).slice(0, 2);
-  return p.map((w) => w[0]).join("").toUpperCase().slice(0, 2);
-}
-
-const STATUS_ATIVOS = new Set(["pendente", "em_transito", "no_armazem"]);
-
-export default function Trips() {
+export default function Cargas() {
   const { addToast } = useToast();
-  const { data: entregasRaw = [], isLoading } = useEntregasCompleto(1, FETCH_LIMIT);
-  const deleteEntrega = useDeleteEntrega();
+  const { data: cargasRaw = [], isLoading } = useCargas(1, FETCH_LIMIT);
+  const { data: caminhoesRaw = [] } = useCaminhoes(1, FETCH_LIMIT);
+  const deleteCarga = useDeleteCarga();
 
-  const entregas = entregasRaw as EntregaCompleta[];
+  const cargas = cargasRaw as Carga[];
+  const caminhoes = caminhoesRaw as CaminhaoCompleto[];
+
+  const truckByCargaId = useMemo(() => {
+    const m = new Map<number, CaminhaoCompleto>();
+    for (const t of caminhoes) {
+      if (t.id_carga != null && t.id_carga > 0) {
+        m.set(t.id_carga, t);
+      }
+    }
+    return m;
+  }, [caminhoes]);
 
   const [search, setSearch] = useState("");
-  const [motoristaId, setMotoristaId] = useState(0);
-  const [statusFilter, setStatusFilter] = useState<string>("all");
   const [page, setPage] = useState(1);
   const [createOpen, setCreateOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [viagemToDelete, setViagemToDelete] = useState<{
-    id: number;
-    label: string;
-  } | null>(null);
+  const [cargaToDelete, setCargaToDelete] = useState<{ id: number; label: string } | null>(null);
 
-  const { data: users = [] } = useUsers(1, 200);
-  const drivers = useMemo(
-    () => (users as User[]).filter((u) => u.role === "driver"),
-    [users],
-  );
-
-  const viagensAtivas = useMemo(
-    () => entregas.filter((r) => STATUS_ATIVOS.has(r.status)).length,
-    [entregas],
-  );
+  const totalCadastradas = cargas.length;
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    const motoristaNome =
-      motoristaId !== 0
-        ? drivers.find((d) => Number(d.id) === motoristaId)?.name?.trim().toLowerCase()
-        : null;
-
-    return entregas.filter((row) => {
-      if (motoristaNome) {
-        const rowNome = row.nome_motorista?.trim().toLowerCase() ?? "";
-        if (rowNome !== motoristaNome) return false;
-      }
-      if (statusFilter !== "all" && row.status !== statusFilter) return false;
-      if (q) {
-        const hay = [
-          row.placa_caminhao,
-          row.nome_cliente,
-          row.endereco_cliente,
-          row.nome_motorista,
-        ]
-          .filter(Boolean)
-          .join(" ")
-          .toLowerCase();
-        if (!hay.includes(q)) return false;
-      }
-      return true;
+    return cargas.filter((row) => {
+      if (!q) return true;
+      const truck = truckByCargaId.get(row.id);
+      const placa = truck?.placa?.trim().toLowerCase() ?? "";
+      const tipo = row.tipo?.trim().toLowerCase() ?? "";
+      const hay = `${tipo} ${placa}`;
+      return hay.includes(q);
     });
-  }, [entregas, search, motoristaId, statusFilter, drivers]);
-
-  const handleDeleteClick = (id: number, label: string) => {
-    setViagemToDelete({ id, label });
-    setDeleteModalOpen(true);
-  };
-
-  const confirmDelete = async () => {
-    if (!viagemToDelete) return;
-    try {
-      await deleteEntrega.mutateAsync(viagemToDelete.id);
-      addToast({ message: "Entrega excluída com sucesso.", type: "success" });
-      setDeleteModalOpen(false);
-      setViagemToDelete(null);
-    } catch {
-      addToast({ message: "Não foi possível excluir.", type: "error" });
-    }
-  };
+  }, [cargas, search, truckByCargaId]);
 
   useEffect(() => {
     setPage(1);
-  }, [search, motoristaId, statusFilter]);
+  }, [search]);
 
   const total = filtered.length;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
@@ -157,36 +90,41 @@ export default function Trips() {
   const pageRows = filtered.slice(sliceFrom, sliceFrom + PAGE_SIZE);
   const rangeEnd = total === 0 ? 0 : Math.min(sliceFrom + PAGE_SIZE, total);
 
-  const handleMotoristaChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
-  ) => {
-    setMotoristaId(Number(e.target.value));
-  };
-
-  const handleStatusChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
-  ) => {
-    setStatusFilter(String(e.target.value));
-  };
-
   const pageNumbers = useMemo(() => {
     const maxBtns = 5;
     let start = Math.max(1, safePage - Math.floor(maxBtns / 2));
-    let end = Math.min(totalPages, start + maxBtns - 1);
+    const end = Math.min(totalPages, start + maxBtns - 1);
     start = Math.max(1, end - maxBtns + 1);
     const nums: number[] = [];
     for (let i = start; i <= end; i++) nums.push(i);
     return nums;
   }, [safePage, totalPages]);
 
+  const handleDeleteClick = (id: number, label: string) => {
+    setCargaToDelete({ id, label });
+    setDeleteModalOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!cargaToDelete) return;
+    try {
+      await deleteCarga.mutateAsync(cargaToDelete.id);
+      addToast({ message: "Carga excluída com sucesso.", type: "success" });
+      setDeleteModalOpen(false);
+      setCargaToDelete(null);
+    } catch {
+      addToast({ message: "Não foi possível excluir a carga.", type: "error" });
+    }
+  };
+
   return (
     <div className="dashboard-page trips-page">
       <ContentHeader
-        title="Viagens"
-        subtitle="Gerencie e acompanhe as viagens da operação."
+        title="Cargas"
+        subtitle="Gerencie e acompanhe as cargas da operação."
         actions={
           <Button variant="primary" size="small" onClick={() => setCreateOpen(true)}>
-            + Nova viagem
+            + Nova carga
           </Button>
         }
       />
@@ -214,98 +152,61 @@ export default function Trips() {
               <input
                 type="search"
                 className="trips-search-input"
-                placeholder="Cliente, endereço, placa ou motorista..."
+                placeholder="Tipo ou placa do veículo..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                aria-label="Busca geral"
-              />
-            </div>
-
-            <div className="trips-filter-row">
-              <Select
-                label="Motorista"
-                variant="underlined"
-                name="motoristaId"
-                value={motoristaId}
-                onChange={handleMotoristaChange}
-                options={[
-                  { value: 0, label: "Todos os motoristas" },
-                  ...drivers.map((d) => ({
-                    value: Number(d.id),
-                    label: d.name,
-                  })),
-                ]}
-              />
-              <Select
-                label="Status"
-                variant="underlined"
-                name="status"
-                value={statusFilter}
-                onChange={handleStatusChange}
-                options={ENTREGA_STATUS_OPTIONS}
+                aria-label="Busca"
               />
             </div>
           </div>
 
           <aside className="trips-metric-card">
-            <span className="trips-metric-label">Viagens ativas</span>
-            <span className="trips-metric-value">{viagensAtivas}</span>
-            <span className="trips-metric-hint">Pendente, em trânsito ou no armazém</span>
+            <span className="trips-metric-label">Cargas cadastradas</span>
+            <span className="trips-metric-value">{totalCadastradas}</span>
+            <span className="trips-metric-hint">Total no sistema</span>
           </aside>
         </section>
 
         <div className="table-container">
           {isLoading ? (
-            <Loading message="Carregando entregas..." />
+            <Loading message="Carregando cargas..." />
           ) : (
             <>
               <table className="data-table">
                 <thead>
                   <tr>
-                    <th>Motorista</th>
+                    <th>Tipo</th>
                     <th>Veículo</th>
-                    <th>Destino</th>
-                    <th>Status</th>
-                    <th>Temp. atual</th>
+                    <th>Faixa °C</th>
+                    <th>Atual</th>
+                    <th>Localização</th>
                     <th style={{ textAlign: "right" }}>Ações</th>
                   </tr>
                 </thead>
                 <tbody>
                   {pageRows.map((row) => {
+                    const truck = truckByCargaId.get(row.id);
+                    const placa = truck?.placa?.trim() ? truck.placa : "—";
                     const tAtual = parseTemp(row.temperatura_atual);
                     const tMin = parseTemp(row.temperatura_minima);
                     const tMax = parseTemp(row.temperatura_maxima);
                     const tk = tempKind(tAtual, tMin, tMax);
-                    const nomeMot = row.nome_motorista?.trim() ? row.nome_motorista : "—";
-                    const placa = row.placa_caminhao?.trim() ? row.placa_caminhao : "—";
-                    const cliente = row.nome_cliente?.trim() ? row.nome_cliente : "—";
-                    const endereco = row.endereco_cliente?.trim()
-                      ? row.endereco_cliente
-                      : "Sem endereço";
+                    const tipo = row.tipo?.trim() ? row.tipo : "—";
+                    const faixa =
+                      tMin !== null && tMax !== null
+                        ? `${formatTempDisplay(tMin)} a ${formatTempDisplay(tMax)}`
+                        : "—";
 
                     return (
                       <tr key={row.id}>
                         <td>
-                          <div className="trips-motorista-cell">
-                            <span className="trips-motorista-avatar" aria-hidden>
-                              {initials(nomeMot)}
-                            </span>
-                            <span className="cell-main-text">{nomeMot}</span>
-                          </div>
+                          <span className="cell-main-text">{tipo}</span>
                         </td>
                         <td>
                           <span className="trips-placa-pill">{placa}</span>
                         </td>
                         <td>
-                          <span className="cell-main-text">{cliente}</span>
-                          <span className="cell-sub-text">{endereco}</span>
-                        </td>
-                        <td>
-                          <span
-                            className={`status-badge trips-entrega-status trips-entrega-${row.status}`}
-                          >
-                            {labelEntregaStatus(row.status)}
-                          </span>
+                          <span className="cell-sub-text">{faixa}</span>
                         </td>
                         <td>
                           {tAtual === null ? (
@@ -323,6 +224,13 @@ export default function Trips() {
                               {formatTempDisplay(tAtual)}
                             </span>
                           )}
+                        </td>
+                        <td>
+                          <span className="cell-sub-text">
+                            {Number.isFinite(row.latitude) && Number.isFinite(row.longitude)
+                              ? `${row.latitude.toFixed(4)}, ${row.longitude.toFixed(4)}`
+                              : "—"}
+                          </span>
                         </td>
                         <td>
                           <div className="table-actions">
@@ -346,12 +254,7 @@ export default function Trips() {
                               type="button"
                               className="btn-icon-action danger"
                               title="Excluir"
-                              onClick={() =>
-                                handleDeleteClick(
-                                  row.id,
-                                  `${cliente} · ${placa}`,
-                                )
-                              }
+                              onClick={() => handleDeleteClick(row.id, tipo)}
                             >
                               <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -385,7 +288,7 @@ export default function Trips() {
                           color: "var(--text-secondary)",
                         }}
                       >
-                        Nenhuma entrega encontrada com os filtros atuais.
+                        Nenhuma carga encontrada com os filtros atuais.
                       </td>
                     </tr>
                   )}
@@ -436,17 +339,17 @@ export default function Trips() {
         </div>
       </div>
 
-      <TripCreateModal isOpen={createOpen} onClose={() => setCreateOpen(false)} />
+      <CargaCreateModal isOpen={createOpen} onClose={() => setCreateOpen(false)} />
 
       <ConfirmModal
         isOpen={deleteModalOpen}
         onClose={() => {
           setDeleteModalOpen(false);
-          setViagemToDelete(null);
+          setCargaToDelete(null);
         }}
         onConfirm={confirmDelete}
         title="Confirmar exclusão"
-        message={`Deseja excluir a entrega "${viagemToDelete?.label}"? Esta ação não pode ser desfeita.`}
+        message={`Deseja excluir a carga "${cargaToDelete?.label}"? Esta ação não pode ser desfeita.`}
       />
     </div>
   );

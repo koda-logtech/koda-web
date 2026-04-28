@@ -1,0 +1,328 @@
+/* Viagens — toolbar distinta da Gestão; tabela reutiliza classes do Management.css */
+
+.trips-page .page-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.trips-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 1.25rem;
+  padding: 1.25rem 1.5rem;
+  background: var(--sidebar-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+}
+
+.trips-toolbar-fields {
+  flex: 1;
+  min-width: 240px;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.trips-search-row {
+  position: relative;
+  width: 100%;
+}
+
+.trips-search-row .trips-search-icon {
+  position: absolute;
+  left: 0.85rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-secondary);
+  opacity: 0.65;
+  pointer-events: none;
+}
+
+.trips-search-input {
+  width: 100%;
+  padding: 0.65rem 1rem 0.65rem 2.65rem;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background: var(--card-bg);
+  color: var(--text-color);
+  font-size: 0.95rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.trips-search-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.12);
+}
+
+.trips-filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: flex-end;
+}
+
+.trips-filter-row .input-wrapper {
+  flex: 1;
+  min-width: 180px;
+}
+
+.trips-metric-card {
+  flex-shrink: 0;
+  min-width: 168px;
+  padding: 1.1rem 1.25rem;
+  border-radius: 10px;
+  background: var(--secondary-color);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.35rem;
+}
+
+.trips-metric-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+
+.trips-metric-value {
+  font-size: 1.85rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.trips-metric-hint {
+  font-size: 0.8rem;
+  opacity: 0.75;
+}
+
+.trips-placa-pill {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  background: var(--bg-color);
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+}
+
+.trips-motorista-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--bg-color);
+  border: 1px solid var(--border-color);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--primary-color);
+  flex-shrink: 0;
+}
+
+.trips-motorista-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+/* Status da entrega (API) */
+.trips-entrega-pendente {
+  background: rgba(52, 152, 219, 0.12) !important;
+  color: var(--primary-color) !important;
+}
+
+.trips-entrega-em_transito {
+  background: var(--secondary-color) !important;
+  color: #fff !important;
+}
+
+.trips-entrega-no_armazem {
+  background: rgba(241, 196, 15, 0.18) !important;
+  color: #9a7b0a !important;
+}
+
+.trips-entrega-entregue {
+  background: rgba(46, 125, 50, 0.14) !important;
+  color: #2e7d32 !important;
+}
+
+.trips-entrega-cancelada {
+  background: rgba(231, 76, 60, 0.12) !important;
+  color: #c0392b !important;
+}
+
+.trips-temp-warn {
+  color: #b8860b;
+  font-weight: 600;
+}
+
+.trips-temp-danger {
+  color: var(--tertiary-color);
+  font-weight: 600;
+}
+
+.trips-pagination {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--border-color);
+  background: var(--card-bg);
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.trips-pagination-pages {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.trips-page-btn {
+  min-width: 36px;
+  height: 36px;
+  padding: 0 0.5rem;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--card-bg);
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+
+.trips-page-btn:hover:not(:disabled) {
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+}
+
+.trips-page-btn.active {
+  background: var(--secondary-color);
+  border-color: var(--secondary-color);
+  color: #fff;
+}
+
+.trips-page-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+@media (max-width: 900px) {
+  .trips-toolbar {
+    flex-direction: column;
+  }
+
+  .trips-metric-card {
+    width: 100%;
+  }
+}
+
+/* Modal nova viagem — respiro nas bordas da tela + cartão alinhado ao restante do app */
+.modal-overlay.trips-create-overlay {
+  padding: clamp(1rem, 4vh, 2.5rem);
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+.modal-content.trips-modal-panel {
+  max-width: 520px;
+  width: 100%;
+  padding: 1.75rem 2rem 2rem;
+  text-align: left;
+  max-height: min(90vh, 760px);
+  overflow-y: auto;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+}
+
+.trips-modal-head {
+  margin-bottom: 1.25rem;
+}
+
+.trips-modal-head h3 {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--text-color);
+  margin: 0 0 0.35rem 0;
+}
+
+.trips-modal-head p {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.45;
+}
+
+.trips-modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.15rem;
+}
+
+.trips-modal-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+@media (max-width: 560px) {
+  .trips-modal-form-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.trips-modal-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--primary-color);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: -0.5rem;
+}
+
+.trips-modal-textarea {
+  width: 100%;
+  padding: 0.65rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background: var(--input-bg);
+  color: var(--text-color);
+  font-size: 0.95rem;
+  resize: vertical;
+  min-height: 72px;
+  font-family: inherit;
+}
+
+.trips-modal-textarea:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.12);
+}
+
+.trips-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+  padding-top: 0.25rem;
+}
+
+.trips-data-note {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin: -0.25rem 0 0 0;
+  line-height: 1.4;
+}

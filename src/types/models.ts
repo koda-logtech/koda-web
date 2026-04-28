@@ -78,6 +78,13 @@ export interface Caminhao {
   updated_at: string;
 }
 
+/** Resposta de `GET /caminhoes/completo` e `GET /caminhoes/:id/completo` */
+export interface CaminhaoCompleto extends Caminhao {
+  nome_motorista: string | null;
+  tipo_carga: string | null;
+  nome_centro_logistica: string | null;
+}
+
 export interface Entrega {
   id: number;
   id_caminhao: number;
@@ -90,4 +97,15 @@ export interface Entrega {
   observacoes?: string;
   created_at: string;
   updated_at: string;
+}
+
+/** Resposta de `GET /entregas/completo` e `GET /entregas/:id/completo` */
+export interface EntregaCompleta extends Entrega {
+  placa_caminhao: string | null;
+  nome_cliente: string | null;
+  endereco_cliente: string | null;
+  nome_motorista: string | null;
+  temperatura_atual: number | string | null;
+  temperatura_maxima: number | string | null;
+  temperatura_minima: number | string | null;
 }

@@ -27,6 +27,7 @@ export default function Select({
   error,
   placeholder = 'Selecione...',
   containerStyle,
+  name,
 }: SelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -46,7 +47,12 @@ export default function Select({
   const handleToggle = () => setIsOpen(!isOpen);
 
   const handleSelect = (optionValue: string | number) => {
-    onChange({ target: { value: optionValue } }); // Mantém compatibilidade com o formato de evento do React
+    onChange({
+      target: {
+        ...(name !== undefined ? { name } : {}),
+        value: optionValue,
+      },
+    } as React.ChangeEvent<HTMLSelectElement>);
     setIsOpen(false);
   };
 
