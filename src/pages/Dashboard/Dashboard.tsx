@@ -5,15 +5,36 @@ import { useTheme } from "@hooks/useTheme";
 import DashboardOverview from "./components/DashboardOverview";
 import Monitoring from "./components/Monitoring";
 import Trips from "./components/Trips";
+import Cargas from "./components/Cargas";
 import Audit from "./components/Audit";
 import Management from "./components/Management";
 import "./Dashboard.css";
+
+type ActiveTab =
+  | "Dashboard"
+  | "Monitoramento"
+  | "Cargas"
+  | "Viagens"
+  | "Gerenciamento"
+  | "Auditoria";
 
 function Dashboard() {
   const navigate = useNavigate();
   const { logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
-  const [activeTab, setActiveTab] = useState("Dashboard");
+  const [activeTab, setActiveTab] = useState<ActiveTab>("Dashboard");
+  const [operationsOpen, setOperationsOpen] = useState(false);
+
+  const isOperationsActive = activeTab === "Cargas" || activeTab === "Viagens";
+
+  const selectOperation = (tab: "Cargas" | "Viagens") => {
+    setActiveTab(tab);
+    setOperationsOpen(true);
+  };
+
+  const toggleOperations = () => {
+    setOperationsOpen((open) => !open);
+  };
 
   const handleLogoutClick = async () => {
     await logout();
@@ -56,27 +77,6 @@ function Dashboard() {
           strokeLinejoin="round"
         >
           <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
-        </svg>
-      ),
-    },
-    {
-      name: "Viagens",
-      icon: (
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="18"
-          height="18"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <rect x="1" y="3" width="15" height="13"></rect>
-          <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon>
-          <circle cx="5.5" cy="18.5" r="2.5"></circle>
-          <circle cx="18.5" cy="18.5" r="2.5"></circle>
         </svg>
       ),
     },
@@ -130,6 +130,8 @@ function Dashboard() {
         return <DashboardOverview />;
       case "Monitoramento":
         return <Monitoring />;
+      case "Cargas":
+        return <Cargas />;
       case "Viagens":
         return <Trips />;
       case "Gerenciamento":
@@ -141,6 +143,65 @@ function Dashboard() {
     }
   };
 
+  const operationsIcon = (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+      <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+      <line x1="12" y1="22.08" x2="12" y2="12"></line>
+    </svg>
+  );
+
+  const cargasMenuIcon = (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="sidebar-subicon"
+      aria-hidden
+    >
+      <polyline points="21 8 21 21 3 21 3 8" />
+      <rect x="1" y="3" width="22" height="5" rx="1" />
+      <line x1="10" y1="12" x2="14" y2="12" />
+    </svg>
+  );
+
+  const viagensMenuIcon = (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="sidebar-subicon"
+      aria-hidden
+    >
+      <rect x="1" y="3" width="15" height="13" />
+      <polygon points="16 8 20 8 23 11 23 16 16 16 16 8" />
+      <circle cx="5.5" cy="18.5" r="2.5" />
+      <circle cx="18.5" cy="18.5" r="2.5" />
+    </svg>
+  );
+
   return (
     <div className="dashboard-layout">
       <div className="dashboard-container">
@@ -151,12 +212,83 @@ function Dashboard() {
           </div>
           <nav className="sidebar-menu">
             <ul>
-              {menuItems.map((item) => (
+              {menuItems.slice(0, 2).map((item) => (
                 <li
                   key={item.name}
                   className={`sidebar-item ${activeTab === item.name ? "active" : ""}`}
                 >
-                  <button onClick={() => setActiveTab(item.name)}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveTab(item.name as ActiveTab);
+                    }}
+                  >
+                    {item.icon}
+                    <span>{item.name}</span>
+                  </button>
+                </li>
+              ))}
+
+              <li
+                className={`sidebar-group ${operationsOpen ? "is-open" : ""} ${isOperationsActive ? "has-active-child" : ""}`}
+              >
+                <button
+                  type="button"
+                  className="sidebar-group-toggle"
+                  onClick={toggleOperations}
+                  aria-expanded={operationsOpen}
+                >
+                  <span className="sidebar-group-toggle-left">
+                    {operationsIcon}
+                    <span>Operações</span>
+                  </span>
+                  <svg
+                    className="sidebar-chevron"
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden
+                  >
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
+                </button>
+                {operationsOpen && (
+                  <ul className="sidebar-subnav">
+                    <li
+                      className={`sidebar-item sidebar-subitem ${activeTab === "Cargas" ? "active" : ""}`}
+                    >
+                      <button type="button" onClick={() => selectOperation("Cargas")}>
+                        {cargasMenuIcon}
+                        <span>Cargas</span>
+                      </button>
+                    </li>
+                    <li
+                      className={`sidebar-item sidebar-subitem ${activeTab === "Viagens" ? "active" : ""}`}
+                    >
+                      <button type="button" onClick={() => selectOperation("Viagens")}>
+                        {viagensMenuIcon}
+                        <span>Viagens</span>
+                      </button>
+                    </li>
+                  </ul>
+                )}
+              </li>
+
+              {menuItems.slice(2).map((item) => (
+                <li
+                  key={item.name}
+                  className={`sidebar-item ${activeTab === item.name ? "active" : ""}`}
+                >
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab(item.name as ActiveTab)}
+                  >
                     {item.icon}
                     <span>{item.name}</span>
                   </button>

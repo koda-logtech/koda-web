@@ -3,6 +3,10 @@ import { useUsers, useDeleteUser } from "@controllers/userController";
 import { useCaminhoes, useDeleteCaminhao } from "@controllers/caminhaoController";
 import { useClientes, useDeleteCliente } from "@controllers/clienteController";
 import { useArmazens, useDeleteArmazem } from "@controllers/armazemController";
+import {
+  useCentrosLogistica,
+  useDeleteCentroLogistica,
+} from "@controllers/centroLogisticaController";
 
 import Button from "@components/common/Button";
 import Loading from "@components/common/Loading";
@@ -10,12 +14,18 @@ import MotoristasView from "./MotoristasView";
 import CaminhoesView from "./CaminhoesView";
 import ClientesView from "./ClientesView";
 import ArmazensView from "./ArmazensView";
+import CentrosLogisticaView from "./CentrosLogisticaView";
 import ConfirmModal from "@components/common/ConfirmModal";
 import "./Management.css";
 
 import { useToast } from "@/contexts/ToastContext";
 
-type SubSection = "Motoristas" | "Caminhões" | "Clientes" | "Armazéns Parceiros";
+type SubSection =
+  | "Motoristas"
+  | "Caminhões"
+  | "Clientes"
+  | "Armazéns Parceiros"
+  | "Centros Logísticos";
 
 export default function Management() {
   const [activeSubTab, setActiveSubTab] = useState<SubSection>("Motoristas");
@@ -23,6 +33,7 @@ export default function Management() {
   const [showFullCaminhoes, setShowFullCaminhoes] = useState(false);
   const [showFullClientes, setShowFullClientes] = useState(false);
   const [showFullArmazens, setShowFullArmazens] = useState(false);
+  const [showFullCentrosLogistica, setShowFullCentrosLogistica] = useState(false);
   const { addToast } = useToast();
 
   // State for deletion
@@ -34,18 +45,21 @@ export default function Management() {
   const { data: caminhoes = [], isLoading: loadingCaminhoes } = useCaminhoes(1, 0, { enabled: activeSubTab === "Caminhões" && showFullCaminhoes });
   const { data: clientes = [], isLoading: loadingClientes } = useClientes(1, 0, { enabled: activeSubTab === "Clientes" && showFullClientes });
   const { data: armazens = [], isLoading: loadingArmazens } = useArmazens(1, 0, { enabled: activeSubTab === "Armazéns Parceiros" && showFullArmazens });
+  const { data: centrosLogistica = [], isLoading: loadingCentrosLogistica } = useCentrosLogistica(1, 0, { enabled: activeSubTab === "Centros Logísticos" && showFullCentrosLogistica });
 
   const loading = (activeSubTab === "Motoristas" && !showFullMotoristas) || 
                   (activeSubTab === "Caminhões" && !showFullCaminhoes) ||
                   (activeSubTab === "Clientes" && !showFullClientes) ||
-                  (activeSubTab === "Armazéns Parceiros" && !showFullArmazens)
+                  (activeSubTab === "Armazéns Parceiros" && !showFullArmazens) ||
+                  (activeSubTab === "Centros Logísticos" && !showFullCentrosLogistica)
     ? false
-    : (loadingMotoristas || loadingCaminhoes || loadingClientes || loadingArmazens);
+    : (loadingMotoristas || loadingCaminhoes || loadingClientes || loadingArmazens || loadingCentrosLogistica);
 
   const deleteUser = useDeleteUser();
   const deleteCaminhao = useDeleteCaminhao();
   const deleteCliente = useDeleteCliente();
   const deleteArmazem = useDeleteArmazem();
+  const deleteCentroLogistica = useDeleteCentroLogistica();
 
   const handleDeleteClick = (id: number, name: string) => {
     setEntityToDelete({ id, name });
@@ -66,6 +80,8 @@ export default function Management() {
         await deleteCliente.mutateAsync(entityToDelete.id);
       } else if (activeSubTab === "Armazéns Parceiros") {
         await deleteArmazem.mutateAsync(entityToDelete.id);
+      } else if (activeSubTab === "Centros Logísticos") {
+        await deleteCentroLogistica.mutateAsync(entityToDelete.id);
       }
 
       addToast({ message: "Excluído com sucesso!", type: "success" });
@@ -82,7 +98,8 @@ export default function Management() {
         activeSubTab !== "Motoristas" && 
         activeSubTab !== "Caminhões" && 
         activeSubTab !== "Clientes" &&
-        activeSubTab !== "Armazéns Parceiros") {
+        activeSubTab !== "Armazéns Parceiros" &&
+        activeSubTab !== "Centros Logísticos") {
       return <Loading message={`Carregando ${activeSubTab}...`} />;
     }
 
@@ -176,7 +193,23 @@ export default function Management() {
         if (!showFullCaminhoes) {
           return <CaminhoesView onViewAll={() => setShowFullCaminhoes(true)} />;
         }
-        const filteredCaminhoes = filteredData(caminhoes, "placa");
+        const filteredCaminhoes = !searchTerm.trim()
+          ? caminhoes
+          : caminhoes.filter((c: any) => {
+              const q = searchTerm.toLowerCase();
+              const hay = [
+                c.placa,
+                c.modelo,
+                c.marca,
+                c.nome_motorista,
+                c.tipo_carga,
+                c.nome_centro_logistica,
+              ]
+                .filter((v: unknown) => v != null && String(v).trim() !== "")
+                .join(" ")
+                .toLowerCase();
+              return hay.includes(q);
+            });
         return (
           <div className="table-container">
             <div className="table-header-modern">
@@ -190,7 +223,7 @@ export default function Management() {
                 <svg className="search-icon-fixed" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                 <input 
                   type="text" 
-                  placeholder="Pesquisar por placa..." 
+                  placeholder="Placa, modelo, motorista, carga, centro..." 
                   className="table-search-input"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
@@ -202,6 +235,9 @@ export default function Management() {
                 <tr>
                   <th>Veículo</th>
                   <th>Especificações</th>
+                  <th>Motorista</th>
+                  <th>Carga</th>
+                  <th>Centro logístico</th>
                   <th>Status</th>
                   <th style={{ textAlign: 'right' }}>Ações</th>
                 </tr>
@@ -216,6 +252,17 @@ export default function Management() {
                     <td>
                       <span className="cell-main-text">{c.marca}</span>
                       <span className="cell-sub-text">Ano: {c.ano}</span>
+                    </td>
+                    <td>
+                      <span className="cell-main-text">{c.nome_motorista?.trim() ? c.nome_motorista : "—"}</span>
+                    </td>
+                    <td>
+                      <span className={c.tipo_carga != null && String(c.tipo_carga).trim() !== "" ? "cell-main-text" : "cell-sub-text"}>
+                        {c.tipo_carga != null && String(c.tipo_carga).trim() !== "" ? c.tipo_carga : "Sem carga vinculada"}
+                      </span>
+                    </td>
+                    <td>
+                      <span className="cell-main-text">{c.nome_centro_logistica?.trim() ? c.nome_centro_logistica : "—"}</span>
                     </td>
                     <td>
                       <span className={`status-badge ${c.status}`}>
@@ -240,7 +287,7 @@ export default function Management() {
                 ))}
                 {filteredCaminhoes.length === 0 && (
                   <tr>
-                    <td colSpan={4} style={{ textAlign: "center", padding: '3rem', color: '#999' }}>Nenhum caminhão encontrado.</td>
+                    <td colSpan={7} style={{ textAlign: "center", padding: '3rem', color: '#999' }}>Nenhum caminhão encontrado.</td>
                   </tr>
                 )}
               </tbody>
@@ -397,6 +444,83 @@ export default function Management() {
             </table>
           </div>
         );
+      case "Centros Logísticos":
+        if (!showFullCentrosLogistica) {
+          return <CentrosLogisticaView onViewAll={() => setShowFullCentrosLogistica(true)} />;
+        }
+        const filteredCentros = filteredData(centrosLogistica, "nome");
+        return (
+          <div className="table-container">
+            <div className="table-header-modern">
+              <div className="table-header-left">
+                <Button variant="primary" size="small" onClick={() => { setShowFullCentrosLogistica(false); setSearchTerm(""); }}>
+                  ← Voltar
+                </Button>
+                <h3 className="table-title">Centros Logísticos</h3>
+              </div>
+              <div className="table-search-wrapper">
+                <svg className="search-icon-fixed" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <input 
+                  type="text" 
+                  placeholder="Pesquisar por nome..." 
+                  className="table-search-input"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+            </div>
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Unidade</th>
+                  <th>Contato / Endereço</th>
+                  <th>Coordenadas</th>
+                  <th>Status</th>
+                  <th style={{ textAlign: 'right' }}>Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredCentros.map((c: any) => (
+                  <tr key={c.id}>
+                    <td>
+                      <span className="cell-main-text">{c.nome}</span>
+                      <span className="cell-sub-text">ID: #{c.id}</span>
+                    </td>
+                    <td>
+                      <span className="cell-main-text">{c.telefone || "Sem telefone"}</span>
+                      <span className="cell-sub-text">{c.endereco || "Endereço não informado"}</span>
+                    </td>
+                    <td>
+                      <span className="cell-main-text">{c.latitude != null ? String(c.latitude) : "—"}</span>
+                      <span className="cell-sub-text">{c.longitude != null ? String(c.longitude) : "—"}</span>
+                    </td>
+                    <td>
+                      <span className={`status-badge ${c.is_ativo ? "active" : "inactive"}`}>
+                        {c.is_ativo ? "Ativo" : "Inativo"}
+                      </span>
+                    </td>
+                    <td>
+                      <div className="table-actions">
+                        <button 
+                          className="btn-icon-action danger" 
+                          title="Excluir"
+                          onClick={() => handleDeleteClick(c.id, c.nome)}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+                {filteredCentros.length === 0 && (
+                  <tr>
+                    <td colSpan={5} style={{ textAlign: "center", padding: '3rem', color: '#999' }}>Nenhum centro logístico encontrado.</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        );
     }
   };
 
@@ -406,7 +530,7 @@ export default function Management() {
       <header className="section-header" style={{ marginBottom: '2rem' }}>
         <div className="header-left">
           <div className="management-tabs" style={{ margin: 0, border: 'none', padding: 0 }}>
-            {(["Motoristas", "Caminhões", "Clientes", "Armazéns Parceiros"] as SubSection[]).map((tab) => (
+            {(["Motoristas", "Caminhões", "Clientes", "Armazéns Parceiros", "Centros Logísticos"] as SubSection[]).map((tab) => (
               <button
                 key={tab}
                 className={`tab-btn ${activeSubTab === tab ? "active" : ""}`}
@@ -416,6 +540,7 @@ export default function Management() {
                   if (tab !== "Caminhões") setShowFullCaminhoes(false);
                   if (tab !== "Clientes") setShowFullClientes(false);
                   if (tab !== "Armazéns Parceiros") setShowFullArmazens(false);
+                  if (tab !== "Centros Logísticos") setShowFullCentrosLogistica(false);
                 }}
               >
                 {tab}
