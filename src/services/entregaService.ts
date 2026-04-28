@@ -1,5 +1,5 @@
 import { api } from './api';
-import { Entrega, EntregaCompleta } from '../types/models';
+import { Entrega, EntregaCompleta, EntregaDirectionResponse } from '../types/models';
 
 const RESOURCE = '/entregas';
 
@@ -27,6 +27,11 @@ export const entregaService = {
   /** Um registro no mesmo formato da lista completa (`GET /entregas/:id/completo`). */
   async getCompletoById(id: number): Promise<EntregaCompleta> {
     const { data } = await api.get<EntregaCompleta>(`${RESOURCE}/${id}/completo`);
+    return data;
+  },
+
+  async getDirection(id: number): Promise<EntregaDirectionResponse> {
+    const { data } = await api.get<EntregaDirectionResponse>(`${RESOURCE}/${id}/direction`);
     return data;
   },
 

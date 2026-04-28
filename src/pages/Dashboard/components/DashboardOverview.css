@@ -220,6 +220,32 @@
   overflow: hidden;
 }
 
+.map-placeholder .loading-container {
+  min-height: 500px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.live-card--selected {
+  border-color: var(--primary-color) !important;
+  box-shadow: 0 0 0 1px var(--primary-color);
+}
+
+button.live-card {
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  font-family: inherit;
+  background-color: var(--card-bg);
+}
+
+button.live-card:hover {
+  transform: translateY(-2px);
+}
+
 .map-mock-bg {
   width: 100%;
   height: 100%;
@@ -458,7 +484,15 @@
 .temp-info {
   font-size: 0.9rem;
   font-weight: 800;
+}
+
+.temp-info--ok {
   color: #2ecc71;
+}
+
+.temp-info--muted {
+  color: var(--text-secondary);
+  font-weight: 600;
 }
 
 .route-info {
