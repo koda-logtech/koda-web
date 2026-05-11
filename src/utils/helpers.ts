@@ -1,3 +1,19 @@
+import axios from "axios";
+
+/** Mensagem do backend (`{ error: string }`) ou fallback para erros de rede. */
+export function getApiErrorMessage(error: unknown): string {
+  if (axios.isAxiosError(error)) {
+    const data = error.response?.data;
+    if (data != null && typeof data === "object" && "error" in data) {
+      const e = (data as { error: unknown }).error;
+      if (typeof e === "string" && e.trim() !== "") return e;
+    }
+    return error.message;
+  }
+  if (error instanceof Error) return error.message;
+  return String(error);
+}
+
 /**
  * Formata data para string legível
  */

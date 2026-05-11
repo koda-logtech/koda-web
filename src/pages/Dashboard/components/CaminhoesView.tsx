@@ -172,7 +172,7 @@ export default function CaminhoesView({ onViewAll }: CaminhoesViewProps) {
                 { value: "disponivel", label: "Disponível" },
                 { value: "em_rota", label: "Em Rota" },
                 { value: "manutencao", label: "Manutenção" },
-                { value: "inativo", label: "Inativo" }
+                { value: "inativo", label: "Inativo" },
               ]}
             />
           </div>
@@ -237,7 +237,7 @@ export default function CaminhoesView({ onViewAll }: CaminhoesViewProps) {
                     <p className="cell-sub-text" style={{ marginTop: 2 }}>Centro: {labelCentro(truck.nome_centro_logistica)}</p>
                   </div>
                   <span className={`status-badge ${truck.status}`} style={{ fontSize: '0.65rem' }}>
-                    {truck.status.replace("_", " ")}
+                    {truck.status.replace(/_/g, " ")}
                   </span>
                 </div>
               ))}

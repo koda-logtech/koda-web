@@ -73,7 +73,7 @@ export interface Caminhao {
   id_usuario: number;
   id_carga?: number;
   id_centro_logistica?: number;
-  status: 'disponivel' | 'em_rota' | 'manutencao' | 'inativo';
+  status: 'disponivel' | 'em_espera' | 'em_rota' | 'manutencao' | 'inativo';
   created_at: string;
   updated_at: string;
 }

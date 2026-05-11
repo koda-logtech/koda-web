@@ -7,6 +7,7 @@ import { useCreateCarga } from "@controllers/cargaController";
 import { useToast } from "@/contexts/ToastContext";
 import type { CaminhaoCompleto } from "@/types/models";
 import { formatCaminhaoOptionLabel } from "@utils/caminhaoOptionLabel";
+import { getApiErrorMessage } from "@utils/helpers";
 
 import "@components/common/ConfirmModal.css";
 import "./Trips.css";
@@ -95,19 +96,29 @@ export default function CargaCreateModal({ isOpen, onClose }: CargaCreateModalPr
         longitude: lng,
       });
 
+      const idCarga = created?.id != null ? Number(created.id) : NaN;
+      if (!Number.isFinite(idCarga)) {
+        addToast({
+          message:
+            "Carga criada, mas a API não retornou um ID válido; não foi possível vincular ao caminhão.",
+          type: "error",
+        });
+        handleClose();
+        return;
+      }
+
       if (idCaminhao) {
         try {
           await updateCaminhao.mutateAsync({
             id: idCaminhao,
             payload: {
-              id_carga: created.id,
-              status: "em_rota",
+              id_carga: idCarga,
+              status: "em_espera",
             },
           });
-        } catch {
+        } catch (err) {
           addToast({
-            message:
-              "Carga criada, mas não foi possível vincular ao caminhão. Atualize manualmente na gestão de frota.",
+            message: `Carga criada, mas não foi possível vincular ao caminhão: ${getApiErrorMessage(err)}`,
             type: "error",
           });
           handleClose();
@@ -117,9 +128,9 @@ export default function CargaCreateModal({ isOpen, onClose }: CargaCreateModalPr
 
       addToast({ message: "Carga criada com sucesso.", type: "success" });
       handleClose();
-    } catch {
+    } catch (err) {
       addToast({
-        message: "Não foi possível criar a carga. Verifique os dados e tente novamente.",
+        message: `Não foi possível criar a carga. ${getApiErrorMessage(err)}`,
         type: "error",
       });
     }
@@ -146,7 +157,7 @@ export default function CargaCreateModal({ isOpen, onClose }: CargaCreateModalPr
           <p>
             Defina tipo, faixa de temperatura e localização. A leitura atual virá do sensor quando
             houver. Opcionalmente vincule a um caminhão{" "}
-            <strong>disponível</strong> — o veículo passará a constar como em rota com esta carga.
+            <strong>disponível</strong> — o veículo passará a constar como em espera com esta carga.
           </p>
         </div>
 
