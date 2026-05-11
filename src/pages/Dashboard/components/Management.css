@@ -420,6 +420,11 @@
   color: #4caf50;
 }
 
+.status-badge.em_espera {
+  background-color: rgba(123, 31, 162, 0.12);
+  color: #8e24aa;
+}
+
 .status-badge.em_rota, .status-badge.transito {
   background-color: rgba(25, 118, 210, 0.15);
   color: #2196f3;

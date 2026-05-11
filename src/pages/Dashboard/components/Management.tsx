@@ -266,7 +266,7 @@ export default function Management() {
                     </td>
                     <td>
                       <span className={`status-badge ${c.status}`}>
-                        {c.status.replace("_", " ")}
+                        {c.status.replace(/_/g, " ")}
                       </span>
                     </td>
                     <td>
