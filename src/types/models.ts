@@ -102,10 +102,30 @@ export interface Entrega {
 /** Resposta de `GET /entregas/completo` e `GET /entregas/:id/completo` */
 export interface EntregaCompleta extends Entrega {
   placa_caminhao: string | null;
+  modelo_caminhao?: string | null;
   nome_cliente: string | null;
   endereco_cliente: string | null;
   nome_motorista: string | null;
+  motorista_avatar_url?: string | null;
   temperatura_atual: number | string | null;
   temperatura_maxima: number | string | null;
   temperatura_minima: number | string | null;
+  latitude_carga?: number | string | null;
+  longitude_carga?: number | string | null;
+  latitude_cliente?: number | string | null;
+  longitude_cliente?: number | string | null;
+}
+
+/** GeoJSON LineString — coordenadas em [longitude, latitude]. */
+export interface LineStringGeometry {
+  type: 'LineString';
+  coordinates: [number, number][];
+}
+
+/** Resposta de `GET /entregas/:id/direction` */
+export interface EntregaDirectionResponse {
+  entrega_id: number;
+  geometry: LineStringGeometry;
+  duration_seconds: number;
+  distance_meters: number;
 }

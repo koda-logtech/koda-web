@@ -1,0 +1,327 @@
+.dashboard-map-root {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 420px;
+  overflow: hidden;
+  border-radius: inherit;
+  background: #0f172a;
+}
+
+.dashboard-map-overlay-col {
+  pointer-events: none;
+  position: absolute;
+  left: 1rem;
+  top: 1rem;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.dashboard-map-overlay-row {
+  pointer-events: auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.dashboard-map-chip {
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(15, 23, 42, 0.82);
+  color: #f1f5f9;
+  padding: 0.45rem 0.85rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+  font-family: inherit;
+}
+
+.dashboard-map-chip:hover {
+  background: rgba(30, 41, 59, 0.92);
+}
+
+.dashboard-map-chip--on {
+  border-color: rgba(52, 211, 153, 0.45);
+  background: rgba(6, 78, 59, 0.88);
+  color: #ecfdf5;
+}
+
+.dashboard-map-live {
+  pointer-events: none;
+  position: absolute;
+  bottom: 1.25rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(26, 43, 60, 0.92);
+  color: #fff;
+  padding: 0.55rem 1.35rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+}
+
+/* Painel inferior esquerdo — detalhe da viagem selecionada */
+.trip-map-overlay-wrap {
+  pointer-events: none;
+  position: absolute;
+  bottom: 1rem;
+  left: 1rem;
+  z-index: 20;
+  max-width: min(100% - 2rem, 320px);
+}
+
+.trip-map-overlay {
+  pointer-events: auto;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(15, 23, 42, 0.88);
+  padding: 0.75rem 1rem;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(10px);
+}
+
+.trip-map-overlay__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.trip-map-overlay__who {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.trip-map-overlay__avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.trip-map-overlay__titles {
+  min-width: 0;
+}
+
+.trip-map-overlay__name {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #f8fafc;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.trip-map-overlay__vehicle {
+  margin: 0.15rem 0 0 0;
+  font-size: 0.7rem;
+  color: #94a3b8;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.trip-map-overlay__placa {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+.trip-map-overlay__close {
+  flex-shrink: 0;
+  border: none;
+  background: transparent;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 0.25rem 0.45rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.trip-map-overlay__close:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
+.trip-map-overlay__label {
+  margin: 0 0 0.2rem 0;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.trip-map-overlay__dest {
+  margin: 0 0 0.35rem 0;
+  font-size: 0.875rem;
+  color: #f1f5f9;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.trip-map-overlay__addr {
+  margin: 0 0 0.65rem 0;
+  font-size: 0.7rem;
+  color: #94a3b8;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.trip-map-overlay__temp-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding-top: 0.5rem;
+  margin-top: 0.15rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.trip-map-overlay__temp-caption {
+  font-size: 0.7rem;
+  color: #64748b;
+}
+
+.trip-map-overlay__temp {
+  font-size: 1.1rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.trip-map-overlay__temp--ok {
+  color: #34d399;
+}
+
+.trip-map-overlay__temp--warn {
+  color: #fbbf24;
+}
+
+.trip-map-overlay__temp--danger {
+  color: #f87171;
+}
+
+.trip-map-overlay__temp--muted {
+  color: #94a3b8;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.dashboard-map-live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #34d399;
+  box-shadow: 0 0 10px #34d399;
+  animation: dashboard-map-pulse 2s infinite;
+}
+
+@keyframes dashboard-map-pulse {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.35;
+    transform: scale(0.85);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.dashboard-map-marker {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+  padding: 0;
+  transition: transform 0.15s ease;
+}
+
+.dashboard-map-marker:hover {
+  transform: scale(1.15);
+}
+
+.dashboard-map-marker--selected {
+  transform: scale(1.35);
+}
+
+.dashboard-map-marker--ok {
+  background: #3498db;
+  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.45);
+}
+
+.dashboard-map-marker--warn {
+  background: #f39c12;
+  box-shadow: 0 0 0 2px rgba(243, 156, 18, 0.45);
+}
+
+.dashboard-map-marker--crit {
+  background: #e74c3c;
+  box-shadow: 0 0 0 2px rgba(231, 76, 60, 0.45);
+}
+
+.dashboard-map-marker--neutral {
+  background: #95a5a6;
+}
+
+.dashboard-map-dest-wrap {
+  pointer-events: none;
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.35));
+}
+
+.dashboard-map-dest-grid {
+  width: 18px;
+  height: 18px;
+  overflow: hidden;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+
+.dashboard-map-wh-icon {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  background: #059669;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+}
+
+.dashboard-map-wh-icon svg {
+  width: 15px;
+  height: 15px;
+  fill: currentColor;
+}

@@ -1,12 +1,25 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { entregaService } from "@services/entregaService";
-import type { Entrega } from "@/types/models";
+import type { Entrega, EntregaDirectionResponse } from "@/types/models";
 
 export const useEntregasCompleto = (page?: number, limit?: number, options: any = {}) => {
   return useQuery<any>({
     queryKey: ["entregas", "completo", page, limit],
     queryFn: () => entregaService.getCompleto(page, limit),
     ...options,
+  });
+};
+
+export const useEntregaDirection = (entregaId: number | null, enabled: boolean) => {
+  return useQuery<EntregaDirectionResponse>({
+    queryKey: ["entregas", entregaId, "direction"],
+    queryFn: () => entregaService.getDirection(entregaId!),
+    enabled: Boolean(enabled && entregaId !== null && entregaId > 0),
+    staleTime: Infinity,
+    gcTime: 30 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    refetchOnMount: false,
   });
 };
 
