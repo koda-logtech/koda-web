@@ -17,6 +17,7 @@ export const useCreateCarga = () => {
       cargaService.create(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["cargas"] });
+      queryClient.invalidateQueries({ queryKey: ["carga-telemetria-auditoria"] });
     },
   });
 };
@@ -28,6 +29,19 @@ export const useDeleteCarga = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["cargas"] });
       queryClient.invalidateQueries({ queryKey: ["caminhoes"] });
+      queryClient.invalidateQueries({ queryKey: ["carga-telemetria-auditoria"] });
     },
+  });
+};
+
+export const useTelemetriaAuditoria = (page: number, limit: number) => {
+  return useQuery({
+    queryKey: ["carga-telemetria-auditoria", page, limit],
+    queryFn: () => cargaService.listTelemetriaAuditoria(page, limit),
+    /** Polling ~tempo real (alinhado ao envio do app BLE a cada 5 s). */
+    staleTime: 0,
+    refetchInterval: 5_000,
+    refetchOnWindowFocus: true,
+    refetchIntervalInBackground: true,
   });
 };
