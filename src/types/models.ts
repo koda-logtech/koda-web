@@ -114,6 +114,10 @@ export interface EntregaCompleta extends Entrega {
   longitude_carga?: number | string | null;
   latitude_cliente?: number | string | null;
   longitude_cliente?: number | string | null;
+  /** Carga ligada ao camião (`caminhao.id_carga` ou `carga.id`). */
+  id_carga?: number | null;
+  /** Último registo em `carga_telemetria_auditoria` da carga do camião (`GET /entregas/completo`). */
+  ultima_auditoria_at?: string | null;
 }
 
 /** GeoJSON LineString — coordenadas em [longitude, latitude]. */
@@ -122,10 +126,27 @@ export interface LineStringGeometry {
   coordinates: [number, number][];
 }
 
+/** GeoJSON MultiLineString — rota percorrida (pings de telemetria). */
+export interface MultiLineStringGeometry {
+  type: 'MultiLineString';
+  coordinates: [number, number][][];
+}
+
 /** Resposta de `GET /entregas/:id/direction` */
 export interface EntregaDirectionResponse {
   entrega_id: number;
   geometry: LineStringGeometry;
   duration_seconds: number;
   distance_meters: number;
+}
+
+/** Resposta de `GET /carga/telemetria-auditoria` (join Supabase em `carga`). */
+export interface CargaTelemetriaAuditoria {
+  id: number;
+  id_carga: number;
+  temperatura: number | string;
+  latitude: number | string | null;
+  longitude: number | string | null;
+  created_at: string;
+  carga: { id: number; tipo: string } | { id: number; tipo: string }[] | null;
 }

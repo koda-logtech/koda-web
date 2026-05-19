@@ -1,5 +1,5 @@
 import { api } from './api';
-import { Carga } from '../types/models';
+import { Carga, CargaTelemetriaAuditoria } from '../types/models';
 
 const RESOURCE = '/carga';
 
@@ -28,5 +28,21 @@ export const cargaService = {
 
   async delete(id: number): Promise<void> {
     await api.delete(`${RESOURCE}/${id}`);
-  }
+  },
+
+  async listTelemetriaAuditoria(page = 1, limit = 50): Promise<CargaTelemetriaAuditoria[]> {
+    const { data } = await api.get<CargaTelemetriaAuditoria[]>(
+      `${RESOURCE}/telemetria-auditoria`,
+      { params: { page, limit } },
+    );
+    return data ?? [];
+  },
+
+  /** Todos os pings de auditoria de uma carga (`GET /carga/:id/telemetria-auditoria`). */
+  async listTelemetriaAuditoriaPorCarga(idCarga: number): Promise<CargaTelemetriaAuditoria[]> {
+    const { data } = await api.get<CargaTelemetriaAuditoria[]>(
+      `${RESOURCE}/${idCarga}/telemetria-auditoria`,
+    );
+    return data ?? [];
+  },
 };

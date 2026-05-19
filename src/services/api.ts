@@ -7,6 +7,16 @@ export const api = axios.create({
   withCredentials: true,
 });
 
+/** Rotas públicas onde 401 não significa “sessão expirada” — não chamar refresh. */
+function isPublicAuthFailureRequest(config: { url?: string } | undefined): boolean {
+  const url = config?.url ?? "";
+  return (
+    url.includes("/users/login") ||
+    url.includes("/users/register") ||
+    url.includes("/users/refresh")
+  );
+}
+
 // Removido interceptor de request que injetava token manual,
 // pois agora usamos cookies com withCredentials: true.
 
@@ -15,7 +25,17 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // Login/registro com credenciais erradas também retornam 401; não tentar refresh
+    // (sem cookies o backend responde "Token não fornecido" e mascara o erro real).
+    if (
+      error.response?.status === 401 &&
+      originalRequest &&
+      isPublicAuthFailureRequest(originalRequest)
+    ) {
+      return Promise.reject(error);
+    }
+
+    if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
       originalRequest._retry = true;
 
       try {

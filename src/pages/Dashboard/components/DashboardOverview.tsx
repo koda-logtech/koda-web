@@ -1,39 +1,27 @@
 import { useEffect, useMemo, useState } from "react";
 import Button from "@components/common/Button";
 import Loading from "@components/common/Loading";
+import { useTelemetriaAuditoriaPorCarga } from "@controllers/cargaController";
 import { useEntregasCompleto, useEntregaDirection } from "@controllers/entregaController";
 import { useArmazens } from "@controllers/armazemController";
 import type { Armazem, EntregaCompleta } from "@/types/models";
 import type { PartnerWarehouse } from "@/types/partnerWarehouse";
 import { entregaTemCoordsParaMapa, parseCoord } from "@/utils/entregaMap";
+import {
+  DASHBOARD_LIVE_REFETCH_MS,
+  STATUS_ATIVOS,
+  parseTemp,
+  tempKind,
+  formatMetricKpi,
+  computeOperationKpis,
+} from "@/utils/dashboardOperationKpis";
+import { buildCargaTraveledRoute } from "@/utils/buildCargaTraveledRoute";
+import { formatCargaAuditoriaMultiline } from "@/utils/formatCargaAuditoriaPings";
 import DashboardMap, { type DashboardMapTrip } from "./DashboardMap";
 import type { TripMapOverlayDetail } from "./TripMapOverlay";
 import "./DashboardOverview.css";
 
 const FETCH_LIMIT = 500;
-
-const STATUS_ATIVOS = new Set(["pendente", "em_transito", "no_armazem"]);
-
-function parseTemp(v: number | string | null | undefined): number | null {
-  if (v === null || v === undefined || v === "") return null;
-  const n = typeof v === "number" ? v : parseFloat(String(v).replace(",", "."));
-  return Number.isFinite(n) ? n : null;
-}
-
-function tempKind(
-  atual: number | null,
-  min: number | null,
-  max: number | null,
-): "none" | "neutral" | "warn" | "danger" {
-  if (atual === null) return "none";
-  if (min === null || max === null) return "neutral";
-  if (atual < min || atual > max) return "danger";
-  const span = max - min;
-  if (span <= 0) return "neutral";
-  const band = span * 0.15;
-  if (atual <= min + band || atual >= max - band) return "warn";
-  return "neutral";
-}
 
 function formatTempDisplay(n: number): string {
   return `${Number.isInteger(n) ? String(n) : n.toFixed(1)}°C`;
@@ -88,14 +76,25 @@ export default function DashboardOverview() {
   const hasMap = Boolean(mapboxToken);
 
   const [searchQuery, setSearchQuery] = useState("");
-  const [locationInfo] = useState("São Paulo, SP");
   const [selectedEntregaId, setSelectedEntregaId] = useState<number | null>(null);
   const [showPartnerWarehouses, setShowPartnerWarehouses] = useState(false);
+  const [nowMs, setNowMs] = useState(() => Date.now());
 
-  const { data: entregasRaw = [], isLoading } = useEntregasCompleto(1, FETCH_LIMIT);
+  useEffect(() => {
+    const id = window.setInterval(() => setNowMs(Date.now()), 30_000);
+    return () => window.clearInterval(id);
+  }, []);
+
+  const { data: entregasRaw = [], isLoading, dataUpdatedAt } = useEntregasCompleto(1, FETCH_LIMIT, {
+    refetchInterval: DASHBOARD_LIVE_REFETCH_MS,
+    refetchIntervalInBackground: true,
+  });
   const entregas = entregasRaw as EntregaCompleta[];
 
-  const { data: armazensRaw = [] } = useArmazens(1, 100);
+  const { data: armazensRaw = [] } = useArmazens(1, 100, {
+    refetchInterval: DASHBOARD_LIVE_REFETCH_MS,
+    refetchIntervalInBackground: true,
+  });
   const armazensParceirosMapa = useMemo(
     () => armazensAtivosComCoordenadas(armazensRaw as Armazem[]),
     [armazensRaw],
@@ -113,6 +112,17 @@ export default function DashboardOverview() {
         .filter((t): t is DashboardMapTrip => t !== null),
     [liveTrips],
   );
+
+  const kpis = useMemo(() => computeOperationKpis(entregas, nowMs), [entregas, nowMs]);
+
+  const subtitleAtualizacao =
+    dataUpdatedAt > 0
+      ? new Date(dataUpdatedAt).toLocaleTimeString("pt-BR", {
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+        })
+      : "—";
 
   useEffect(() => {
     if (selectedEntregaId === null) return;
@@ -153,6 +163,36 @@ export default function DashboardOverview() {
 
   const selectedTripIdStr =
     selectedEntregaId !== null ? String(selectedEntregaId) : null;
+
+  const selectedCargaId = useMemo(() => {
+    if (selectedEntregaId === null) return null;
+    const row = liveTrips.find((r) => r.id === selectedEntregaId);
+    const id = row?.id_carga;
+    return typeof id === "number" && id > 0 ? id : null;
+  }, [liveTrips, selectedEntregaId]);
+
+  const auditoriaPorCarga = useTelemetriaAuditoriaPorCarga(selectedCargaId, {
+    refetchInterval: selectedCargaId != null ? DASHBOARD_LIVE_REFETCH_MS : undefined,
+  });
+
+  const traveledRouteGeometry = useMemo(() => {
+    if (selectedCargaId === null || auditoriaPorCarga.isLoading || auditoriaPorCarga.isError) {
+      return null;
+    }
+    return buildCargaTraveledRoute(auditoriaPorCarga.data ?? []);
+  }, [
+    selectedCargaId,
+    auditoriaPorCarga.data,
+    auditoriaPorCarga.isError,
+    auditoriaPorCarga.isLoading,
+  ]);
+
+  const auditoriaMultiline = useMemo(() => {
+    if (selectedCargaId === null) return "";
+    if (auditoriaPorCarga.isLoading) return "Carregando histórico de telemetria…";
+    if (auditoriaPorCarga.isError) return "Não foi possível carregar os pings da auditoria.";
+    return formatCargaAuditoriaMultiline(auditoriaPorCarga.data ?? []);
+  }, [selectedCargaId, auditoriaPorCarga.data, auditoriaPorCarga.isError, auditoriaPorCarga.isLoading]);
 
   return (
     <div className="dashboard-overview">
@@ -199,7 +239,10 @@ export default function DashboardOverview() {
       <div className="page-top-actions">
         <div className="title-group">
           <h1>Visão Geral da Operação</h1>
-          <p className="subtitle">Monitoramento em tempo real • {locationInfo}</p>
+          <p className="subtitle">
+            Monitoramento ao vivo • Dados do servidor às {subtitleAtualizacao} • Atualização a cada{" "}
+            {DASHBOARD_LIVE_REFETCH_MS / 1000}s
+          </p>
         </div>
         <div className="button-group">
           <Button variant="secondary" size="medium">
@@ -232,8 +275,8 @@ export default function DashboardOverview() {
             </svg>
             <span className="metric-label">EM TRÂNSITO</span>
           </div>
-          <h2 className="metric-value">42</h2>
-          <span className="metric-subtext">Veículos em rota ativa</span>
+          <h2 className="metric-value">{formatMetricKpi(kpis.emTransito)}</h2>
+          <span className="metric-subtext">Viagens ativas com mapa (lista Monitoramento Live)</span>
         </div>
 
         <div className="metric-card warning">
@@ -254,8 +297,8 @@ export default function DashboardOverview() {
             </svg>
             <span className="metric-label">RISCO TÉRMICO</span>
           </div>
-          <h2 className="metric-value">05</h2>
-          <span className="metric-subtext">Acima do limiar de segurança</span>
+          <h2 className="metric-value">{formatMetricKpi(kpis.riscoTermico)}</h2>
+          <span className="metric-subtext">Temperatura fora do mínimo/máximo da carga</span>
         </div>
 
         <div className="metric-card danger">
@@ -281,8 +324,8 @@ export default function DashboardOverview() {
             </svg>
             <span className="metric-label">DESCONECTADOS</span>
           </div>
-          <h2 className="metric-value">02</h2>
-          <span className="metric-subtext">Sensores sem sinal &gt; 15 min</span>
+          <h2 className="metric-value">{formatMetricKpi(kpis.desconectados)}</h2>
+          <span className="metric-subtext">Sem telemetria ou última leitura há mais de 10 min</span>
         </div>
 
         <div className="metric-card dark-theme">
@@ -305,7 +348,7 @@ export default function DashboardOverview() {
             </svg>
             <span className="metric-label">ALERTAS ATIVOS</span>
           </div>
-          <h2 className="metric-value">12</h2>
+          <h2 className="metric-value">{formatMetricKpi(kpis.alertasAtivos)}</h2>
           <span className="metric-subtext">Prioridade Alta (Nível 1)</span>
         </div>
       </div>
@@ -323,6 +366,7 @@ export default function DashboardOverview() {
                   onSelectTrip={(id) => toggleSelectEntrega(Number(id))}
                   token={mapboxToken!}
                   routeGeometry={routeGeometry}
+                  traveledRouteGeometry={traveledRouteGeometry}
                   showPartnerWarehouses={showPartnerWarehouses}
                   onTogglePartnerWarehouses={() =>
                     setShowPartnerWarehouses((v) => !v)
@@ -423,6 +467,11 @@ export default function DashboardOverview() {
                     <p className="route-info">
                       {cliente} — {endereco}
                     </p>
+                    {/* {selected && (
+                      <pre className="live-card-auditoria-pings" aria-label="Histórico de telemetria da carga">
+                        {auditoriaMultiline}
+                      </pre>
+                    )} */}
                   </button>
                 );
               })

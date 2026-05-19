@@ -501,6 +501,22 @@ button.live-card:hover {
   margin: 0;
 }
 
+.live-card-auditoria-pings {
+  margin: 0.75rem 0 0;
+  padding: 0.55rem 0.65rem;
+  font-size: 0.68rem;
+  font-family: ui-monospace, "Cascadia Code", "Consolas", monospace;
+  line-height: 1.5;
+  color: #8ecfff;
+  background: rgba(52, 152, 219, 0.12);
+  border: 1px solid rgba(126, 200, 247, 0.25);
+  border-radius: 6px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
 /* Variantes dos cards da lista */
 .alert-border { border-left: 4px solid #f1c40f; }
 .danger-border { border-left: 4px solid var(--tertiary-color); }

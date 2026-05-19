@@ -4,7 +4,8 @@ import type { MapRef } from 'react-map-gl/mapbox';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
-import type { LineStringGeometry } from '@/types/models';
+import type { LineStringGeometry, MultiLineStringGeometry } from '@/types/models';
+import { flattenMultiLineCoordinates } from '@/utils/buildCargaTraveledRoute';
 import type { PartnerWarehouse } from '@/types/partnerWarehouse';
 import { getTempStatus } from '@/utils/tempStatus';
 import TripMapOverlay, { type TripMapOverlayDetail } from './TripMapOverlay';
@@ -37,6 +38,8 @@ type Props = {
   onSelectTrip: (id: string) => void;
   token: string;
   routeGeometry: LineStringGeometry | null;
+  /** Rota real percorrida (todos os pings de auditoria da carga). */
+  traveledRouteGeometry: MultiLineStringGeometry | null;
   showPartnerWarehouses: boolean;
   onTogglePartnerWarehouses: () => void;
   partnerWarehouses: PartnerWarehouse[];
@@ -64,6 +67,27 @@ function RouteLayer({ geometry }: { geometry: LineStringGeometry }) {
           'line-color': '#60a5fa',
           'line-width': 4,
           'line-opacity': 0.92,
+        }}
+      />
+    </Source>
+  );
+}
+
+function TraveledRouteLayer({ geometry }: { geometry: MultiLineStringGeometry }) {
+  return (
+    <Source
+      id="trip-traveled-route"
+      type="geojson"
+      data={{ type: 'Feature', properties: {}, geometry }}
+    >
+      <Layer
+        id="trip-traveled-route-layer"
+        type="line"
+        layout={{ 'line-cap': 'round', 'line-join': 'round' }}
+        paint={{
+          'line-color': '#93c5fd',
+          'line-width': 3,
+          'line-opacity': 0.88,
         }}
       />
     </Source>
@@ -163,6 +187,7 @@ export default function DashboardMap({
   onSelectTrip,
   token,
   routeGeometry,
+  traveledRouteGeometry,
   showPartnerWarehouses,
   onTogglePartnerWarehouses,
   partnerWarehouses,
@@ -175,8 +200,17 @@ export default function DashboardMap({
   const selectedTrip = trips.find((t) => t.id === selectedTripId);
 
   useLayoutEffect(() => {
-    if (!selectedTripId || !routeGeometry?.coordinates?.length) return;
-    const coords = routeGeometry.coordinates;
+    if (!selectedTripId) return;
+
+    const coords: [number, number][] = [];
+    if (routeGeometry?.coordinates?.length) {
+      coords.push(...routeGeometry.coordinates);
+    }
+    if (traveledRouteGeometry?.coordinates?.length) {
+      coords.push(...flattenMultiLineCoordinates(traveledRouteGeometry));
+    }
+    if (coords.length === 0) return;
+
     const runId = ++fitGenerationRef.current;
     const fitOptions = {
       padding: { top: 100, bottom: 160, left: 100, right: 100 },
@@ -190,7 +224,7 @@ export default function DashboardMap({
       const map = mapRef.current?.getMap();
       if (!map) return;
       const bounds = new mapboxgl.LngLatBounds();
-      coords.forEach((c) => bounds.extend(c as [number, number]));
+      coords.forEach((c) => bounds.extend(c));
       try {
         map.resize();
         map.fitBounds(bounds, fitOptions);
@@ -201,7 +235,7 @@ export default function DashboardMap({
 
     const timerId = window.setTimeout(applyFit, 0);
     return () => window.clearTimeout(timerId);
-  }, [selectedTripId, routeGeometry]);
+  }, [selectedTripId, routeGeometry, traveledRouteGeometry]);
 
   return (
     <div className="dashboard-map-root">
@@ -214,6 +248,9 @@ export default function DashboardMap({
         attributionControl={false}
       >
         <NavigationControl position="bottom-right" showCompass={false} />
+        {traveledRouteGeometry && selectedTrip && (
+          <TraveledRouteLayer geometry={traveledRouteGeometry} />
+        )}
         {routeGeometry && selectedTrip && <RouteLayer geometry={routeGeometry} />}
         {showPartnerWarehouses && <WarehouseMarkers warehouses={partnerWarehouses} />}
         <TripMarkers trips={trips} selectedTripId={selectedTripId} onSelectTrip={onSelectTrip} />

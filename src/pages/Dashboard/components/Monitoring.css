@@ -1,0 +1,24 @@
+/* Mapa em tela cheia na área principal (compensa padding de .dashboard-content). */
+.monitoring-full-bleed {
+  margin: -30px;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: calc(100dvh - 24px);
+}
+
+.monitoring-full-bleed .map-section {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border-radius: 0;
+  box-shadow: none;
+  border-width: 0 0 1px 0;
+}
+
+.monitoring-full-bleed .map-placeholder {
+  flex: 1 1 auto;
+  height: auto;
+  min-height: calc(100dvh - 88px);
+}
