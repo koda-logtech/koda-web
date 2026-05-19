@@ -37,4 +37,12 @@ export const cargaService = {
     );
     return data ?? [];
   },
+
+  /** Todos os pings de auditoria de uma carga (`GET /carga/:id/telemetria-auditoria`). */
+  async listTelemetriaAuditoriaPorCarga(idCarga: number): Promise<CargaTelemetriaAuditoria[]> {
+    const { data } = await api.get<CargaTelemetriaAuditoria[]>(
+      `${RESOURCE}/${idCarga}/telemetria-auditoria`,
+    );
+    return data ?? [];
+  },
 };

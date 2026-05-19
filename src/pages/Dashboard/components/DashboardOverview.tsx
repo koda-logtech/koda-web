@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Button from "@components/common/Button";
 import Loading from "@components/common/Loading";
+import { useTelemetriaAuditoriaPorCarga } from "@controllers/cargaController";
 import { useEntregasCompleto, useEntregaDirection } from "@controllers/entregaController";
 import { useArmazens } from "@controllers/armazemController";
 import type { Armazem, EntregaCompleta } from "@/types/models";
@@ -14,6 +15,8 @@ import {
   formatMetricKpi,
   computeOperationKpis,
 } from "@/utils/dashboardOperationKpis";
+import { buildCargaTraveledRoute } from "@/utils/buildCargaTraveledRoute";
+import { formatCargaAuditoriaMultiline } from "@/utils/formatCargaAuditoriaPings";
 import DashboardMap, { type DashboardMapTrip } from "./DashboardMap";
 import type { TripMapOverlayDetail } from "./TripMapOverlay";
 import "./DashboardOverview.css";
@@ -160,6 +163,36 @@ export default function DashboardOverview() {
 
   const selectedTripIdStr =
     selectedEntregaId !== null ? String(selectedEntregaId) : null;
+
+  const selectedCargaId = useMemo(() => {
+    if (selectedEntregaId === null) return null;
+    const row = liveTrips.find((r) => r.id === selectedEntregaId);
+    const id = row?.id_carga;
+    return typeof id === "number" && id > 0 ? id : null;
+  }, [liveTrips, selectedEntregaId]);
+
+  const auditoriaPorCarga = useTelemetriaAuditoriaPorCarga(selectedCargaId, {
+    refetchInterval: selectedCargaId != null ? DASHBOARD_LIVE_REFETCH_MS : undefined,
+  });
+
+  const traveledRouteGeometry = useMemo(() => {
+    if (selectedCargaId === null || auditoriaPorCarga.isLoading || auditoriaPorCarga.isError) {
+      return null;
+    }
+    return buildCargaTraveledRoute(auditoriaPorCarga.data ?? []);
+  }, [
+    selectedCargaId,
+    auditoriaPorCarga.data,
+    auditoriaPorCarga.isError,
+    auditoriaPorCarga.isLoading,
+  ]);
+
+  const auditoriaMultiline = useMemo(() => {
+    if (selectedCargaId === null) return "";
+    if (auditoriaPorCarga.isLoading) return "Carregando histórico de telemetria…";
+    if (auditoriaPorCarga.isError) return "Não foi possível carregar os pings da auditoria.";
+    return formatCargaAuditoriaMultiline(auditoriaPorCarga.data ?? []);
+  }, [selectedCargaId, auditoriaPorCarga.data, auditoriaPorCarga.isError, auditoriaPorCarga.isLoading]);
 
   return (
     <div className="dashboard-overview">
@@ -333,6 +366,7 @@ export default function DashboardOverview() {
                   onSelectTrip={(id) => toggleSelectEntrega(Number(id))}
                   token={mapboxToken!}
                   routeGeometry={routeGeometry}
+                  traveledRouteGeometry={traveledRouteGeometry}
                   showPartnerWarehouses={showPartnerWarehouses}
                   onTogglePartnerWarehouses={() =>
                     setShowPartnerWarehouses((v) => !v)
@@ -433,6 +467,11 @@ export default function DashboardOverview() {
                     <p className="route-info">
                       {cliente} — {endereco}
                     </p>
+                    {/* {selected && (
+                      <pre className="live-card-auditoria-pings" aria-label="Histórico de telemetria da carga">
+                        {auditoriaMultiline}
+                      </pre>
+                    )} */}
                   </button>
                 );
               })

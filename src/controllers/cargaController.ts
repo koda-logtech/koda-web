@@ -45,3 +45,17 @@ export const useTelemetriaAuditoria = (page: number, limit: number) => {
     refetchIntervalInBackground: true,
   });
 };
+
+export const useTelemetriaAuditoriaPorCarga = (
+  idCarga: number | null,
+  options: { refetchInterval?: number } = {},
+) => {
+  return useQuery({
+    queryKey: ["carga-telemetria-auditoria", "por-carga", idCarga],
+    queryFn: () => cargaService.listTelemetriaAuditoriaPorCarga(idCarga!),
+    enabled: idCarga != null && idCarga > 0,
+    staleTime: 0,
+    refetchInterval: options.refetchInterval,
+    refetchIntervalInBackground: options.refetchInterval != null,
+  });
+};

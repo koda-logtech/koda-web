@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import Loading from "@components/common/Loading";
+import { useTelemetriaAuditoriaPorCarga } from "@controllers/cargaController";
 import { useEntregasCompleto, useEntregaDirection } from "@controllers/entregaController";
 import { useArmazens } from "@controllers/armazemController";
 import type { Armazem, EntregaCompleta } from "@/types/models";
@@ -10,6 +11,7 @@ import {
   STATUS_ATIVOS,
   parseTemp,
 } from "@/utils/dashboardOperationKpis";
+import { buildCargaTraveledRoute } from "@/utils/buildCargaTraveledRoute";
 import DashboardMap, { type DashboardMapTrip } from "./DashboardMap";
 import type { TripMapOverlayDetail } from "./TripMapOverlay";
 import "./DashboardOverview.css";
@@ -139,6 +141,29 @@ export default function Monitoring() {
   const selectedTripIdStr =
     selectedEntregaId !== null ? String(selectedEntregaId) : null;
 
+  const selectedCargaId = useMemo(() => {
+    if (selectedEntregaId === null) return null;
+    const row = liveTrips.find((r) => r.id === selectedEntregaId);
+    const id = row?.id_carga;
+    return typeof id === "number" && id > 0 ? id : null;
+  }, [liveTrips, selectedEntregaId]);
+
+  const auditoriaPorCarga = useTelemetriaAuditoriaPorCarga(selectedCargaId, {
+    refetchInterval: selectedCargaId != null ? DASHBOARD_LIVE_REFETCH_MS : undefined,
+  });
+
+  const traveledRouteGeometry = useMemo(() => {
+    if (selectedCargaId === null || auditoriaPorCarga.isLoading || auditoriaPorCarga.isError) {
+      return null;
+    }
+    return buildCargaTraveledRoute(auditoriaPorCarga.data ?? []);
+  }, [
+    selectedCargaId,
+    auditoriaPorCarga.data,
+    auditoriaPorCarga.isError,
+    auditoriaPorCarga.isLoading,
+  ]);
+
   return (
     <div className="monitoring-full-bleed">
       <div className="map-section">
@@ -153,6 +178,7 @@ export default function Monitoring() {
                 onSelectTrip={(id) => toggleSelectEntrega(Number(id))}
                 token={mapboxToken!}
                 routeGeometry={routeGeometry}
+                traveledRouteGeometry={traveledRouteGeometry}
                 showPartnerWarehouses={showPartnerWarehouses}
                 onTogglePartnerWarehouses={() =>
                   setShowPartnerWarehouses((v) => !v)
