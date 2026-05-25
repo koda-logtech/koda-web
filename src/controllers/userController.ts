@@ -17,6 +17,14 @@ export const useCreateUser = () => {
   });
 };
 
+export const useUpdateUser = () => {
+  const qc = useQueryClient();
+  return useMutation<any, Error, { id: number; payload: any }>({
+    mutationFn: ({ id, payload }) => userService.update(id, payload),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["users"] }),
+  });
+};
+
 export const useDeleteUser = () => {
   const qc = useQueryClient();
   return useMutation<any, Error, number>({

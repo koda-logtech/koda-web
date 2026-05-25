@@ -479,6 +479,31 @@ button.live-card:hover {
   font-size: 0.85rem;
   font-weight: 700;
   color: var(--text-color);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.live-card-disconnected {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.1rem 0.45rem;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  color: var(--tertiary-color);
+  background: rgba(231, 76, 60, 0.12);
+  border: 1px solid rgba(231, 76, 60, 0.45);
+  border-radius: 999px;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.live-card-disconnected svg {
+  flex-shrink: 0;
 }
 
 .temp-info {
@@ -517,9 +542,12 @@ button.live-card:hover {
   overflow-y: auto;
 }
 
-/* Variantes dos cards da lista */
-.alert-border { border-left: 4px solid #f1c40f; }
-.danger-border { border-left: 4px solid var(--tertiary-color); }
+/* Variantes dos cards da lista — borda lateral indica o estado térmico
+   ou a conectividade do caminhão. */
+.live-card.ok-border      { border-left: 4px solid #2ecc71; }
+.live-card.alert-border   { border-left: 4px solid #f1c40f; }
+.live-card.danger-border  { border-left: 4px solid var(--tertiary-color); }
+.live-card.offline-border { border-left: 4px solid #95a5a6; }
 
 .warning-text { color: #f39c12; }
 .danger-text { color: var(--tertiary-color); }

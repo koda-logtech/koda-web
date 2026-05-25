@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import ContentHeader from "./ContentHeader";
 import TripCreateModal from "./TripCreateModal";
+import TripEditModal from "./TripEditModal";
 import Button from "@components/common/Button";
 import Select from "@components/common/Select";
 import Loading from "@components/common/Loading";
@@ -34,7 +35,7 @@ function tempKind(
   if (atual < min || atual > max) return "danger";
   const span = max - min;
   if (span <= 0) return "neutral";
-  const band = span * 0.15;
+  const band = span * 0.1;
   if (atual <= min + band || atual >= max - band) return "warn";
   return "neutral";
 }
@@ -88,6 +89,18 @@ export default function Trips() {
     id: number;
     label: string;
   } | null>(null);
+  const [editOpen, setEditOpen] = useState(false);
+  const [viagemToEdit, setViagemToEdit] = useState<EntregaCompleta | null>(null);
+
+  const handleEditClick = (row: EntregaCompleta) => {
+    setViagemToEdit(row);
+    setEditOpen(true);
+  };
+
+  const closeEditModal = () => {
+    setEditOpen(false);
+    setViagemToEdit(null);
+  };
 
   const { data: users = [] } = useUsers(1, 200);
   const drivers = useMemo(
@@ -326,7 +339,12 @@ export default function Trips() {
                         </td>
                         <td>
                           <div className="table-actions">
-                            <button type="button" className="btn-icon-action" title="Editar">
+                            <button
+                              type="button"
+                              className="btn-icon-action"
+                              title="Editar"
+                              onClick={() => handleEditClick(row)}
+                            >
                               <svg
                                 xmlns="http://www.w3.org/2000/svg"
                                 width="16"
@@ -437,6 +455,12 @@ export default function Trips() {
       </div>
 
       <TripCreateModal isOpen={createOpen} onClose={() => setCreateOpen(false)} />
+
+      <TripEditModal
+        isOpen={editOpen}
+        onClose={closeEditModal}
+        entrega={viagemToEdit}
+      />
 
       <ConfirmModal
         isOpen={deleteModalOpen}

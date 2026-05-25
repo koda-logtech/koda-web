@@ -207,6 +207,40 @@
   color: #64748b;
 }
 
+.trip-map-overlay__updated-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding-top: 0.45rem;
+  margin-top: 0.4rem;
+  border-top: 1px dashed rgba(255, 255, 255, 0.08);
+}
+
+.trip-map-overlay__updated-value {
+  font-size: 0.72rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: #cbd5e1;
+  text-align: right;
+}
+
+.trip-map-overlay__updated-rel {
+  color: #64748b;
+  font-weight: 500;
+}
+
+.trip-map-overlay__updated-value--muted {
+  color: #64748b;
+  font-weight: 500;
+  font-style: italic;
+}
+
+.trip-map-overlay__updated-row--stale .trip-map-overlay__updated-value,
+.trip-map-overlay__updated-row--stale .trip-map-overlay__updated-rel {
+  color: #f87171;
+}
+
 .trip-map-overlay__temp {
   font-size: 1.1rem;
   font-weight: 600;
@@ -274,14 +308,15 @@
   transform: scale(1.35);
 }
 
+/* Cores idênticas às bordas dos cards do Monitoramento Live. */
 .dashboard-map-marker--ok {
-  background: #3498db;
-  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.45);
+  background: #2ecc71;
+  box-shadow: 0 0 0 2px rgba(46, 204, 113, 0.45);
 }
 
 .dashboard-map-marker--warn {
-  background: #f39c12;
-  box-shadow: 0 0 0 2px rgba(243, 156, 18, 0.45);
+  background: #f1c40f;
+  box-shadow: 0 0 0 2px rgba(241, 196, 15, 0.45);
 }
 
 .dashboard-map-marker--crit {
@@ -289,8 +324,10 @@
   box-shadow: 0 0 0 2px rgba(231, 76, 60, 0.45);
 }
 
+.dashboard-map-marker--offline,
 .dashboard-map-marker--neutral {
   background: #95a5a6;
+  box-shadow: 0 0 0 2px rgba(149, 165, 166, 0.45);
 }
 
 .dashboard-map-dest-wrap {

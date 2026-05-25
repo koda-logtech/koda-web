@@ -19,6 +19,17 @@ export const useCreateCliente = () => {
   });
 };
 
+export const useUpdateCliente = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: number; payload: any }) =>
+      clienteService.update(id, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["clientes"] });
+    },
+  });
+};
+
 export const useDeleteCliente = () => {
   const queryClient = useQueryClient();
   return useMutation({

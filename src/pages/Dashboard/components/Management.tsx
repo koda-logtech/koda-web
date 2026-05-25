@@ -16,6 +16,12 @@ import ClientesView from "./ClientesView";
 import ArmazensView from "./ArmazensView";
 import CentrosLogisticaView from "./CentrosLogisticaView";
 import ConfirmModal from "@components/common/ConfirmModal";
+import ArmazemEditModal from "./ArmazemEditModal";
+import CentroLogisticaEditModal from "./CentroLogisticaEditModal";
+import ClienteEditModal from "./ClienteEditModal";
+import CaminhaoEditModal from "./CaminhaoEditModal";
+import MotoristaEditModal from "./MotoristaEditModal";
+import type { Armazem, CentroLogistica, Cliente, CaminhaoCompleto, User } from "@/types/models";
 import "./Management.css";
 
 import { useToast } from "@/contexts/ToastContext";
@@ -39,6 +45,76 @@ export default function Management() {
   // State for deletion
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [entityToDelete, setEntityToDelete] = useState<{ id: number; name: string } | null>(null);
+
+  // State for armazem edit
+  const [isArmazemEditModalOpen, setIsArmazemEditModalOpen] = useState(false);
+  const [armazemToEdit, setArmazemToEdit] = useState<Armazem | null>(null);
+
+  const handleEditArmazemClick = (armazem: Armazem) => {
+    setArmazemToEdit(armazem);
+    setIsArmazemEditModalOpen(true);
+  };
+
+  const closeArmazemEditModal = () => {
+    setIsArmazemEditModalOpen(false);
+    setArmazemToEdit(null);
+  };
+
+  // State for centro logistica edit
+  const [isCentroEditModalOpen, setIsCentroEditModalOpen] = useState(false);
+  const [centroToEdit, setCentroToEdit] = useState<CentroLogistica | null>(null);
+
+  const handleEditCentroClick = (centro: CentroLogistica) => {
+    setCentroToEdit(centro);
+    setIsCentroEditModalOpen(true);
+  };
+
+  const closeCentroEditModal = () => {
+    setIsCentroEditModalOpen(false);
+    setCentroToEdit(null);
+  };
+
+  // State for cliente edit
+  const [isClienteEditModalOpen, setIsClienteEditModalOpen] = useState(false);
+  const [clienteToEdit, setClienteToEdit] = useState<Cliente | null>(null);
+
+  const handleEditClienteClick = (cliente: Cliente) => {
+    setClienteToEdit(cliente);
+    setIsClienteEditModalOpen(true);
+  };
+
+  const closeClienteEditModal = () => {
+    setIsClienteEditModalOpen(false);
+    setClienteToEdit(null);
+  };
+
+  // State for caminhao edit
+  const [isCaminhaoEditModalOpen, setIsCaminhaoEditModalOpen] = useState(false);
+  const [caminhaoToEdit, setCaminhaoToEdit] = useState<CaminhaoCompleto | null>(null);
+
+  const handleEditCaminhaoClick = (caminhao: CaminhaoCompleto) => {
+    setCaminhaoToEdit(caminhao);
+    setIsCaminhaoEditModalOpen(true);
+  };
+
+  const closeCaminhaoEditModal = () => {
+    setIsCaminhaoEditModalOpen(false);
+    setCaminhaoToEdit(null);
+  };
+
+  // State for motorista edit
+  const [isMotoristaEditModalOpen, setIsMotoristaEditModalOpen] = useState(false);
+  const [motoristaToEdit, setMotoristaToEdit] = useState<User | null>(null);
+
+  const handleEditMotoristaClick = (motorista: User) => {
+    setMotoristaToEdit(motorista);
+    setIsMotoristaEditModalOpen(true);
+  };
+
+  const closeMotoristaEditModal = () => {
+    setIsMotoristaEditModalOpen(false);
+    setMotoristaToEdit(null);
+  };
 
   // Queries (enabled per active tab)
   const { data: motoristas = [], isLoading: loadingMotoristas } = useUsers(1, 0, { enabled: activeSubTab === "Motoristas" && showFullMotoristas });
@@ -166,7 +242,11 @@ export default function Management() {
                     </td>
                     <td>
                       <div className="table-actions">
-                        <button className="btn-icon-action" title="Editar">
+                        <button
+                          className="btn-icon-action"
+                          title="Editar"
+                          onClick={() => handleEditMotoristaClick(m as User)}
+                        >
                           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                         </button>
                         <button 
@@ -271,8 +351,12 @@ export default function Management() {
                     </td>
                     <td>
                       <div className="table-actions">
-                        <button className="btn-icon-action" title="Histórico">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <button
+                          className="btn-icon-action"
+                          title="Editar"
+                          onClick={() => handleEditCaminhaoClick(c as CaminhaoCompleto)}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                         </button>
                         <button 
                           className="btn-icon-action danger" 
@@ -346,8 +430,12 @@ export default function Management() {
                     </td>
                     <td>
                       <div className="table-actions">
-                        <button className="btn-icon-action" title="Mapa">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                        <button
+                          className="btn-icon-action"
+                          title="Editar"
+                          onClick={() => handleEditClienteClick(cl as Cliente)}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                         </button>
                         <button 
                           className="btn-icon-action danger" 
@@ -421,8 +509,12 @@ export default function Management() {
                     </td>
                     <td>
                       <div className="table-actions">
-                        <button className="btn-icon-action" title="Detalhes">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                        <button
+                          className="btn-icon-action"
+                          title="Editar"
+                          onClick={() => handleEditArmazemClick(a as Armazem)}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                         </button>
                         <button 
                           className="btn-icon-action danger" 
@@ -501,6 +593,13 @@ export default function Management() {
                     </td>
                     <td>
                       <div className="table-actions">
+                        <button
+                          className="btn-icon-action"
+                          title="Editar"
+                          onClick={() => handleEditCentroClick(c as CentroLogistica)}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                        </button>
                         <button 
                           className="btn-icon-action danger" 
                           title="Excluir"
@@ -550,16 +649,16 @@ export default function Management() {
         </div>
 
         <div className="header-right">
-          <button className="icon-btn" title="Histórico">
+          {/* <button className="icon-btn" title="Histórico">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-          </button>
-          <button className="icon-btn" title="Notificações">
+          </button> */}
+          {/* <button className="icon-btn" title="Notificações">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 01-3.46 0"></path></svg>
             <span className="notification-badge"></span>
-          </button>
-          <div className="user-profile">
+          </button> */}
+          {/* <div className="user-profile">
             <img src="https://ui-avatars.com/api/?name=User&background=3498DB&color=fff" alt="User" />
-          </div>
+          </div> */}
         </div>
       </header>
 
@@ -573,6 +672,36 @@ export default function Management() {
         onConfirm={confirmDelete}
         title="Confirmar Exclusão"
         message={`Tem certeza que deseja excluir "${entityToDelete?.name}"? Esta ação não pode ser desfeita.`}
+      />
+
+      <ArmazemEditModal
+        isOpen={isArmazemEditModalOpen}
+        onClose={closeArmazemEditModal}
+        armazem={armazemToEdit}
+      />
+
+      <CentroLogisticaEditModal
+        isOpen={isCentroEditModalOpen}
+        onClose={closeCentroEditModal}
+        centro={centroToEdit}
+      />
+
+      <ClienteEditModal
+        isOpen={isClienteEditModalOpen}
+        onClose={closeClienteEditModal}
+        cliente={clienteToEdit}
+      />
+
+      <CaminhaoEditModal
+        isOpen={isCaminhaoEditModalOpen}
+        onClose={closeCaminhaoEditModal}
+        caminhao={caminhaoToEdit}
+      />
+
+      <MotoristaEditModal
+        isOpen={isMotoristaEditModalOpen}
+        onClose={closeMotoristaEditModal}
+        user={motoristaToEdit}
       />
     </div>
   );

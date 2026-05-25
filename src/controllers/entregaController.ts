@@ -34,6 +34,22 @@ export const useCreateEntrega = () => {
   });
 };
 
+export const useUpdateEntrega = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id,
+      payload,
+    }: {
+      id: number;
+      payload: Partial<Omit<Entrega, "id" | "created_at" | "updated_at">>;
+    }) => entregaService.update(id, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["entregas"] });
+    },
+  });
+};
+
 export const useDeleteEntrega = () => {
   const queryClient = useQueryClient();
   return useMutation({

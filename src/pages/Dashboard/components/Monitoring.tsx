@@ -10,6 +10,7 @@ import {
   DASHBOARD_LIVE_REFETCH_MS,
   STATUS_ATIVOS,
   parseTemp,
+  entregaDesconectada,
 } from "@/utils/dashboardOperationKpis";
 import { buildCargaTraveledRoute } from "@/utils/buildCargaTraveledRoute";
 import DashboardMap, { type DashboardMapTrip } from "./DashboardMap";
@@ -38,7 +39,7 @@ function armazensAtivosComCoordenadas(rows: Armazem[]): PartnerWarehouse[] {
     );
 }
 
-function toMapTrip(row: EntregaCompleta): DashboardMapTrip | null {
+function toMapTrip(row: EntregaCompleta, nowMs: number): DashboardMapTrip | null {
   if (!entregaTemCoordsParaMapa(row)) return null;
   const lo = parseCoord(row.longitude_carga);
   const la = parseCoord(row.latitude_carga);
@@ -60,6 +61,7 @@ function toMapTrip(row: EntregaCompleta): DashboardMapTrip | null {
     temperatura_atual: parseTemp(row.temperatura_atual),
     temperatura_minima: parseTemp(row.temperatura_minima),
     temperatura_maxima: parseTemp(row.temperatura_maxima),
+    isDesconectada: entregaDesconectada(row, nowMs),
   };
 }
 
@@ -72,6 +74,12 @@ export default function Monitoring() {
 
   const [selectedEntregaId, setSelectedEntregaId] = useState<number | null>(null);
   const [showPartnerWarehouses, setShowPartnerWarehouses] = useState(false);
+  const [nowMs, setNowMs] = useState(() => Date.now());
+
+  useEffect(() => {
+    const id = window.setInterval(() => setNowMs(Date.now()), 30_000);
+    return () => window.clearInterval(id);
+  }, []);
 
   const { data: entregasRaw = [], isLoading } = useEntregasCompleto(1, FETCH_LIMIT, {
     refetchInterval: DASHBOARD_LIVE_REFETCH_MS,
@@ -96,9 +104,9 @@ export default function Monitoring() {
   const mapTrips = useMemo(
     () =>
       liveTrips
-        .map(toMapTrip)
+        .map((row) => toMapTrip(row, nowMs))
         .filter((t): t is DashboardMapTrip => t !== null),
-    [liveTrips],
+    [liveTrips, nowMs],
   );
 
   useEffect(() => {
@@ -125,6 +133,7 @@ export default function Monitoring() {
       temperaturaAtual: parseTemp(row.temperatura_atual),
       temperaturaMin: parseTemp(row.temperatura_minima),
       temperaturaMax: parseTemp(row.temperatura_maxima),
+      ultimaAtualizacaoAt: row.ultima_auditoria_at ?? null,
     };
   }, [liveTrips, selectedEntregaId]);
 
@@ -194,11 +203,6 @@ export default function Monitoring() {
             )
           ) : (
             <>
-              <button type="button" className="map-layers-btn">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
-                Camadas de tráfego
-              </button>
-
               <div className="map-zoom-controls">
                 <button type="button" className="map-control-btn">+</button>
                 <button type="button" className="map-control-btn">−</button>

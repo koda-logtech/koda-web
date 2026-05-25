@@ -4,6 +4,8 @@ import Loading from "@components/common/Loading";
 import { useTelemetriaAuditoriaPorCarga } from "@controllers/cargaController";
 import { useEntregasCompleto, useEntregaDirection } from "@controllers/entregaController";
 import { useArmazens } from "@controllers/armazemController";
+import { ALERTAS_LIVE_REFETCH_MS, useAlertasCount } from "@controllers/alertaController";
+import { useRouteRecalculation } from "@/hooks/useRouteRecalculation";
 import type { Armazem, EntregaCompleta } from "@/types/models";
 import type { PartnerWarehouse } from "@/types/partnerWarehouse";
 import { entregaTemCoordsParaMapa, parseCoord } from "@/utils/entregaMap";
@@ -14,9 +16,12 @@ import {
   tempKind,
   formatMetricKpi,
   computeOperationKpis,
+  entregaDesconectada,
 } from "@/utils/dashboardOperationKpis";
 import { buildCargaTraveledRoute } from "@/utils/buildCargaTraveledRoute";
 import { formatCargaAuditoriaMultiline } from "@/utils/formatCargaAuditoriaPings";
+import { exportDashboardPdf } from "@/utils/exportDashboardPdf";
+import { useToast } from "@/contexts/ToastContext";
 import DashboardMap, { type DashboardMapTrip } from "./DashboardMap";
 import type { TripMapOverlayDetail } from "./TripMapOverlay";
 import "./DashboardOverview.css";
@@ -46,7 +51,7 @@ function armazensAtivosComCoordenadas(rows: Armazem[]): PartnerWarehouse[] {
     );
 }
 
-function toMapTrip(row: EntregaCompleta): DashboardMapTrip | null {
+function toMapTrip(row: EntregaCompleta, nowMs: number): DashboardMapTrip | null {
   if (!entregaTemCoordsParaMapa(row)) return null;
   const lo = parseCoord(row.longitude_carga);
   const la = parseCoord(row.latitude_carga);
@@ -68,17 +73,20 @@ function toMapTrip(row: EntregaCompleta): DashboardMapTrip | null {
     temperatura_atual: parseTemp(row.temperatura_atual),
     temperatura_minima: parseTemp(row.temperatura_minima),
     temperatura_maxima: parseTemp(row.temperatura_maxima),
+    isDesconectada: entregaDesconectada(row, nowMs),
   };
 }
 
 export default function DashboardOverview() {
   const mapboxToken = import.meta.env.VITE_MAPBOX_TOKEN?.trim();
   const hasMap = Boolean(mapboxToken);
+  const { addToast } = useToast();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedEntregaId, setSelectedEntregaId] = useState<number | null>(null);
   const [showPartnerWarehouses, setShowPartnerWarehouses] = useState(false);
   const [nowMs, setNowMs] = useState(() => Date.now());
+  const [isExporting, setIsExporting] = useState(false);
 
   useEffect(() => {
     const id = window.setInterval(() => setNowMs(Date.now()), 30_000);
@@ -108,12 +116,21 @@ export default function DashboardOverview() {
   const mapTrips = useMemo(
     () =>
       liveTrips
-        .map(toMapTrip)
+        .map((row) => toMapTrip(row, nowMs))
         .filter((t): t is DashboardMapTrip => t !== null),
-    [liveTrips],
+    [liveTrips, nowMs],
   );
 
-  const kpis = useMemo(() => computeOperationKpis(entregas, nowMs), [entregas, nowMs]);
+  const { data: alertasAtivos = 0 } = useAlertasCount("aberto", {
+    refetchInterval: ALERTAS_LIVE_REFETCH_MS,
+    refetchIntervalInBackground: true,
+    refetchOnWindowFocus: true,
+  });
+
+  const kpis = useMemo(() => {
+    const base = computeOperationKpis(entregas, nowMs);
+    return { ...base, alertasAtivos };
+  }, [entregas, nowMs, alertasAtivos]);
 
   const subtitleAtualizacao =
     dataUpdatedAt > 0
@@ -148,6 +165,7 @@ export default function DashboardOverview() {
       temperaturaAtual: parseTemp(row.temperatura_atual),
       temperaturaMin: parseTemp(row.temperatura_minima),
       temperaturaMax: parseTemp(row.temperatura_maxima),
+      ultimaAtualizacaoAt: row.ultima_auditoria_at ?? null,
     };
   }, [liveTrips, selectedEntregaId]);
 
@@ -160,6 +178,24 @@ export default function DashboardOverview() {
 
   const routeGeometry =
     directionQuery.data?.entrega_id === selectedEntregaId ? directionQuery.data.geometry : null;
+
+  // Coordenada atual da carga selecionada — usada para detectar desvio em tempo real.
+  const selectedCargaLngLat = useMemo((): readonly [number, number] | null => {
+    if (selectedEntregaId === null) return null;
+    const trip = liveTrips.find((t) => t.id === selectedEntregaId);
+    if (!trip) return null;
+    const lng = parseCoord(trip.longitude_carga);
+    const lat = parseCoord(trip.latitude_carga);
+    if (lng === null || lat === null) return null;
+    return [lng, lat];
+  }, [liveTrips, selectedEntregaId]);
+
+  useRouteRecalculation({
+    selectedEntregaId,
+    cargaLngLat: selectedCargaLngLat,
+    routeGeometry,
+    refetch: directionQuery.refetch,
+  });
 
   const selectedTripIdStr =
     selectedEntregaId !== null ? String(selectedEntregaId) : null;
@@ -186,6 +222,26 @@ export default function DashboardOverview() {
     auditoriaPorCarga.isError,
     auditoriaPorCarga.isLoading,
   ]);
+
+  const handleExportPdf = () => {
+    if (isExporting) return;
+    setIsExporting(true);
+    try {
+      exportDashboardPdf({
+        liveTrips,
+        entregas,
+        kpis,
+        serverUpdatedAtMs: dataUpdatedAt,
+        nowMs,
+      });
+      addToast({ message: "Relatório PDF gerado com sucesso.", type: "success" });
+    } catch (err) {
+      console.error("Falha ao gerar PDF:", err);
+      addToast({ message: "Não foi possível gerar o PDF.", type: "error" });
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   const auditoriaMultiline = useMemo(() => {
     if (selectedCargaId === null) return "";
@@ -223,16 +279,10 @@ export default function DashboardOverview() {
         </div>
 
         <div className="header-right">
-          <button className="icon-btn" title="Histórico">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-          </button>
-          <button className="icon-btn" title="Notificações">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 01-3.46 0"></path></svg>
-            <span className="notification-badge"></span>
-          </button>
-          <div className="user-profile">
+          {/* Sininho global de alertas é renderizado fixo via NotificationBell (Dashboard.tsx) */}
+          {/* <div className="user-profile">
             <img src="https://ui-avatars.com/api/?name=User&background=3498DB&color=fff" alt="User" />
-          </div>
+          </div> */}
         </div>
       </header>
 
@@ -245,11 +295,17 @@ export default function DashboardOverview() {
           </p>
         </div>
         <div className="button-group">
-          <Button variant="secondary" size="medium">
+          <Button
+            variant="secondary"
+            size="medium"
+            onClick={handleExportPdf}
+            disabled={isExporting || isLoading}
+            title="Baixar PDF com a foto atual da operação"
+          >
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '8px' }}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-            Exportar Relatórios
+            {isExporting ? "Gerando..." : "Exportar Relatórios"}
           </Button>
-          <Button variant="primary" size="medium">+ Novo Manifesto</Button>
+          {/* <Button variant="primary" size="medium">+ Novo Manifesto</Button> */}
         </div>
       </div>
 
@@ -349,7 +405,7 @@ export default function DashboardOverview() {
             <span className="metric-label">ALERTAS ATIVOS</span>
           </div>
           <h2 className="metric-value">{formatMetricKpi(kpis.alertasAtivos)}</h2>
-          <span className="metric-subtext">Prioridade Alta (Nível 1)</span>
+          <span className="metric-subtext">Prioridade Alta</span>
         </div>
       </div>
 
@@ -382,11 +438,6 @@ export default function DashboardOverview() {
               )
             ) : (
               <>
-                <button type="button" className="map-layers-btn">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
-                  Camadas de tráfego
-                </button>
-
                 <div className="map-zoom-controls">
                   <button type="button" className="map-control-btn">+</button>
                   <button type="button" className="map-control-btn">−</button>
@@ -413,9 +464,9 @@ export default function DashboardOverview() {
         <div className="monitoring-sidebar">
           <div className="sidebar-header-live">
             <h3>Monitoramento Live</h3>
-            <button type="button" className="filter-btn" title="Filtrar">
+            {/* <button type="button" className="filter-btn" title="Filtrar">
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
-            </button>
+            </button> */}
           </div>
 
           <div className="live-cards-list">
@@ -439,17 +490,56 @@ export default function DashboardOverview() {
                   ? row.endereco_cliente
                   : "Sem endereço";
                 const selected = selectedEntregaId === row.id;
-                const cardExtra =
-                  tk === "danger" ? " danger-border" : tk === "warn" ? " alert-border" : "";
+                const isDesconectada = entregaDesconectada(row, nowMs);
+
+                // Prioridade da borda:
+                // offline (ou sem leitura) → cinza ; senão, sinal térmico:
+                // danger=vermelho, warn=amarelo, neutral=verde.
+                let borderClass = "";
+                if (isDesconectada || tk === "none") borderClass = " offline-border";
+                else if (tk === "danger") borderClass = " danger-border";
+                else if (tk === "warn") borderClass = " alert-border";
+                else borderClass = " ok-border";
                 return (
                   <button
                     key={row.id}
                     type="button"
-                    className={`live-card${cardExtra}${selected ? " live-card--selected" : ""}`}
+                    className={`live-card${borderClass}${selected ? " live-card--selected" : ""}`}
                     onClick={() => toggleSelectEntrega(row.id)}
                   >
                     <div className="card-top">
-                      <span className="vehicle-id">{vehicleLabel}</span>
+                      <span className="vehicle-id">
+                        {vehicleLabel}
+                        {isDesconectada && (
+                          <span
+                            className="live-card-disconnected"
+                            title="Sem telemetria há mais de 10 minutos"
+                            aria-label="Sem telemetria há mais de 10 minutos"
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="14"
+                              height="14"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              aria-hidden
+                            >
+                              <line x1="1" y1="1" x2="23" y2="23" />
+                              <path d="M16.72 11.06A10.94 10.94 0 0119 12.55" />
+                              <path d="M5 12.55a10.94 10.94 0 015.17-2.39" />
+                              <path d="M10.71 5.05A16 16 0 0122.58 9" />
+                              <path d="M1.42 9a15.91 15.91 0 014.7-2.88" />
+                              <path d="M8.53 16.11a6 6 0 016.95 0" />
+                              <line x1="12" y1="20" x2="12.01" y2="20" />
+                            </svg>
+                            Desconectado
+                          </span>
+                        )}
+                      </span>
                       <span
                         className={
                           tk === "danger"
@@ -478,9 +568,9 @@ export default function DashboardOverview() {
             )}
           </div>
 
-          <div className="sidebar-footer-action">
+          {/* <div className="sidebar-footer-action">
             <button type="button" className="view-all-btn">VER MANIFESTO COMPLETO</button>
-          </div>
+          </div> */}
         </div>
       </div>
     </div>

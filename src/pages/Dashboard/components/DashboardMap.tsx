@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 import MapBox, { Layer, Marker, NavigationControl, Source } from 'react-map-gl/mapbox';
 import type { MapRef } from 'react-map-gl/mapbox';
 import mapboxgl from 'mapbox-gl';
@@ -30,6 +30,8 @@ export type DashboardMapTrip = {
   temperatura_atual: number | null;
   temperatura_minima: number | null;
   temperatura_maxima: number | null;
+  /** Sem telemetria recente (>10 min) — força o marcador a cinza. */
+  isDesconectada?: boolean;
 };
 
 type Props = {
@@ -48,8 +50,10 @@ type Props = {
 };
 
 function markerClassForTrip(t: DashboardMapTrip): string {
+  // Offline (ou sem leitura) → cinza, independentemente da temperatura.
   const { temperatura_atual: a, temperatura_minima: mi, temperatura_maxima: ma } = t;
-  if (a === null || mi === null || ma === null) return 'dashboard-map-marker--neutral';
+  if (t.isDesconectada) return 'dashboard-map-marker--offline';
+  if (a === null || mi === null || ma === null) return 'dashboard-map-marker--offline';
   const st = getTempStatus(a, mi, ma);
   if (st === 'ok') return 'dashboard-map-marker--ok';
   if (st === 'warn') return 'dashboard-map-marker--warn';
@@ -196,6 +200,7 @@ export default function DashboardMap({
 }: Props) {
   const mapRef = useRef<MapRef>(null);
   const fitGenerationRef = useRef(0);
+  const [isMapReady, setIsMapReady] = useState(false);
 
   const selectedTrip = trips.find((t) => t.id === selectedTripId);
 
@@ -237,6 +242,68 @@ export default function DashboardMap({
     return () => window.clearTimeout(timerId);
   }, [selectedTripId, routeGeometry, traveledRouteGeometry]);
 
+  /**
+   * Enquadramento automático quando NENHUMA viagem está selecionada:
+   *   - mostra todos os caminhões;
+   *   - inclui também os armazéns parceiros quando o toggle estiver ativo.
+   * Re-executa quando muda a lista de caminhões/armazéns, o toggle ou quando o
+   * próprio mapa termina de carregar (resolve a race do primeiro render onde os
+   * dados podiam chegar antes do `load` do Mapbox).
+   */
+  useLayoutEffect(() => {
+    if (selectedTripId) return;
+    if (!isMapReady) return;
+
+    const coords: [number, number][] = [];
+    for (const t of trips) {
+      if (Number.isFinite(t.current_longitude) && Number.isFinite(t.current_latitude)) {
+        coords.push([t.current_longitude, t.current_latitude]);
+      }
+    }
+    if (showPartnerWarehouses) {
+      for (const w of partnerWarehouses) {
+        if (Number.isFinite(w.longitude) && Number.isFinite(w.latitude)) {
+          coords.push([w.longitude, w.latitude]);
+        }
+      }
+    }
+    if (coords.length === 0) return;
+
+    const runId = ++fitGenerationRef.current;
+    const fitOptions = {
+      padding: { top: 80, bottom: 120, left: 80, right: 80 },
+      duration: 750,
+      maxZoom: 12,
+      essential: true,
+    } as const;
+
+    const applyFit = () => {
+      if (runId !== fitGenerationRef.current) return;
+      const map = mapRef.current?.getMap();
+      if (!map) return;
+      try {
+        map.resize();
+        if (coords.length === 1) {
+          map.easeTo({
+            center: coords[0],
+            zoom: Math.min(11, fitOptions.maxZoom),
+            duration: fitOptions.duration,
+            essential: true,
+          });
+        } else {
+          const bounds = new mapboxgl.LngLatBounds();
+          coords.forEach((c) => bounds.extend(c));
+          map.fitBounds(bounds, fitOptions);
+        }
+      } catch {
+        /* ignore */
+      }
+    };
+
+    const timerId = window.setTimeout(applyFit, 0);
+    return () => window.clearTimeout(timerId);
+  }, [selectedTripId, trips, showPartnerWarehouses, partnerWarehouses, isMapReady]);
+
   return (
     <div className="dashboard-map-root">
       <MapBox
@@ -246,6 +313,7 @@ export default function DashboardMap({
         mapStyle="mapbox://styles/mapbox/dark-v11"
         style={{ width: "100%", height: "100%" }}
         attributionControl={false}
+        onLoad={() => setIsMapReady(true)}
       >
         <NavigationControl position="bottom-right" showCompass={false} />
         {traveledRouteGeometry && selectedTrip && (
@@ -265,14 +333,6 @@ export default function DashboardMap({
 
       <div className="dashboard-map-overlay-col">
         <div className="dashboard-map-overlay-row">
-          <button type="button" className="dashboard-map-chip">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-              <polygon points="12 2 2 7 12 12 22 7 12 2" />
-              <polyline points="2 17 12 22 22 17" />
-              <polyline points="2 12 12 17 22 12" />
-            </svg>
-            Camadas de tráfego
-          </button>
           <button
             type="button"
             className={`dashboard-map-chip${showPartnerWarehouses ? ' dashboard-map-chip--on' : ''}`}

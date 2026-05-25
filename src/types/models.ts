@@ -150,3 +150,41 @@ export interface CargaTelemetriaAuditoria {
   created_at: string;
   carga: { id: number; tipo: string } | { id: number; tipo: string }[] | null;
 }
+
+/** Alerta térmico de uma carga (1 linha = 1 evento contínuo). */
+export type CargaAlertaTipo = 'alta' | 'baixa';
+export type CargaAlertaStatus = 'aberto' | 'resolvido' | 'cancelado';
+
+export interface CargaAlerta {
+  id: number;
+  id_carga: number;
+  tipo: CargaAlertaTipo;
+  status: CargaAlertaStatus;
+  limite_minimo: number | string;
+  limite_maximo: number | string;
+  temperatura_inicio: number | string;
+  temperatura_pico: number | string;
+  temperatura_fim: number | string | null;
+  qtd_pings: number;
+  aberto_telemetria_id: number | null;
+  resolvido_telemetria_id: number | null;
+  aberto_at: string;
+  resolvido_at: string | null;
+  created_at: string;
+  updated_at: string;
+  /** Join Supabase opcional com a carga (pode vir como array em alguns clients). */
+  carga:
+    | {
+        id: number;
+        tipo: string;
+        temperatura_minima: number | string;
+        temperatura_maxima: number | string;
+      }
+    | {
+        id: number;
+        tipo: string;
+        temperatura_minima: number | string;
+        temperatura_maxima: number | string;
+      }[]
+    | null;
+}
