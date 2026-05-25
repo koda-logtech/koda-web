@@ -19,6 +19,17 @@ export const useCreateArmazem = () => {
   });
 };
 
+export const useUpdateArmazem = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: number; payload: any }) =>
+      armazemService.update(id, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["armazens"] });
+    },
+  });
+};
+
 export const useDeleteArmazem = () => {
   const queryClient = useQueryClient();
   return useMutation({

@@ -1,0 +1,182 @@
+/* Página de Alertas — badges, filtros e células específicas */
+
+.alertas-page .page-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.alertas-metrics {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.alertas-metric-card {
+  flex-shrink: 0;
+  min-width: 168px;
+  padding: 1.1rem 1.25rem;
+  border-radius: 10px;
+  background: var(--secondary-color);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.35rem;
+}
+
+.alertas-metric-card--alert {
+  background: #c0392b;
+}
+
+.alertas-metric-card--warning {
+  background: #d35400;
+}
+
+.alertas-metric-card--info {
+  background: var(--primary-color, #2980b9);
+}
+
+.alertas-metric-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+
+.alertas-metric-value {
+  font-size: 1.85rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.alertas-metric-hint {
+  font-size: 0.8rem;
+  opacity: 0.85;
+}
+
+.alertas-filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.alertas-filter-select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding: 0.55rem 2rem 0.55rem 0.85rem;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background: var(--card-bg);
+  color: var(--text-color);
+  font-size: 0.9rem;
+  cursor: pointer;
+  min-width: 160px;
+  background-image: url("data:image/svg+xml;utf8,<svg fill='gray' height='12' viewBox='0 0 24 24' width='12' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 0.6rem center;
+}
+
+.alertas-filter-select:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.12);
+}
+
+/* Badges */
+.alerta-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  line-height: 1.1;
+}
+
+.alerta-badge--aberto {
+  background: rgba(231, 76, 60, 0.12);
+  border-color: rgba(231, 76, 60, 0.45);
+  color: #c0392b;
+}
+
+.alerta-badge--resolvido {
+  background: rgba(46, 204, 113, 0.12);
+  border-color: rgba(46, 204, 113, 0.45);
+  color: #1e8449;
+}
+
+.alerta-badge--cancelado {
+  background: rgba(127, 140, 141, 0.12);
+  border-color: rgba(127, 140, 141, 0.45);
+  color: #555;
+}
+
+.alerta-badge--alta {
+  background: rgba(231, 76, 60, 0.12);
+  border-color: rgba(231, 76, 60, 0.45);
+  color: #c0392b;
+}
+
+.alerta-badge--baixa {
+  background: rgba(52, 152, 219, 0.12);
+  border-color: rgba(52, 152, 219, 0.45);
+  color: #1f6391;
+}
+
+.alertas-temp-pico {
+  font-weight: 700;
+  color: var(--text-color);
+}
+
+.alertas-temp-pico--alta {
+  color: #c0392b;
+}
+
+.alertas-temp-pico--baixa {
+  color: #1f6391;
+}
+
+.alertas-cancel-btn {
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  padding: 0.35rem 0.7rem;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+
+.alertas-cancel-btn:hover {
+  background: rgba(192, 57, 43, 0.08);
+  border-color: rgba(192, 57, 43, 0.45);
+  color: #c0392b;
+}
+
+.alertas-cancel-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.alertas-toolbar-right {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  align-items: flex-end;
+}
+
+@media (max-width: 720px) {
+  .alertas-toolbar-right {
+    align-items: stretch;
+  }
+  .alertas-filter-select {
+    flex: 1;
+  }
+}

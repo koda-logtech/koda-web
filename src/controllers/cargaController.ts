@@ -22,6 +22,23 @@ export const useCreateCarga = () => {
   });
 };
 
+export const useUpdateCarga = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id,
+      payload,
+    }: {
+      id: number;
+      payload: Partial<Omit<Carga, "id" | "created_at" | "updated_at">>;
+    }) => cargaService.update(id, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["cargas"] });
+      queryClient.invalidateQueries({ queryKey: ["carga-telemetria-auditoria"] });
+    },
+  });
+};
+
 export const useDeleteCarga = () => {
   const queryClient = useQueryClient();
   return useMutation({

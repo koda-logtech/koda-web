@@ -19,6 +19,17 @@ export const useCreateCentroLogistica = () => {
   });
 };
 
+export const useUpdateCentroLogistica = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: number; payload: any }) =>
+      centroLogisticaService.update(id, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["centrosLogistica"] });
+    },
+  });
+};
+
 export const useDeleteCentroLogistica = () => {
   const queryClient = useQueryClient();
   return useMutation({

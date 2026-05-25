@@ -14,6 +14,9 @@ export function parseTemp(v: number | string | null | undefined): number | null 
   return Number.isFinite(n) ? n : null;
 }
 
+/** Largura da banda de "proximidade do limite" como fração do intervalo permitido. */
+export const TEMP_BAND_FRACTION = 0.1;
+
 export function tempKind(
   atual: number | null,
   min: number | null,
@@ -24,7 +27,7 @@ export function tempKind(
   if (atual < min || atual > max) return 'danger';
   const span = max - min;
   if (span <= 0) return 'neutral';
-  const band = span * 0.15;
+  const band = span * TEMP_BAND_FRACTION;
   if (atual <= min + band || atual >= max - band) return 'warn';
   return 'neutral';
 }
@@ -71,7 +74,5 @@ export function computeOperationKpis(entregas: EntregaCompleta[], nowMs: number 
     emTransito,
     riscoTermico,
     desconectados,
-    /** Mantido mock conforme pedido de produto. */
-    alertasAtivos: 1,
   };
 }

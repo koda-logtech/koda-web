@@ -85,7 +85,7 @@ export default function Audit() {
     <div className="dashboard-page trips-page">
       <ContentHeader
         title="Auditoria"
-        subtitle="Registos de telemetria (sensor BLE) por carga — atualização em tempo quase real."
+        subtitle="Registos de telemetria por carga — atualização em tempo quase real."
       />
 
       <div className="page-content">

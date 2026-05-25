@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import ContentHeader from "./ContentHeader";
 import CargaCreateModal from "./CargaCreateModal";
+import CargaEditModal from "./CargaEditModal";
 import Button from "@components/common/Button";
 import Loading from "@components/common/Loading";
 import ConfirmModal from "@components/common/ConfirmModal";
@@ -31,7 +32,7 @@ function tempKind(
   if (atual < min || atual > max) return "danger";
   const span = max - min;
   if (span <= 0) return "neutral";
-  const band = span * 0.15;
+  const band = span * 0.1;
   if (atual <= min + band || atual >= max - band) return "warn";
   return "neutral";
 }
@@ -64,6 +65,18 @@ export default function Cargas() {
   const [createOpen, setCreateOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [cargaToDelete, setCargaToDelete] = useState<{ id: number; label: string } | null>(null);
+  const [editOpen, setEditOpen] = useState(false);
+  const [cargaToEdit, setCargaToEdit] = useState<Carga | null>(null);
+
+  const handleEditClick = (row: Carga) => {
+    setCargaToEdit(row);
+    setEditOpen(true);
+  };
+
+  const closeEditModal = () => {
+    setEditOpen(false);
+    setCargaToEdit(null);
+  };
 
   const totalCadastradas = cargas.length;
 
@@ -234,7 +247,12 @@ export default function Cargas() {
                         </td>
                         <td>
                           <div className="table-actions">
-                            <button type="button" className="btn-icon-action" title="Editar">
+                            <button
+                              type="button"
+                              className="btn-icon-action"
+                              title="Editar"
+                              onClick={() => handleEditClick(row)}
+                            >
                               <svg
                                 xmlns="http://www.w3.org/2000/svg"
                                 width="16"
@@ -340,6 +358,12 @@ export default function Cargas() {
       </div>
 
       <CargaCreateModal isOpen={createOpen} onClose={() => setCreateOpen(false)} />
+
+      <CargaEditModal
+        isOpen={editOpen}
+        onClose={closeEditModal}
+        carga={cargaToEdit}
+      />
 
       <ConfirmModal
         isOpen={deleteModalOpen}
