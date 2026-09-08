@@ -1,5 +1,4 @@
 import { api } from './api';
-import { storage } from '../utils/storage';
 import { AuthResponse, User } from '../types/auth';
 
 export const authService = {

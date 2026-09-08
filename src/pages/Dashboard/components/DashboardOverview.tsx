@@ -19,7 +19,6 @@ import {
   entregaDesconectada,
 } from "@/utils/dashboardOperationKpis";
 import { buildCargaTraveledRoute } from "@/utils/buildCargaTraveledRoute";
-import { formatCargaAuditoriaMultiline } from "@/utils/formatCargaAuditoriaPings";
 import { exportDashboardPdf } from "@/utils/exportDashboardPdf";
 import { useToast } from "@/contexts/ToastContext";
 import DashboardMap, { type DashboardMapTrip } from "./DashboardMap";
@@ -242,13 +241,6 @@ export default function DashboardOverview() {
       setIsExporting(false);
     }
   };
-
-  const auditoriaMultiline = useMemo(() => {
-    if (selectedCargaId === null) return "";
-    if (auditoriaPorCarga.isLoading) return "Carregando histórico de telemetria…";
-    if (auditoriaPorCarga.isError) return "Não foi possível carregar os pings da auditoria.";
-    return formatCargaAuditoriaMultiline(auditoriaPorCarga.data ?? []);
-  }, [selectedCargaId, auditoriaPorCarga.data, auditoriaPorCarga.isError, auditoriaPorCarga.isLoading]);
 
   return (
     <div className="dashboard-overview">
