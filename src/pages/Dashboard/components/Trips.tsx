@@ -185,7 +185,7 @@ export default function Trips() {
   const pageNumbers = useMemo(() => {
     const maxBtns = 5;
     let start = Math.max(1, safePage - Math.floor(maxBtns / 2));
-    let end = Math.min(totalPages, start + maxBtns - 1);
+    const end = Math.min(totalPages, start + maxBtns - 1);
     start = Math.max(1, end - maxBtns + 1);
     const nums: number[] = [];
     for (let i = start; i <= end; i++) nums.push(i);

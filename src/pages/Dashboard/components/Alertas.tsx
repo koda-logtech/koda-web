@@ -34,11 +34,6 @@ function parseNum(v: number | string | null | undefined): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
-function formatTemp(v: number | string | null | undefined): string {
-  const n = parseNum(v);
-  return n === null ? "—" : `${n.toFixed(1)}°C`;
-}
-
 function formatWhen(iso: string | null | undefined): string {
   if (!iso) return "—";
   try {
@@ -158,7 +153,6 @@ export default function Alertas() {
     } catch (err) {
       // intencional: erro tratado abaixo
       window.alert("Não foi possível cancelar o alerta. Tente novamente.");
-      // eslint-disable-next-line no-console
       console.error(err);
     }
   };

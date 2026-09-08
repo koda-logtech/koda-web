@@ -46,6 +46,7 @@ export function useFetch<T>(
     return () => {
       isMounted = false;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, dependencies);
 
   return state;
