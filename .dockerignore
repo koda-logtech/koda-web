@@ -1,0 +1,6 @@
+dist
+.git
+.env
+.env.local
+Dockerfile
+README.md
