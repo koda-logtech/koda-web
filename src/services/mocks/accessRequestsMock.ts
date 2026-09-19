@@ -1,7 +1,7 @@
 import { AccessRequest } from '@/types/accessRequest';
 import { User } from '@/types/auth';
 
-let mockAccessRequests: AccessRequest[] = [
+const mockAccessRequests: AccessRequest[] = [
   {
     id: '1',
     nome: 'João Silva',
