@@ -6,10 +6,12 @@ import { User } from '@/types/auth';
 export function useAccessRequests() {
   const [requests, setRequests] = useState<AccessRequest[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isFetching, setIsFetching] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const fetchRequests = useCallback(async () => {
     setIsLoading(true);
+    setIsFetching(true);
     setError(null);
     try {
       const data = await accessRequestService.getRequests();
@@ -18,6 +20,7 @@ export function useAccessRequests() {
       setError(err.response?.data?.error || err.message || 'Erro ao buscar solicitações');
     } finally {
       setIsLoading(false);
+      setIsFetching(false);
     }
   }, []);
 
@@ -71,6 +74,7 @@ export function useAccessRequests() {
   return {
     requests,
     isLoading,
+    isFetching,
     error,
     fetchRequests,
     createRequest,

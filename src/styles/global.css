@@ -126,3 +126,24 @@ select {
   padding: 0.75rem 1.5rem;
   font-size: 1.1rem;
 }
+
+.btn-loading-content {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+}
+
+.btn-spinner {
+  animation: btnSpinAnimation 0.8s linear infinite;
+}
+
+@keyframes btnSpinAnimation {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
