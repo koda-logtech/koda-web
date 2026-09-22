@@ -4,10 +4,16 @@ import { ReactNode } from "react";
 
 interface ProtectedRouteProps {
   children: ReactNode;
+  adminOnly?: boolean;
+  requiredRole?: 'admin' | 'user';
 }
 
-export function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const { isAuthenticated, isLoading } = useAuth();
+export function ProtectedRoute({
+  children,
+  adminOnly = false,
+  requiredRole,
+}: ProtectedRouteProps) {
+  const { isAuthenticated, isLoading, user } = useAuth();
 
   if (isLoading) {
     return null; // Pode ser substituído por um componente de Loading se preferir
@@ -15,6 +21,14 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
+  }
+
+  if (adminOnly && user?.role !== 'admin') {
+    return <Navigate to="/404" replace />;
+  }
+
+  if (requiredRole && user?.role !== requiredRole) {
+    return <Navigate to="/404" replace />;
   }
 
   return <>{children}</>;

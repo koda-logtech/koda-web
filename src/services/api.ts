@@ -16,7 +16,8 @@ function isPublicAuthFailureRequest(config: { url?: string } | undefined): boole
   return (
     url.includes("/users/login") ||
     url.includes("/users/register") ||
-    url.includes("/users/refresh")
+    url.includes("/users/refresh") ||
+    url.includes("/users/activate")
   );
 }
 

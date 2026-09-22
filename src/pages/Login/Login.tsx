@@ -126,7 +126,7 @@ export default function Login() {
 
           <div className="login-access-request">
             <span>Ainda não possui acesso?</span>
-            <button type="button" className="btn-outline">
+            <button type="button" className="btn-outline" onClick={() => navigate('/solicitar-acesso')}>
               Solicitar Acesso
             </button>
           </div>
