@@ -9,7 +9,7 @@ const mockAccessRequests: AccessRequest[] = [
     empresa: 'Logistica S.A.',
     cargo: 'Gerente de Operações',
     descricao: 'Preciso de acesso para gerenciar as frotas.',
-    status: 'pendente',
+    status: 'pending',
     createdAt: new Date(Date.now() - 86400000).toISOString(),
   },
   {
@@ -19,7 +19,7 @@ const mockAccessRequests: AccessRequest[] = [
     empresa: 'TechLog',
     cargo: 'Analista',
     descricao: 'Acesso para visualizar relatórios.',
-    status: 'pendente',
+    status: 'pending',
     createdAt: new Date().toISOString(),
   }
 ];
@@ -36,7 +36,7 @@ export const accessRequestServiceMock = {
         const newRequest: AccessRequest = {
           ...data,
           id: Math.random().toString(36).substring(7),
-          status: 'pendente',
+          status: 'pending',
           createdAt: new Date().toISOString()
         };
         mockAccessRequests.push(newRequest);
@@ -51,7 +51,7 @@ export const accessRequestServiceMock = {
         const request = mockAccessRequests.find(r => r.id === id);
         if (!request) return reject(new Error('Solicitação não encontrada'));
 
-        request.status = 'aprovado';
+        request.status = 'approved';
 
         // Retorna um usuário mockado como se tivesse sido criado
         const newUser: User = {
@@ -70,7 +70,7 @@ export const accessRequestServiceMock = {
         const request = mockAccessRequests.find(r => r.id === id);
         if (!request) return reject(new Error('Solicitação não encontrada'));
 
-        request.status = 'rejeitado';
+        request.status = 'rejected';
         resolve();
       }, 500);
     });

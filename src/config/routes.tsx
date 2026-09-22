@@ -18,11 +18,10 @@ export function AppRoutes() {
         element={<RequestAccess />}
       />
 
-      {/* TODO: Limitar o acesso a esta rota apenas para administradores */}
       <Route
         path="/admin/acessos"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute requiredRole="admin">
             <AdminDashboard />
           </ProtectedRoute>
         }

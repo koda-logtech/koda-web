@@ -1,9 +1,8 @@
 import { useState, useCallback } from 'react';
 import { AccessRequest } from '@/types/accessRequest';
-import { accessRequestServiceMock } from '@/services/mocks/accessRequestsMock';
+import { accessRequestService } from '@/services/accessRequestService';
 import { User } from '@/types/auth';
 
-// TODO: Implementar integração real com a API para solicitações de acesso
 export function useAccessRequests() {
   const [requests, setRequests] = useState<AccessRequest[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -13,11 +12,10 @@ export function useAccessRequests() {
     setIsLoading(true);
     setError(null);
     try {
-      // TODO: Substituir por chamada real da API
-      const data = await accessRequestServiceMock.getRequests();
+      const data = await accessRequestService.getRequests();
       setRequests(data);
     } catch (err: any) {
-      setError(err.message || 'Erro ao buscar solicitações');
+      setError(err.response?.data?.error || err.message || 'Erro ao buscar solicitações');
     } finally {
       setIsLoading(false);
     }
@@ -27,13 +25,13 @@ export function useAccessRequests() {
     setIsLoading(true);
     setError(null);
     try {
-      // TODO: Substituir por chamada real da API
-      const newRequest = await accessRequestServiceMock.createRequest(data);
+      const newRequest = await accessRequestService.createRequest(data);
       setRequests(prev => [...prev, newRequest]);
       return newRequest;
     } catch (err: any) {
-      setError(err.message || 'Erro ao criar solicitação');
-      throw err;
+      const msg = err.response?.data?.error || err.message || 'Erro ao criar solicitação';
+      setError(msg);
+      throw new Error(msg);
     } finally {
       setIsLoading(false);
     }
@@ -43,13 +41,13 @@ export function useAccessRequests() {
     setIsLoading(true);
     setError(null);
     try {
-      // TODO: Substituir por chamada real da API
-      const newUser = await accessRequestServiceMock.approveRequest(id);
-      setRequests(prev => prev.map(req => req.id === id ? { ...req, status: 'aprovado' } : req));
+      const newUser = await accessRequestService.approveRequest(id);
+      setRequests(prev => prev.map(req => req.id === id ? { ...req, status: 'approved' } : req));
       return newUser;
     } catch (err: any) {
-      setError(err.message || 'Erro ao aprovar solicitação');
-      throw err;
+      const msg = err.response?.data?.error || err.message || 'Erro ao aprovar solicitação';
+      setError(msg);
+      throw new Error(msg);
     } finally {
       setIsLoading(false);
     }
@@ -59,12 +57,12 @@ export function useAccessRequests() {
     setIsLoading(true);
     setError(null);
     try {
-      // TODO: Substituir por chamada real da API
-      await accessRequestServiceMock.rejectRequest(id);
-      setRequests(prev => prev.map(req => req.id === id ? { ...req, status: 'rejeitado' } : req));
+      await accessRequestService.rejectRequest(id);
+      setRequests(prev => prev.map(req => req.id === id ? { ...req, status: 'rejected' } : req));
     } catch (err: any) {
-      setError(err.message || 'Erro ao rejeitar solicitação');
-      throw err;
+      const msg = err.response?.data?.error || err.message || 'Erro ao rejeitar solicitação';
+      setError(msg);
+      throw new Error(msg);
     } finally {
       setIsLoading(false);
     }

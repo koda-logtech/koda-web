@@ -66,17 +66,20 @@
   text-transform: uppercase;
 }
 
-.badge-status.pendente {
+.badge-status.pendente,
+.badge-status.pending {
   background-color: rgba(245, 158, 11, 0.1);
   color: #F59E0B;
 }
 
-.badge-status.aprovado {
+.badge-status.aprovado,
+.badge-status.approved {
   background-color: rgba(16, 185, 129, 0.1);
   color: #10B981;
 }
 
-.badge-status.rejeitado {
+.badge-status.rejeitado,
+.badge-status.rejected {
   background-color: rgba(239, 68, 68, 0.1);
   color: #EF4444;
 }

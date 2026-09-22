@@ -100,11 +100,11 @@ export default function AdminDashboard() {
                       <td>{req.cargo}</td>
                       <td>
                         <span className={`badge-status ${req.status}`}>
-                          {req.status}
+                          {req.status === 'pending' ? 'Pendente' : req.status === 'approved' ? 'Aprovado' : req.status === 'rejected' ? 'Rejeitado' : req.status}
                         </span>
                       </td>
                       <td>
-                        {req.status === 'pendente' && (
+                        {req.status === 'pending' && (
                           <div className="admin-actions">
                             <Button size="small" variant="primary" onClick={() => handleApprove(req.id)}>
                               Aprovar
