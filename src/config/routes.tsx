@@ -3,6 +3,7 @@ import Login from "@pages/Login/Login";
 import Dashboard from "@pages/Dashboard/Dashboard";
 import RequestAccess from "@pages/RequestAccess/RequestAccess";
 import AdminDashboard from "@pages/AdminDashboard/AdminDashboard";
+import NotFound from "@pages/NotFound/NotFound";
 import { ProtectedRoute } from "@components/common/ProtectedRoute";
 
 export function AppRoutes() {
@@ -21,7 +22,7 @@ export function AppRoutes() {
       <Route
         path="/admin/acessos"
         element={
-          <ProtectedRoute requiredRole="admin">
+          <ProtectedRoute adminOnly>
             <AdminDashboard />
           </ProtectedRoute>
         }
@@ -36,7 +37,9 @@ export function AppRoutes() {
         }
       />
 
-      <Route path="*" element={<Navigate to="/" replace />} />
+      <Route path="/404" element={<NotFound />} />
+
+      <Route path="*" element={<Navigate to="/404" replace />} />
     </Routes>
   );
 }
