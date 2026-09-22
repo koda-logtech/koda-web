@@ -39,5 +39,13 @@ export const authService = {
     } catch (error) {
       return null;
     }
+  },
+
+  /**
+   * Activates an approved account with the given token and password.
+   */
+  async activate(token: string, password: string): Promise<{ message: string }> {
+    const { data } = await api.post<{ message: string }>('/users/activate', { token, password });
+    return data;
   }
 };

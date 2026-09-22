@@ -3,6 +3,7 @@ import Login from "@pages/Login/Login";
 import Dashboard from "@pages/Dashboard/Dashboard";
 import RequestAccess from "@pages/RequestAccess/RequestAccess";
 import AdminDashboard from "@pages/AdminDashboard/AdminDashboard";
+import ActivateAccount from "@pages/ActivateAccount/ActivateAccount";
 import NotFound from "@pages/NotFound/NotFound";
 import { ProtectedRoute } from "@components/common/ProtectedRoute";
 
@@ -17,6 +18,11 @@ export function AppRoutes() {
       <Route
         path="/solicitar-acesso"
         element={<RequestAccess />}
+      />
+
+      <Route
+        path="/ativar-conta"
+        element={<ActivateAccount />}
       />
 
       <Route

@@ -1,0 +1,120 @@
+.activate-account-container {
+  display: flex;
+  min-height: 100vh;
+  background-color: var(--color-background);
+  color: var(--color-text);
+  font-family: 'Inter', sans-serif;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+}
+
+.activate-account-card {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 2.5rem;
+  width: 100%;
+  max-width: 480px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+}
+
+.activate-account-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.activate-account-header h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: 0.5rem;
+}
+
+.activate-account-header p {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+}
+
+.activate-account-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.activate-account-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1rem;
+}
+
+.btn-back-link {
+  background: none;
+  border: none;
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+  cursor: pointer;
+  padding: 0.5rem 0;
+  transition: color 0.2s ease;
+}
+
+.btn-back-link:hover {
+  color: var(--color-primary);
+}
+
+.success-message {
+  text-align: center;
+  padding: 1.5rem 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.success-message svg {
+  color: var(--color-success, #10b981);
+  stroke: var(--color-success, #10b981);
+}
+
+.success-message h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.success-message p {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+  margin: 0 0 1rem 0;
+}
+
+.invalid-link-message {
+  text-align: center;
+  padding: 1.5rem 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.invalid-link-message svg {
+  color: var(--color-danger, #ef4444);
+  stroke: var(--color-danger, #ef4444);
+}
+
+.invalid-link-message h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.invalid-link-message p {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+  margin: 0 0 1rem 0;
+}
