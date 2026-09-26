@@ -2,7 +2,7 @@ import axios from "axios";
 
 export const API_PREFIX = "/api";
 // Em desenvolvimento local usa o .env (http://localhost:3005); em produção no container é relativo (/api)
-const BASE_URL = import.meta.env.VITE_API_URL || "";
+const BASE_URL = window.__ENV__?.VITE_API_URL || import.meta.env.VITE_API_URL || "";
 export const API_URL = `${BASE_URL}${API_PREFIX}`;
 
 export const api = axios.create({
