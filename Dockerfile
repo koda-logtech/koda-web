@@ -22,6 +22,9 @@ ENV NGINX_ENVSUBST_FILTER="VITE_API_URL"
 
 COPY --from=builder /app/dist /usr/share/nginx/html
 
+# Copia o script que gera o env.js no startup do container
+COPY generate-env.sh /docker-entrypoint.d/40-generate-env.sh
+
 EXPOSE 8080
 
 CMD ["nginx", "-g", "daemon off;"]
