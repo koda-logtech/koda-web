@@ -8,5 +8,7 @@ export interface AccessRequest {
   cargo: string;
   descricao: string;
   status: AccessRequestStatus;
+  rejectionReason?: string;
+  rejection_reason?: string;
   createdAt: string;
 }

@@ -56,12 +56,18 @@ export function useAccessRequests() {
     }
   };
 
-  const rejectRequest = async (id: string) => {
+  const rejectRequest = async (id: string, options?: { reason?: string; notify?: boolean }) => {
     setIsLoading(true);
     setError(null);
     try {
-      await accessRequestService.rejectRequest(id);
-      setRequests(prev => prev.map(req => req.id === id ? { ...req, status: 'rejected' } : req));
+      const updated = await accessRequestService.rejectRequest(id, options);
+      setRequests(prev => prev.map(req => req.id === id ? {
+        ...req,
+        status: 'rejected',
+        rejectionReason: options?.reason || updated?.rejectionReason || req.rejectionReason,
+        rejection_reason: options?.reason || updated?.rejection_reason || req.rejection_reason,
+      } : req));
+      return updated;
     } catch (err: any) {
       const msg = err.response?.data?.error || err.message || 'Erro ao rejeitar solicitação';
       setError(msg);
