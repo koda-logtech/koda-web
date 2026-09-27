@@ -77,7 +77,7 @@ function toMapTrip(row: EntregaCompleta, nowMs: number): DashboardMapTrip | null
 }
 
 export default function DashboardOverview() {
-  const mapboxToken = import.meta.env.VITE_MAPBOX_TOKEN?.trim();
+  const mapboxToken = (window.__ENV__?.VITE_MAPBOX_TOKEN || import.meta.env.VITE_MAPBOX_TOKEN)?.trim();
   const hasMap = Boolean(mapboxToken);
   const { addToast } = useToast();
 

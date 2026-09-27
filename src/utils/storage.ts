@@ -1,6 +1,6 @@
-const PREFIX = import.meta.env.VITE_STORAGE_PREFIX || 'koda_';
-const ACCESS_TOKEN_KEY = import.meta.env.VITE_ACCESS_TOKEN_KEY || 'access_token';
-const REFRESH_TOKEN_KEY = import.meta.env.VITE_REFRESH_TOKEN_KEY || 'refresh_token';
+const PREFIX = window.__ENV__?.VITE_STORAGE_PREFIX || import.meta.env.VITE_STORAGE_PREFIX || 'koda_';
+const ACCESS_TOKEN_KEY = window.__ENV__?.VITE_ACCESS_TOKEN_KEY || import.meta.env.VITE_ACCESS_TOKEN_KEY || 'access_token';
+const REFRESH_TOKEN_KEY = window.__ENV__?.VITE_REFRESH_TOKEN_KEY || import.meta.env.VITE_REFRESH_TOKEN_KEY || 'refresh_token';
 
 const getPrefixedKey = (key: string) => `${PREFIX}${key}`;
 
