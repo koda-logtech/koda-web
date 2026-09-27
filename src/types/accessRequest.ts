@@ -10,5 +10,6 @@ export interface AccessRequest {
   status: AccessRequestStatus;
   rejectionReason?: string;
   rejection_reason?: string;
-  createdAt: string;
+  createdAt?: string;
+  created_at?: string;
 }

@@ -9,6 +9,23 @@ import RejectRequestModal from './components/RejectRequestModal';
 import ReasonDetailsModal from './components/ReasonDetailsModal';
 import './AdminDashboard.css';
 
+function formatDateTime(dateStr?: string) {
+  if (!dateStr) return '-';
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return '-';
+    return new Intl.DateTimeFormat('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(d);
+  } catch {
+    return '-';
+  }
+}
+
 export default function AdminDashboard() {
   const navigate = useNavigate();
   const { requests, isLoading, isFetching, error, fetchRequests, approveRequest, rejectRequest } = useAccessRequests();
@@ -128,6 +145,7 @@ export default function AdminDashboard() {
                     <th>E-mail</th>
                     <th>Empresa</th>
                     <th>Cargo</th>
+                    <th>Solicitado em</th>
                     <th>Status</th>
                     <th>Ações</th>
                   </tr>
@@ -139,6 +157,7 @@ export default function AdminDashboard() {
                       <td>{req.email}</td>
                       <td>{req.empresa}</td>
                       <td>{req.cargo}</td>
+                      <td className="date-cell">{formatDateTime(req.createdAt || req.created_at)}</td>
                       <td>
                         <span className={`badge-status ${req.status}`}>
                           {req.status === 'pending' ? 'Pendente' : req.status === 'approved' ? 'Aprovado' : req.status === 'rejected' ? 'Rejeitado' : req.status}
@@ -203,7 +222,7 @@ export default function AdminDashboard() {
                   ))}
                   {requests.length === 0 && (
                     <tr>
-                      <td colSpan={6} className="empty-state">
+                      <td colSpan={7} className="empty-state">
                         Nenhuma solicitação encontrada.
                       </td>
                     </tr>
