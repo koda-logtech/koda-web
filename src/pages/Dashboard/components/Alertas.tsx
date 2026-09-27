@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useEffect, useMemo, useState } from "react";
 import ContentHeader from "./ContentHeader";
 import Loading from "@components/common/Loading";
@@ -86,6 +87,8 @@ function TipoBadge({ tipo }: { tipo: CargaAlertaTipo }) {
 }
 
 export default function Alertas() {
+  const { t } = useTranslation();
+
   const { data: rawRows = [], isLoading, isError, refetch } = useAlertas(
     { page: 1, limit: FETCH_LIMIT },
     {
@@ -253,16 +256,16 @@ export default function Alertas() {
                 <table className="data-table">
                   <thead>
                     <tr>
-                      <th>Status</th>
-                      <th>Tipo</th>
-                      <th>Carga</th>
-                      <th>Faixa permitida</th>
-                      <th>Temp. (início / pico / fim)</th>
-                      <th>Aberto em</th>
-                      <th>Resolvido em</th>
-                      <th>Duração</th>
-                      <th>Pings</th>
-                      <th>Ação</th>
+                      <th>{t("alertas.status")}</th>
+                      <th>{t("alertas.type")}</th>
+                      <th>{t("alertas.carga")}</th>
+                      <th>{t("alertas.allowedRange")}</th>
+                      <th>{t("alertas.temps")}</th>
+                      <th>{t("alertas.openedAt")}</th>
+                      <th>{t("alertas.resolvedAt")}</th>
+                      <th>{t("alertas.duration")}</th>
+                      <th>{t("alertas.pings")}</th>
+                      <th>{t("alertas.action")}</th>
                     </tr>
                   </thead>
                   <tbody>

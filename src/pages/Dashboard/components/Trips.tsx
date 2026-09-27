@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useEffect, useMemo, useState } from "react";
 import ContentHeader from "./ContentHeader";
 import TripCreateModal from "./TripCreateModal";
@@ -73,6 +74,8 @@ function initials(nome: string): string {
 const STATUS_ATIVOS = new Set(["pendente", "em_transito", "no_armazem"]);
 
 export default function Trips() {
+  const { t } = useTranslation();
+
   const { addToast } = useToast();
   const { data: entregasRaw = [], isLoading } = useEntregasCompleto(1, FETCH_LIMIT);
   const deleteEntrega = useDeleteEntrega();
@@ -275,11 +278,11 @@ export default function Trips() {
               <table className="data-table">
                 <thead>
                   <tr>
-                    <th>Motorista</th>
-                    <th>Veículo</th>
-                    <th>Destino</th>
-                    <th>Status</th>
-                    <th>Temp. atual</th>
+                    <th>{t("trips.driver")}</th>
+                    <th>{t("trips.vehicle")}</th>
+                    <th>{t("trips.destination")}</th>
+                    <th>{t("trips.status")}</th>
+                    <th>{t("trips.currentTemp")}</th>
                     <th style={{ textAlign: "right" }}>Ações</th>
                   </tr>
                 </thead>
@@ -469,7 +472,7 @@ export default function Trips() {
           setViagemToDelete(null);
         }}
         onConfirm={confirmDelete}
-        title="Confirmar exclusão"
+        title={t("trips.confirmDelete")}
         message={`Deseja excluir a entrega "${viagemToDelete?.label}"? Esta ação não pode ser desfeita.`}
       />
     </div>

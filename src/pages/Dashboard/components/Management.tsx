@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useState } from "react";
 import { useUsers, useDeleteUser } from "@controllers/userController";
 import { useCaminhoes, useDeleteCaminhao } from "@controllers/caminhaoController";
@@ -34,6 +35,8 @@ type SubSection =
   | "Centros Logísticos";
 
 export default function Management() {
+  const { t } = useTranslation();
+
   const [activeSubTab, setActiveSubTab] = useState<SubSection>("Motoristas");
   const [showFullMotoristas, setShowFullMotoristas] = useState(false);
   const [showFullCaminhoes, setShowFullCaminhoes] = useState(false);
@@ -642,7 +645,7 @@ export default function Management() {
                   if (tab !== "Centros Logísticos") setShowFullCentrosLogistica(false);
                 }}
               >
-                {tab}
+                {t(`management.${tab.replace("Armazéns Parceiros", "partnerWarehouses").replace("Centros Logísticos", "logisticsCenters").replace("Motoristas", "drivers").replace("Caminhões", "trucks").replace("Clientes", "clients")}`)}
               </button>
             ))}
           </div>

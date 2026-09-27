@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useEffect, useMemo, useState } from "react";
 import Button from "@components/common/Button";
 import Loading from "@components/common/Loading";
@@ -77,6 +78,8 @@ function toMapTrip(row: EntregaCompleta, nowMs: number): DashboardMapTrip | null
 }
 
 export default function DashboardOverview() {
+  const { t } = useTranslation();
+
   const mapboxToken = (window.__ENV__?.VITE_MAPBOX_TOKEN || import.meta.env.VITE_MAPBOX_TOKEN)?.trim();
   const hasMap = Boolean(mapboxToken);
   const { addToast } = useToast();
@@ -280,7 +283,7 @@ export default function DashboardOverview() {
 
       <div className="page-top-actions">
         <div className="title-group">
-          <h1>Visão Geral da Operação</h1>
+          <h1>{t("dashboardOverview.title")}</h1>
           <p className="subtitle">
             Monitoramento ao vivo • Dados do servidor às {subtitleAtualizacao} • Atualização a cada{" "}
             {DASHBOARD_LIVE_REFETCH_MS / 1000}s
@@ -292,12 +295,12 @@ export default function DashboardOverview() {
             size="medium"
             onClick={handleExportPdf}
             disabled={isExporting || isLoading}
-            title="Baixar PDF com a foto atual da operação"
+            title={t("dashboardOverview.downloadPdf")}
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '8px' }}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-            {isExporting ? "Gerando..." : "Exportar Relatórios"}
+            {isExporting ? t("dashboardOverview.generating") : t("dashboardOverview.exportReports")}
           </Button>
-          {/* <Button variant="primary" size="medium">+ Novo Manifesto</Button> */}
+          {/* <Button variant="primary" size="medium">{t("dashboardOverview.newManifest")}</Button> */}
         </div>
       </div>
 
@@ -437,7 +440,7 @@ export default function DashboardOverview() {
 
                 <div className="map-live-indicator">
                   <span className="live-bullet"></span>
-                  <strong>LIVE:</strong>{" "}
+                  <strong>{t("dashboardOverview.live")}</strong>{" "}
                   {liveTrips.length > 0 ? `${liveTrips.length} veículos em operação` : "Sem viagens com mapa"}
                 </div>
 
@@ -561,7 +564,7 @@ export default function DashboardOverview() {
           </div>
 
           {/* <div className="sidebar-footer-action">
-            <button type="button" className="view-all-btn">VER MANIFESTO COMPLETO</button>
+            <button type="button" className="view-all-btn">{t("dashboardOverview.viewFullManifest")}</button>
           </div> */}
         </div>
       </div>

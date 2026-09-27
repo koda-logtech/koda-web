@@ -1,40 +1,157 @@
 {
-  "common": {
-    "confirmModal": {
-      "cancel": "Cancel",
-      "delete": "Delete"
-    },
-    "header": {
-      "home": "Home",
-      "about": "About",
-      "contact": "Contact"
-    },
-    "footer": {
-      "rights": "All rights reserved.",
-      "privacy": "Privacy",
-      "terms": "Terms"
-    },
-    "select": {
-      "placeholder": "Select...",
-      "noOptions": "No options available"
-    },
-    "newAlertModal": {
-      "eyebrow": "New thermal alert",
-      "aboveMax": "Temperature ABOVE maximum",
-      "belowMin": "Temperature BELOW minimum",
-      "moreInQueue": "More {{count}} alert(s) in queue",
-      "noType": "Typeless load",
-      "desc1": "The load",
-      "desc2": "(Load #{{cargaId}}) went out of the permitted temperature range and triggered the alert",
-      "desc3": ".",
-      "recordedPeak": "Recorded peak",
-      "initialTemp": "Initial temperature",
-      "allowedRange": "Allowed range",
-      "openedAt": "Opened at",
-      "dismissAll": "Dismiss all ({{count}})",
-      "viewInList": "View in list",
-      "nextAlert": "Next alert",
-      "gotIt": "Got it"
-    }
+  "confirmModal": {
+    "cancel": "Cancel",
+    "delete": "Delete"
+  },
+  "header": {
+    "home": "Home",
+    "about": "About",
+    "contact": "Contact"
+  },
+  "footer": {
+    "rights": "All rights reserved.",
+    "privacy": "Privacy",
+    "terms": "Terms",
+    "modoEscuro": "Dark Mode",
+    "modoClaro": "Light Mode",
+    "suporte": "Support",
+    "sair": "Logout"
+  },
+  "select": {
+    "placeholder": "Select...",
+    "noOptions": "No options available"
+  },
+  "newAlertModal": {
+    "eyebrow": "New thermal alert",
+    "aboveMax": "Temperature ABOVE maximum",
+    "belowMin": "Temperature BELOW minimum",
+    "moreInQueue": "More {{count}} alert(s) in queue",
+    "noType": "Typeless load",
+    "desc1": "The load",
+    "desc2": "(Load #{{cargaId}}) went out of the permitted temperature range and triggered the alert",
+    "desc3": ".",
+    "recordedPeak": "Recorded peak",
+    "initialTemp": "Initial temperature",
+    "allowedRange": "Allowed range",
+    "openedAt": "Opened at",
+    "dismissAll": "Dismiss all ({{count}})",
+    "viewInList": "View in list",
+    "nextAlert": "Next alert",
+    "gotIt": "Got it"
+  },
+  "menu": {
+    "dashboard": "Dashboard",
+    "monitoramento": "Monitoring",
+    "gerenciamento": "Management",
+    "alertas": "Alerts",
+    "auditoria": "Audit",
+    "operacoes": "Operations",
+    "cargas": "Loads",
+    "viagens": "Trips",
+    "acessosAdmin": "Admin Access"
+  },
+  "dashboardOverview": {
+    "title": "Operation Overview",
+    "downloadPdf": "Download PDF with current operation snapshot",
+    "exportReports": "Export Reports",
+    "newManifest": "+ New Manifest",
+    "inTransit": "IN TRANSIT",
+    "activeTripsWithMap": "Active trips with map (Live Monitoring list)",
+    "thermalRisk": "THERMAL RISK",
+    "outOfRange": "Temperature out of load min/max",
+    "disconnected": "DISCONNECTED",
+    "noTelemetry": "No telemetry or last reading > 10 min",
+    "activeAlerts": "ACTIVE ALERTS",
+    "highPriority": "High Priority",
+    "noTripsWithCoords": "No trips with coordinates to display",
+    "live": "LIVE:",
+    "noMapTrips": "No trips with map",
+    "configureMapbox": "Configure VITE_MAPBOX_TOKEN for the map",
+    "liveMonitoring": "Live Monitoring",
+    "noAddress": "No address",
+    "viewFullManifest": "VIEW FULL MANIFEST",
+    "generating": "Generating...",
+    "liveMonitoringLoading": "Live Monitoring..."
+  },
+  "alertas": {
+    "title": "Thermal Alerts",
+    "statusFilter": "Filter by status",
+    "allStatuses": "All statuses",
+    "onlyOpen": "Open only",
+    "onlyResolved": "Resolved only",
+    "onlyCanceled": "Canceled only",
+    "typeFilter": "Filter by type",
+    "allTypes": "All types",
+    "highTemp": "High temperature",
+    "lowTemp": "Low temperature",
+    "openAlertsTitle": "Open alerts",
+    "autoUpdate": "Auto-updates every 10s",
+    "resolvedTitle": "Resolved",
+    "errorLoading": "Failed to load alerts.",
+    "status": "Status",
+    "type": "Type",
+    "carga": "Load",
+    "allowedRange": "Allowed range",
+    "temps": "Temp. (start / peak / end)",
+    "openedAt": "Opened at",
+    "resolvedAt": "Resolved at",
+    "duration": "Duration",
+    "pings": "Pings",
+    "action": "Action",
+    "previousPage": "Previous page",
+    "nextPage": "Next page"
+  },
+  "monitoring": {
+    "noTrips": "No trips with coordinates to display",
+    "live": "LIVE:",
+    "noMapTrips": "No trips with map",
+    "configureMapbox": "Configure VITE_MAPBOX_TOKEN for the map"
+  },
+  "management": {
+    "partnerWarehouses": "Partner Warehouses",
+    "logisticsCenters": "Logistics Centers",
+    "drivers": "Drivers",
+    "trucks": "Trucks",
+    "clients": "Clients"
+  },
+  "cargas": {
+    "registered": "Registered Loads",
+    "totalInSystem": "Total in system",
+    "type": "Type",
+    "vehicle": "Vehicle",
+    "range": "Range °C",
+    "current": "Current",
+    "location": "Location",
+    "actions": "Actions",
+    "na": "N/A",
+    "noResults": "No results",
+    "previousPage": "Previous page",
+    "nextPage": "Next page",
+    "confirmDelete": "Confirm deletion",
+    "deleteLoad": "Delete load",
+    "deleteConfirmDesc": "Are you sure you want to delete this load"
+  },
+  "trips": {
+    "allStatuses": "All statuses",
+    "inTransit": "In transit",
+    "inWarehouse": "In warehouse",
+    "generalSearch": "General search",
+    "allDrivers": "All drivers",
+    "activeTrips": "Active trips",
+    "subtitle": "Pending, in transit or in warehouse",
+    "driver": "Driver",
+    "vehicle": "Vehicle",
+    "destination": "Destination",
+    "status": "Status",
+    "currentTemp": "Current Temp",
+    "actions": "Actions",
+    "noAddress": "No address",
+    "na": "N/A",
+    "noResults": "No results",
+    "previousPage": "Previous page",
+    "nextPage": "Next page",
+    "confirmDelete": "Confirm deletion",
+    "deleteTrip": "Delete trip",
+    "deleteConfirmDesc": "Are you sure you want to delete this trip"
   }
 }

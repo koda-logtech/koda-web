@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useEffect, useMemo, useState } from "react";
 import Loading from "@components/common/Loading";
 import { useTelemetriaAuditoriaPorCarga } from "@controllers/cargaController";
@@ -69,6 +70,8 @@ function toMapTrip(row: EntregaCompleta, nowMs: number): DashboardMapTrip | null
  * Mesmo bloco de mapa do `DashboardOverview` (map-section / map-placeholder), em tela cheia na área principal.
  */
 export default function Monitoring() {
+  const { t } = useTranslation();
+
   const mapboxToken = (window.__ENV__?.VITE_MAPBOX_TOKEN || import.meta.env.VITE_MAPBOX_TOKEN)?.trim();
   const hasMap = Boolean(mapboxToken);
 
@@ -210,7 +213,7 @@ export default function Monitoring() {
 
               <div className="map-live-indicator">
                 <span className="live-bullet"></span>
-                <strong>LIVE:</strong>{" "}
+                <strong>{t("monitoring.live")}</strong>{" "}
                 {liveTrips.length > 0 ? `${liveTrips.length} veículos em operação` : "Sem viagens com mapa"}
               </div>
 

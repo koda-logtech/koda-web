@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useEffect, useMemo, useState } from "react";
 import ContentHeader from "./ContentHeader";
 import CargaCreateModal from "./CargaCreateModal";
@@ -42,6 +43,8 @@ function formatTempDisplay(n: number): string {
 }
 
 export default function Cargas() {
+  const { t } = useTranslation();
+
   const { addToast } = useToast();
   const { data: cargasRaw = [], isLoading } = useCargas(1, FETCH_LIMIT);
   const { data: caminhoesRaw = [] } = useCaminhoes(1, FETCH_LIMIT);
@@ -188,11 +191,11 @@ export default function Cargas() {
               <table className="data-table">
                 <thead>
                   <tr>
-                    <th>Tipo</th>
-                    <th>Veículo</th>
-                    <th>Faixa °C</th>
-                    <th>Atual</th>
-                    <th>Localização</th>
+                    <th>{t("cargas.type")}</th>
+                    <th>{t("cargas.vehicle")}</th>
+                    <th>{t("cargas.range")}</th>
+                    <th>{t("cargas.current")}</th>
+                    <th>{t("cargas.location")}</th>
                     <th style={{ textAlign: "right" }}>Ações</th>
                   </tr>
                 </thead>
@@ -372,7 +375,7 @@ export default function Cargas() {
           setCargaToDelete(null);
         }}
         onConfirm={confirmDelete}
-        title="Confirmar exclusão"
+        title={t("cargas.confirmDelete")}
         message={`Deseja excluir a carga "${cargaToDelete?.label}"? Esta ação não pode ser desfeita.`}
       />
     </div>

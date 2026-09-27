@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@hooks/useAuth";
 import { useTheme } from "@hooks/useTheme";
+import { useTranslation } from "react-i18next";
 import DashboardOverview from "./components/DashboardOverview";
 import Monitoring from "./components/Monitoring";
 import Trips from "./components/Trips";
@@ -27,6 +28,7 @@ function Dashboard() {
   const navigate = useNavigate();
   const { logout, user } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const { t, i18n } = useTranslation();
   const [activeTab, setActiveTab] = useState<ActiveTab>("Dashboard");
   const [operationsOpen, setOperationsOpen] = useState(false);
 
@@ -49,6 +51,7 @@ function Dashboard() {
   const menuItems = [
     {
       name: "Dashboard",
+      label: t("menu.dashboard", "Dashboard"),
       icon: (
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -69,6 +72,7 @@ function Dashboard() {
     },
     {
       name: "Monitoramento",
+      label: t("menu.monitoramento", "Monitoramento"),
       icon: (
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -87,6 +91,7 @@ function Dashboard() {
     },
     {
       name: "Gerenciamento",
+      label: t("menu.gerenciamento", "Gerenciamento"),
       icon: (
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -110,6 +115,7 @@ function Dashboard() {
     },
     {
       name: "Alertas",
+      label: t("menu.alertas", "Alertas"),
       icon: (
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -130,6 +136,7 @@ function Dashboard() {
     },
     {
       name: "Auditoria",
+      label: t("menu.auditoria", "Auditoria"),
       icon: (
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -256,7 +263,7 @@ function Dashboard() {
                     }}
                   >
                     {item.icon}
-                    <span>{item.name}</span>
+                    <span>{item.label}</span>
                   </button>
                 </li>
               ))}
@@ -272,7 +279,7 @@ function Dashboard() {
                 >
                   <span className="sidebar-group-toggle-left">
                     {operationsIcon}
-                    <span>Operações</span>
+                    <span>{t("menu.operacoes", "Operações")}</span>
                   </span>
                   <svg
                     className="sidebar-chevron"
@@ -297,7 +304,7 @@ function Dashboard() {
                     >
                       <button type="button" onClick={() => selectOperation("Cargas")}>
                         {cargasMenuIcon}
-                        <span>Cargas</span>
+                        <span>{t("menu.cargas", "Cargas")}</span>
                       </button>
                     </li>
                     <li
@@ -305,7 +312,7 @@ function Dashboard() {
                     >
                       <button type="button" onClick={() => selectOperation("Viagens")}>
                         {viagensMenuIcon}
-                        <span>Viagens</span>
+                        <span>{t("menu.viagens", "Viagens")}</span>
                       </button>
                     </li>
                     {user?.role === 'admin' && (
@@ -335,7 +342,7 @@ function Dashboard() {
                     onClick={() => setActiveTab(item.name as ActiveTab)}
                   >
                     {item.icon}
-                    <span>{item.name}</span>
+                    <span>{item.label}</span>
                   </button>
                 </li>
               ))}
@@ -348,7 +355,7 @@ function Dashboard() {
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
                     </svg>
-                    <span>Acessos Admin</span>
+                    <span>{t("menu.acessosAdmin", "Acessos Admin")}</span>
                   </button>
                 </li>
               )}
@@ -356,6 +363,24 @@ function Dashboard() {
           </nav>
 
           <div className="sidebar-footer">
+            <div className="language-selector-container sidebar-footer-item" style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+              <select
+                className="language-selector"
+                value={i18n.language || 'pt-BR'}
+                onChange={(e) => i18n.changeLanguage(e.target.value)}
+                style={{
+                  background: 'transparent',
+                  border: '1px solid var(--border-color)',
+                  color: 'var(--text-color)',
+                  borderRadius: '4px',
+                  padding: '4px'
+                }}
+              >
+                <option value="pt-BR">Português (BR)</option>
+                <option value="en">English</option>
+              </select>
+            </div>
             <div className="sidebar-footer-links">
               <button onClick={toggleTheme} className="sidebar-footer-item theme-toggle">
                 {theme === "light" ? (
@@ -373,7 +398,7 @@ function Dashboard() {
                     >
                       <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
                     </svg>
-                    Modo Escuro
+                    {t("footer.modoEscuro", "Modo Escuro")}
                   </>
                 ) : (
                   <>
@@ -398,7 +423,7 @@ function Dashboard() {
                       <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
                       <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
                     </svg>
-                    Modo Claro
+                    {t("footer.modoClaro", "Modo Claro")}
                   </>
                 )}
               </button>
@@ -418,7 +443,7 @@ function Dashboard() {
                   <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
                   <line x1="12" y1="17" x2="12.01" y2="17"></line>
                 </svg>
-                Suporte
+                {t("footer.suporte", "Suporte")}
               </a>
               <button
                 onClick={handleLogoutClick}
@@ -439,7 +464,7 @@ function Dashboard() {
                   <polyline points="16 17 21 12 16 7"></polyline>
                   <line x1="21" y1="12" x2="9" y2="12"></line>
                 </svg>
-                Sair
+                {t("footer.sair", "Sair")}
               </button>
             </div>
           </div>

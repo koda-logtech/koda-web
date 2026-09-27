@@ -1,40 +1,157 @@
 {
-  "common": {
-    "confirmModal": {
-      "cancel": "Cancelar",
-      "delete": "Excluir"
-    },
-    "header": {
-      "home": "Home",
-      "about": "Sobre",
-      "contact": "Contato"
-    },
-    "footer": {
-      "rights": "Todos os direitos reservados.",
-      "privacy": "Privacidade",
-      "terms": "Termos"
-    },
-    "select": {
-      "placeholder": "Selecione...",
-      "noOptions": "Nenhuma opção disponível"
-    },
-    "newAlertModal": {
-      "eyebrow": "Novo alerta térmico",
-      "aboveMax": "Temperatura ACIMA do máximo",
-      "belowMin": "Temperatura ABAIXO do mínimo",
-      "moreInQueue": "Mais {{count}} alerta(s) na fila",
-      "noType": "Carga sem tipo",
-      "desc1": "A carga",
-      "desc2": "(Carga #{{cargaId}}) saiu da faixa de temperatura permitida e disparou o alerta",
-      "desc3": ".",
-      "recordedPeak": "Pico registado",
-      "initialTemp": "Temperatura inicial",
-      "allowedRange": "Faixa permitida",
-      "openedAt": "Aberto em",
-      "dismissAll": "Dispensar todos ({{count}})",
-      "viewInList": "Ver na lista",
-      "nextAlert": "Próximo alerta",
-      "gotIt": "Entendi"
-    }
+  "confirmModal": {
+    "cancel": "Cancelar",
+    "delete": "Excluir"
+  },
+  "header": {
+    "home": "Home",
+    "about": "Sobre",
+    "contact": "Contato"
+  },
+  "footer": {
+    "rights": "Todos os direitos reservados.",
+    "privacy": "Privacidade",
+    "terms": "Termos",
+    "modoEscuro": "Modo Escuro",
+    "modoClaro": "Modo Claro",
+    "suporte": "Suporte",
+    "sair": "Sair"
+  },
+  "select": {
+    "placeholder": "Selecione...",
+    "noOptions": "Nenhuma opção disponível"
+  },
+  "newAlertModal": {
+    "eyebrow": "Novo alerta térmico",
+    "aboveMax": "Temperatura ACIMA do máximo",
+    "belowMin": "Temperatura ABAIXO do mínimo",
+    "moreInQueue": "Mais {{count}} alerta(s) na fila",
+    "noType": "Carga sem tipo",
+    "desc1": "A carga",
+    "desc2": "(Carga #{{cargaId}}) saiu da faixa de temperatura permitida e disparou o alerta",
+    "desc3": ".",
+    "recordedPeak": "Pico registado",
+    "initialTemp": "Temperatura inicial",
+    "allowedRange": "Faixa permitida",
+    "openedAt": "Aberto em",
+    "dismissAll": "Dispensar todos ({{count}})",
+    "viewInList": "Ver na lista",
+    "nextAlert": "Próximo alerta",
+    "gotIt": "Entendi"
+  },
+  "menu": {
+    "dashboard": "Dashboard",
+    "monitoramento": "Monitoramento",
+    "gerenciamento": "Gerenciamento",
+    "alertas": "Alertas",
+    "auditoria": "Auditoria",
+    "operacoes": "Operações",
+    "cargas": "Cargas",
+    "viagens": "Viagens",
+    "acessosAdmin": "Acessos Admin"
+  },
+  "dashboardOverview": {
+    "title": "Visão Geral da Operação",
+    "downloadPdf": "Baixar PDF com a foto atual da operação",
+    "exportReports": "Exportar Relatórios",
+    "newManifest": "+ Novo Manifesto",
+    "inTransit": "EM TRÂNSITO",
+    "activeTripsWithMap": "Viagens ativas com mapa (lista Monitoramento Live)",
+    "thermalRisk": "RISCO TÉRMICO",
+    "outOfRange": "Temperatura fora do mínimo/máximo da carga",
+    "disconnected": "DESCONECTADOS",
+    "noTelemetry": "Sem telemetria ou última leitura há mais de 10 min",
+    "activeAlerts": "ALERTAS ATIVOS",
+    "highPriority": "Prioridade Alta",
+    "noTripsWithCoords": "Nenhuma viagem com coordenadas para exibir",
+    "live": "LIVE:",
+    "noMapTrips": "Sem viagens com mapa",
+    "configureMapbox": "Configure VITE_MAPBOX_TOKEN para o mapa",
+    "liveMonitoring": "Monitoramento Live",
+    "noAddress": "Sem endereço",
+    "viewFullManifest": "VER MANIFESTO COMPLETO",
+    "generating": "Gerando...",
+    "liveMonitoringLoading": "Monitoramento ao vivo..."
+  },
+  "alertas": {
+    "title": "Alertas térmicos",
+    "statusFilter": "Filtro por status",
+    "allStatuses": "Todos os status",
+    "onlyOpen": "Apenas abertos",
+    "onlyResolved": "Apenas resolvidos",
+    "onlyCanceled": "Apenas cancelados",
+    "typeFilter": "Filtro por tipo",
+    "allTypes": "Todos os tipos",
+    "highTemp": "Temperatura alta",
+    "lowTemp": "Temperatura baixa",
+    "openAlertsTitle": "Alertas abertos",
+    "autoUpdate": "Atualização automática a cada 10 s",
+    "resolvedTitle": "Resolvidos",
+    "errorLoading": "Não foi possível carregar os alertas.",
+    "status": "Status",
+    "type": "Tipo",
+    "carga": "Carga",
+    "allowedRange": "Faixa permitida",
+    "temps": "Temp. (início / pico / fim)",
+    "openedAt": "Aberto em",
+    "resolvedAt": "Resolvido em",
+    "duration": "Duração",
+    "pings": "Pings",
+    "action": "Ação",
+    "previousPage": "Página anterior",
+    "nextPage": "Próxima página"
+  },
+  "monitoring": {
+    "noTrips": "Nenhuma viagem com coordenadas para exibir",
+    "live": "LIVE:",
+    "noMapTrips": "Sem viagens com mapa",
+    "configureMapbox": "Configure VITE_MAPBOX_TOKEN para o mapa"
+  },
+  "management": {
+    "partnerWarehouses": "Armazéns Parceiros",
+    "logisticsCenters": "Centros Logísticos",
+    "drivers": "Motoristas",
+    "trucks": "Caminhões",
+    "clients": "Clientes"
+  },
+  "cargas": {
+    "registered": "Cargas cadastradas",
+    "totalInSystem": "Total no sistema",
+    "type": "Tipo",
+    "vehicle": "Veículo",
+    "range": "Faixa °C",
+    "current": "Atual",
+    "location": "Localização",
+    "actions": "Ações",
+    "na": "N/A",
+    "noResults": "Nenhum resultado",
+    "previousPage": "Página anterior",
+    "nextPage": "Próxima página",
+    "confirmDelete": "Confirmar exclusão",
+    "deleteLoad": "Excluir carga",
+    "deleteConfirmDesc": "Tem certeza que deseja excluir esta carga"
+  },
+  "trips": {
+    "allStatuses": "Todos os status",
+    "inTransit": "Em trânsito",
+    "inWarehouse": "No armazém",
+    "generalSearch": "Busca geral",
+    "allDrivers": "Todos os motoristas",
+    "activeTrips": "Viagens ativas",
+    "subtitle": "Pendente, em trânsito ou no armazém",
+    "driver": "Motorista",
+    "vehicle": "Veículo",
+    "destination": "Destino",
+    "status": "Status",
+    "currentTemp": "Temp. atual",
+    "actions": "Ações",
+    "noAddress": "Sem endereço",
+    "na": "N/A",
+    "noResults": "Nenhum resultado",
+    "previousPage": "Página anterior",
+    "nextPage": "Próxima página",
+    "confirmDelete": "Confirmar exclusão",
+    "deleteTrip": "Excluir viagem",
+    "deleteConfirmDesc": "Tem certeza que deseja excluir esta viagem"
   }
 }
