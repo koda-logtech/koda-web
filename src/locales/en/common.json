@@ -1,0 +1,40 @@
+{
+  "common": {
+    "confirmModal": {
+      "cancel": "Cancel",
+      "delete": "Delete"
+    },
+    "header": {
+      "home": "Home",
+      "about": "About",
+      "contact": "Contact"
+    },
+    "footer": {
+      "rights": "All rights reserved.",
+      "privacy": "Privacy",
+      "terms": "Terms"
+    },
+    "select": {
+      "placeholder": "Select...",
+      "noOptions": "No options available"
+    },
+    "newAlertModal": {
+      "eyebrow": "New thermal alert",
+      "aboveMax": "Temperature ABOVE maximum",
+      "belowMin": "Temperature BELOW minimum",
+      "moreInQueue": "More {{count}} alert(s) in queue",
+      "noType": "Typeless load",
+      "desc1": "The load",
+      "desc2": "(Load #{{cargaId}}) went out of the permitted temperature range and triggered the alert",
+      "desc3": ".",
+      "recordedPeak": "Recorded peak",
+      "initialTemp": "Initial temperature",
+      "allowedRange": "Allowed range",
+      "openedAt": "Opened at",
+      "dismissAll": "Dismiss all ({{count}})",
+      "viewInList": "View in list",
+      "nextAlert": "Next alert",
+      "gotIt": "Got it"
+    }
+  }
+}

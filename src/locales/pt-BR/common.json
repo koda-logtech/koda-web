@@ -1,0 +1,40 @@
+{
+  "common": {
+    "confirmModal": {
+      "cancel": "Cancelar",
+      "delete": "Excluir"
+    },
+    "header": {
+      "home": "Home",
+      "about": "Sobre",
+      "contact": "Contato"
+    },
+    "footer": {
+      "rights": "Todos os direitos reservados.",
+      "privacy": "Privacidade",
+      "terms": "Termos"
+    },
+    "select": {
+      "placeholder": "Selecione...",
+      "noOptions": "Nenhuma opção disponível"
+    },
+    "newAlertModal": {
+      "eyebrow": "Novo alerta térmico",
+      "aboveMax": "Temperatura ACIMA do máximo",
+      "belowMin": "Temperatura ABAIXO do mínimo",
+      "moreInQueue": "Mais {{count}} alerta(s) na fila",
+      "noType": "Carga sem tipo",
+      "desc1": "A carga",
+      "desc2": "(Carga #{{cargaId}}) saiu da faixa de temperatura permitida e disparou o alerta",
+      "desc3": ".",
+      "recordedPeak": "Pico registado",
+      "initialTemp": "Temperatura inicial",
+      "allowedRange": "Faixa permitida",
+      "openedAt": "Aberto em",
+      "dismissAll": "Dispensar todos ({{count}})",
+      "viewInList": "Ver na lista",
+      "nextAlert": "Próximo alerta",
+      "gotIt": "Entendi"
+    }
+  }
+}

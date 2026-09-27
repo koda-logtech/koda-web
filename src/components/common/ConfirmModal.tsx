@@ -1,4 +1,5 @@
 import Button from "./Button";
+import { useTranslation } from "react-i18next";
 import "./ConfirmModal.css";
 
 interface ConfirmModalProps {
@@ -10,6 +11,7 @@ interface ConfirmModalProps {
 }
 
 export default function ConfirmModal({ isOpen, onClose, onConfirm, title, message }: ConfirmModalProps) {
+  const { t } = useTranslation('common');
   if (!isOpen) return null;
 
   return (
@@ -28,10 +30,10 @@ export default function ConfirmModal({ isOpen, onClose, onConfirm, title, messag
         </div>
         <div className="modal-footer">
           <Button variant="secondary" size="medium" onClick={onClose}>
-            Cancelar
+            {t("common.confirmModal.cancel")}
           </Button>
           <Button variant="danger" size="medium" onClick={onConfirm}>
-            Excluir
+            {t("common.confirmModal.delete")}
           </Button>
         </div>
       </div>

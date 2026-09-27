@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useAlertasNotifications } from "@/contexts/AlertasNotificationContext";
 import type { CargaAlerta } from "@/types/models";
+import { useTranslation } from "react-i18next";
 import "./NewAlertModal.css";
 
 function unwrapCarga(c: CargaAlerta["carga"]) {
@@ -37,6 +38,7 @@ interface NewAlertModalProps {
 }
 
 export default function NewAlertModal({ onOpenAlertasPage }: NewAlertModalProps) {
+  const { t } = useTranslation('common');
   const { pendingNewAlerts, dismissCurrentNewAlert, dismissAllNewAlerts } =
     useAlertasNotifications();
 
@@ -56,7 +58,7 @@ export default function NewAlertModal({ onOpenAlertasPage }: NewAlertModalProps)
   if (!current) return null;
 
   const carga = unwrapCarga(current.carga);
-  const tipoCarga = carga?.tipo?.trim() || "Carga sem tipo";
+  const tipoCarga = carga?.tipo?.trim() || t("common.newAlertModal.noType");
   const pico = parseNum(current.temperatura_pico);
   const inicio = parseNum(current.temperatura_inicio);
   const min = parseNum(current.limite_minimo);
@@ -93,15 +95,15 @@ export default function NewAlertModal({ onOpenAlertasPage }: NewAlertModalProps)
             </svg>
           </div>
           <div>
-            <p className="new-alert-eyebrow">Novo alerta térmico</p>
+            <p className="new-alert-eyebrow">{t("common.newAlertModal.eyebrow")}</p>
             <h2 id="new-alert-title" className="new-alert-title">
-              Temperatura {isAlta ? "ACIMA do máximo" : "ABAIXO do mínimo"}
+              {isAlta ? t("common.newAlertModal.aboveMax") : t("common.newAlertModal.belowMin")}
             </h2>
           </div>
           {remaining > 0 && (
             <span
               className="new-alert-queue-pill"
-              title={`Mais ${remaining} alerta(s) na fila`}
+              title={t("common.newAlertModal.moreInQueue", { count: remaining })}
             >
               +{remaining}
             </span>
@@ -109,32 +111,31 @@ export default function NewAlertModal({ onOpenAlertasPage }: NewAlertModalProps)
         </div>
 
         <p id="new-alert-desc" className="new-alert-desc">
-          A carga <strong>{tipoCarga}</strong> (Carga #{current.id_carga}) saiu da faixa de
-          temperatura permitida e disparou o alerta <strong>#{current.id}</strong>.
+          {t("common.newAlertModal.desc1")} <strong>{tipoCarga}</strong> {t("common.newAlertModal.desc2", { cargaId: current.id_carga?.toString() || "" })} <strong>#{current.id}</strong>{t("common.newAlertModal.desc3")}
         </p>
 
         <div className="new-alert-grid">
           <div className="new-alert-cell">
-            <span className="new-alert-cell-label">Pico registado</span>
+            <span className="new-alert-cell-label">{t("common.newAlertModal.recordedPeak")}</span>
             <span className={`new-alert-cell-value new-alert-cell-value--${current.tipo}`}>
               {pico !== null ? `${pico.toFixed(1)}°C` : "—"}
             </span>
           </div>
           <div className="new-alert-cell">
-            <span className="new-alert-cell-label">Temperatura inicial</span>
+            <span className="new-alert-cell-label">{t("common.newAlertModal.initialTemp")}</span>
             <span className="new-alert-cell-value">
               {inicio !== null ? `${inicio.toFixed(1)}°C` : "—"}
             </span>
           </div>
           <div className="new-alert-cell">
-            <span className="new-alert-cell-label">Faixa permitida</span>
+            <span className="new-alert-cell-label">{t("common.newAlertModal.allowedRange")}</span>
             <span className="new-alert-cell-value">
               {min !== null ? `${min.toFixed(1)}°C` : "—"} –{" "}
               {max !== null ? `${max.toFixed(1)}°C` : "—"}
             </span>
           </div>
           <div className="new-alert-cell">
-            <span className="new-alert-cell-label">Aberto em</span>
+            <span className="new-alert-cell-label">{t("common.newAlertModal.openedAt")}</span>
             <span className="new-alert-cell-value new-alert-cell-value--meta">
               {formatWhen(current.aberto_at)}
             </span>
@@ -148,7 +149,7 @@ export default function NewAlertModal({ onOpenAlertasPage }: NewAlertModalProps)
               className="new-alert-btn new-alert-btn--ghost"
               onClick={dismissAllNewAlerts}
             >
-              Dispensar todos ({pendingNewAlerts.length})
+              {t("common.newAlertModal.dismissAll", { count: pendingNewAlerts.length })}
             </button>
           )}
           {onOpenAlertasPage && (
@@ -160,7 +161,7 @@ export default function NewAlertModal({ onOpenAlertasPage }: NewAlertModalProps)
                 onOpenAlertasPage();
               }}
             >
-              Ver na lista
+              {t("common.newAlertModal.viewInList")}
             </button>
           )}
           <button
@@ -169,7 +170,7 @@ export default function NewAlertModal({ onOpenAlertasPage }: NewAlertModalProps)
             onClick={dismissCurrentNewAlert}
             autoFocus
           >
-            {remaining > 0 ? "Próximo alerta" : "Entendi"}
+            {remaining > 0 ? t("common.newAlertModal.nextAlert") : t("common.newAlertModal.gotIt")}
           </button>
         </div>
       </div>
