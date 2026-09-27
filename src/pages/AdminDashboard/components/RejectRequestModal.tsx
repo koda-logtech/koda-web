@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { AccessRequest } from '@/types/accessRequest';
 import Button from '@/components/common/Button';
 import './RejectRequestModal.css';
@@ -69,7 +70,7 @@ export default function RejectRequestModal({
     }
   };
 
-  return (
+  return createPortal(
     <div className="reject-modal-overlay" onClick={isSubmitting ? undefined : onClose}>
       <div className="reject-modal-card" onClick={(e) => e.stopPropagation()}>
         <div className="reject-modal-header">
@@ -191,6 +192,7 @@ export default function RejectRequestModal({
           </Button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

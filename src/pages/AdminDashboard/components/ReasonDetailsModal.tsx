@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom';
 import { AccessRequest } from '@/types/accessRequest';
 import Button from '@/components/common/Button';
 import './ReasonDetailsModal.css';
@@ -13,7 +14,7 @@ export default function ReasonDetailsModal({ isOpen, onClose, request }: ReasonD
 
   const reason = request.rejectionReason || request.rejection_reason || 'Nenhum motivo detalhado foi registrado.';
 
-  return (
+  return createPortal(
     <div className="reason-modal-overlay" onClick={onClose}>
       <div className="reason-modal-card" onClick={(e) => e.stopPropagation()}>
         <div className="reason-modal-header">
@@ -54,6 +55,7 @@ export default function ReasonDetailsModal({ isOpen, onClose, request }: ReasonD
           </Button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
