@@ -27,7 +27,8 @@ export const accessRequestService = {
     return data.user || data;
   },
 
-  async rejectRequest(id: string): Promise<void> {
-    await api.post(`${RESOURCE}/${id}/reject`);
+  async rejectRequest(id: string, options?: { reason?: string; notify?: boolean }): Promise<AccessRequest> {
+    const { data } = await api.post<AccessRequest>(`${RESOURCE}/${id}/reject`, options || {});
+    return data;
   },
 };

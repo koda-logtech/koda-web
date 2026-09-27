@@ -1,10 +1,30 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAccessRequests } from '@/hooks/api/useAccessRequests';
+import { AccessRequest } from '@/types/accessRequest';
 import Button from '@/components/common/Button';
 import Loading from '@/components/common/Loading';
 import Toast from '@/components/common/Toast';
+import RejectRequestModal from './components/RejectRequestModal';
+import ReasonDetailsModal from './components/ReasonDetailsModal';
 import './AdminDashboard.css';
+
+function formatDateTime(dateStr?: string) {
+  if (!dateStr) return '-';
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return '-';
+    return new Intl.DateTimeFormat('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(d);
+  } catch {
+    return '-';
+  }
+}
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -13,6 +33,8 @@ export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<'solicitacoes' | 'usuarios'>('solicitacoes');
   const [toastMessage, setToastMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
   const [processingAction, setProcessingAction] = useState<{ id: string; action: 'approve' | 'reject' } | null>(null);
+  const [rejectModalRequest, setRejectModalRequest] = useState<AccessRequest | null>(null);
+  const [reasonDetailsRequest, setReasonDetailsRequest] = useState<AccessRequest | null>(null);
 
   useEffect(() => {
     fetchRequests();
@@ -30,13 +52,16 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleReject = async (id: string) => {
+  const handleConfirmReject = async (reason: string, notify: boolean) => {
+    if (!rejectModalRequest) return;
+    const { id } = rejectModalRequest;
     setProcessingAction({ id, action: 'reject' });
     try {
-      await rejectRequest(id);
-      setToastMessage({ text: 'Solicitação rejeitada.', type: 'success' });
+      await rejectRequest(id, { reason, notify });
+      setToastMessage({ text: 'Solicitação rejeitada com sucesso.', type: 'success' });
     } catch (err: any) {
       setToastMessage({ text: err.message || 'Erro ao rejeitar solicitação.', type: 'error' });
+      throw err;
     } finally {
       setProcessingAction(null);
     }
@@ -120,6 +145,7 @@ export default function AdminDashboard() {
                     <th>E-mail</th>
                     <th>Empresa</th>
                     <th>Cargo</th>
+                    <th>Solicitado em</th>
                     <th>Status</th>
                     <th>Ações</th>
                   </tr>
@@ -131,6 +157,7 @@ export default function AdminDashboard() {
                       <td>{req.email}</td>
                       <td>{req.empresa}</td>
                       <td>{req.cargo}</td>
+                      <td className="date-cell">{formatDateTime(req.createdAt || req.created_at)}</td>
                       <td>
                         <span className={`badge-status ${req.status}`}>
                           {req.status === 'pending' ? 'Pendente' : req.status === 'approved' ? 'Aprovado' : req.status === 'rejected' ? 'Rejeitado' : req.status}
@@ -155,10 +182,39 @@ export default function AdminDashboard() {
                               loading={processingAction?.id === req.id && processingAction?.action === 'reject'}
                               loadingText="Rejeitando..."
                               disabled={processingAction !== null || isFetching}
-                              onClick={() => handleReject(req.id)}
+                              onClick={() => setRejectModalRequest(req)}
                             >
                               Rejeitar
                             </Button>
+                          </div>
+                        )}
+                        {req.status === 'rejected' && (
+                          <div className="admin-actions">
+                            {(req.rejectionReason || req.rejection_reason) && (
+                              <button
+                                type="button"
+                                className="btn-view-reason"
+                                title="Visualizar motivo da recusa"
+                                onClick={() => setReasonDetailsRequest(req)}
+                              >
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="12"
+                                  height="12"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                >
+                                  <circle cx="12" cy="12" r="10" />
+                                  <line x1="12" y1="16" x2="12" y2="12" />
+                                  <line x1="12" y1="8" x2="12.01" y2="8" />
+                                </svg>
+                                Ver motivo
+                              </button>
+                            )}
                           </div>
                         )}
                       </td>
@@ -166,7 +222,7 @@ export default function AdminDashboard() {
                   ))}
                   {requests.length === 0 && (
                     <tr>
-                      <td colSpan={6} className="empty-state">
+                      <td colSpan={7} className="empty-state">
                         Nenhuma solicitação encontrada.
                       </td>
                     </tr>
@@ -186,6 +242,19 @@ export default function AdminDashboard() {
           )}
         </div>
       </main>
+
+      <RejectRequestModal
+        isOpen={Boolean(rejectModalRequest)}
+        request={rejectModalRequest}
+        onClose={() => setRejectModalRequest(null)}
+        onConfirm={handleConfirmReject}
+      />
+
+      <ReasonDetailsModal
+        isOpen={Boolean(reasonDetailsRequest)}
+        request={reasonDetailsRequest}
+        onClose={() => setReasonDetailsRequest(null)}
+      />
     </div>
   );
 }
