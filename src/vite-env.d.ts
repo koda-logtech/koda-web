@@ -7,7 +7,6 @@ interface ImportMetaEnv {
 
 interface Window {
   __ENV__?: {
-    VITE_API_URL?: string;
     VITE_APP_NAME?: string;
     VITE_MAPBOX_TOKEN?: string;
     VITE_STORAGE_PREFIX?: string;
