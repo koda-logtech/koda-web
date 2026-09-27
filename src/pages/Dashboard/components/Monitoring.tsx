@@ -69,7 +69,7 @@ function toMapTrip(row: EntregaCompleta, nowMs: number): DashboardMapTrip | null
  * Mesmo bloco de mapa do `DashboardOverview` (map-section / map-placeholder), em tela cheia na área principal.
  */
 export default function Monitoring() {
-  const mapboxToken = import.meta.env.VITE_MAPBOX_TOKEN?.trim();
+  const mapboxToken = (window.__ENV__?.VITE_MAPBOX_TOKEN || import.meta.env.VITE_MAPBOX_TOKEN)?.trim();
   const hasMap = Boolean(mapboxToken);
 
   const [selectedEntregaId, setSelectedEntregaId] = useState<number | null>(null);
