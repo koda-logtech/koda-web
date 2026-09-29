@@ -32,9 +32,15 @@ export default function Input({
       <input
         id={inputId}
         className={`input-base input-${variant} ${error ? 'input-error' : ''} ${className}`}
+        aria-invalid={error ? 'true' : undefined}
+        aria-describedby={error ? `${inputId}-error` : undefined}
         {...props}
       />
-      {error && <span className="input-error-message">{error}</span>}
+      {error && (
+        <span id={`${inputId}-error`} className="input-error-message" role="alert">
+          {error}
+        </span>
+      )}
     </div>
   );
 }

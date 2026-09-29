@@ -164,6 +164,120 @@
   gap: 12px;
 }
 
+/* Language Selector */
+.sidebar-footer-item.language-selector-btn {
+  width: 100%;
+  justify-content: space-between;
+  text-align: left;
+}
+
+.sidebar-footer-item.language-selector-btn:hover,
+.sidebar-footer-item.language-selector-btn.open {
+  color: var(--primary-color);
+}
+
+.language-selector-btn-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.language-selector-btn-left svg {
+  flex-shrink: 0;
+}
+
+.language-chevron {
+  flex-shrink: 0;
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.sidebar-footer-item.language-selector-btn.open .language-chevron {
+  color: var(--primary-color);
+}
+
+/* Popover Box (opens to the right) */
+.language-popover {
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.16);
+  padding: 6px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 190px;
+  animation: languagePopoverSlideRight 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes languagePopoverSlideRight {
+  from {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.language-popover-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 8px 10px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: var(--text-color);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: left;
+  transition: background-color 0.15s ease, color 0.15s ease;
+  font-family: inherit;
+}
+
+.language-popover-item:hover {
+  background-color: var(--input-bg);
+  color: var(--primary-color);
+}
+
+.language-popover-item.active {
+  background-color: rgba(52, 152, 219, 0.12);
+  color: var(--primary-color);
+  font-weight: 600;
+}
+
+.language-popover-item-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.language-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 5px;
+  border-radius: 4px;
+  background-color: var(--input-bg);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  line-height: 1.2;
+}
+
+.language-popover-item.active .language-badge {
+  background-color: rgba(52, 152, 219, 0.2);
+  border-color: rgba(52, 152, 219, 0.4);
+  color: var(--primary-color);
+}
+
+.language-check-icon {
+  flex-shrink: 0;
+  color: var(--primary-color);
+}
+
 .sidebar-footer-links {
   display: flex;
   flex-direction: column;

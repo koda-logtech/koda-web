@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import Button from "@components/common/Button";
 import Input from "@components/common/Input";
 import Select from "@components/common/Select";
@@ -44,6 +45,7 @@ function toFormState(u: User | null): UserFormState {
 }
 
 export default function MotoristaEditModal({ isOpen, onClose, user }: MotoristaEditModalProps) {
+  const { t } = useTranslation();
   const { addToast } = useToast();
   const updateUser = useUpdateUser();
   const [form, setForm] = useState<UserFormState>(EMPTY_STATE);
@@ -72,11 +74,11 @@ export default function MotoristaEditModal({ isOpen, onClose, user }: MotoristaE
     const email = form.email.trim();
 
     if (!name) {
-      addToast({ message: "Informe o nome do motorista.", type: "info" });
+      addToast({ message: t("modals.motorista.validationNome", "Informe o nome do motorista."), type: "info" });
       return;
     }
     if (!email) {
-      addToast({ message: "Informe o email do motorista.", type: "info" });
+      addToast({ message: t("modals.motorista.validationEmail", "Informe o email do motorista."), type: "info" });
       return;
     }
 
@@ -91,11 +93,11 @@ export default function MotoristaEditModal({ isOpen, onClose, user }: MotoristaE
           is_active: form.is_active,
         },
       });
-      addToast({ message: "Motorista atualizado com sucesso!", type: "success" });
+      addToast({ message: t("modals.motorista.updateSuccess", "Motorista atualizado com sucesso!"), type: "success" });
       onClose();
     } catch (err) {
       addToast({
-        message: `Não foi possível atualizar o motorista. ${getApiErrorMessage(err)}`,
+        message: `${t("modals.motorista.updateError", "Não foi possível atualizar o motorista.")} ${getApiErrorMessage(err)}`,
         type: "error",
       });
     }
@@ -118,19 +120,18 @@ export default function MotoristaEditModal({ isOpen, onClose, user }: MotoristaE
         aria-labelledby="motorista-edit-title"
       >
         <div className="trips-modal-head">
-          <h3 id="motorista-edit-title">Editar motorista</h3>
+          <h3 id="motorista-edit-title">{t("modals.motorista.title", "Editar motorista")}</h3>
           <p>
-            Atualize as informações do usuário. A senha não pode ser alterada por aqui — ela
-            possui um fluxo próprio.
+            {t("modals.motorista.subtitle", "Atualize as informações do usuário. A senha não pode ser alterada por aqui — ela possui um fluxo próprio.")}
           </p>
         </div>
 
         <form className="trips-modal-form" onSubmit={handleSubmit}>
           <Input
-            label="Nome Completo"
+            label={t("modals.motorista.nameLabel", "Nome Completo")}
             variant="underlined"
             name="name"
-            placeholder="Digite o nome..."
+            placeholder={t("modals.motorista.namePlaceholder", "Digite o nome...")}
             value={form.name}
             onChange={handleChange}
             required
@@ -138,20 +139,20 @@ export default function MotoristaEditModal({ isOpen, onClose, user }: MotoristaE
 
           <div className="trips-modal-form-row">
             <Input
-              label="Email"
+              label={t("modals.motorista.emailLabel", "Email")}
               variant="underlined"
               type="email"
               name="email"
-              placeholder="Ex: joao@empresa.com"
+              placeholder={t("modals.motorista.emailPlaceholder", "Ex: joao@empresa.com")}
               value={form.email}
               onChange={handleChange}
               required
             />
             <Input
-              label="Telefone"
+              label={t("modals.motorista.phoneLabel", "Telefone")}
               variant="underlined"
               name="phone"
-              placeholder="(00) 00000-0000"
+              placeholder={t("modals.motorista.phonePlaceholder", "(00) 00000-0000")}
               value={form.phone}
               onChange={handleChange}
             />
@@ -159,20 +160,20 @@ export default function MotoristaEditModal({ isOpen, onClose, user }: MotoristaE
 
           <div className="trips-modal-form-row">
             <Select
-              label="Cargo"
+              label={t("modals.motorista.roleLabel", "Cargo")}
               variant="underlined"
               name="role"
               value={form.role}
               onChange={handleChange}
               options={[
-                { value: "driver", label: "Motorista" },
-                { value: "admin", label: "Administrador" },
-                { value: "manager", label: "Gerente" },
-                { value: "user", label: "Usuário" },
+                { value: "driver", label: t("modals.motorista.roleDriver", "Motorista") },
+                { value: "admin", label: t("modals.motorista.roleAdmin", "Administrador") },
+                { value: "manager", label: t("modals.motorista.roleManager", "Gerente") },
+                { value: "user", label: t("modals.motorista.roleUser", "Usuário") },
               ]}
             />
             <Select
-              label="Status do Acesso"
+              label={t("modals.motorista.statusLabel", "Status do Acesso")}
               variant="underlined"
               name="is_active"
               value={form.is_active ? "true" : "false"}
@@ -180,18 +181,18 @@ export default function MotoristaEditModal({ isOpen, onClose, user }: MotoristaE
                 setForm((prev) => ({ ...prev, is_active: e.target.value === "true" }))
               }
               options={[
-                { value: "true", label: "Liberado (Ativo)" },
-                { value: "false", label: "Bloqueado (Inativo)" },
+                { value: "true", label: t("modals.motorista.statusActive", "Liberado (Ativo)") },
+                { value: "false", label: t("modals.motorista.statusInactive", "Bloqueado (Inativo)") },
               ]}
             />
           </div>
 
           <div className="trips-modal-actions">
             <Button type="button" variant="secondary" size="medium" onClick={handleClose} disabled={saving}>
-              Cancelar
+              {t("modals.motorista.cancel", "Cancelar")}
             </Button>
             <Button type="submit" variant="primary" size="medium" disabled={saving}>
-              {saving ? "Salvando..." : "Salvar alterações"}
+              {saving ? t("modals.motorista.saving", "Salvando...") : t("modals.motorista.saveChanges", "Salvar alterações")}
             </Button>
           </div>
         </form>

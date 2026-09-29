@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { getTempStatus } from "@/utils/tempStatus";
 
 export type TripMapOverlayDetail = {
@@ -51,17 +52,17 @@ function formatAbsolute(iso: string): string {
   });
 }
 
-function formatRelative(iso: string): string {
-  const t = Date.parse(iso);
-  if (!Number.isFinite(t)) return "";
-  const diffSec = Math.max(0, Math.floor((Date.now() - t) / 1000));
-  if (diffSec < 60) return `há ${diffSec}s`;
+function formatRelative(iso: string, t: ReturnType<typeof useTranslation>["t"]): string {
+  const time = Date.parse(iso);
+  if (!Number.isFinite(time)) return "";
+  const diffSec = Math.max(0, Math.floor((Date.now() - time) / 1000));
+  if (diffSec < 60) return String(t("dashboardMap.overlay.timeSec", "há {{count}}s", { count: diffSec }));
   const min = Math.floor(diffSec / 60);
-  if (min < 60) return `há ${min}min`;
+  if (min < 60) return String(t("dashboardMap.overlay.timeMin", "há {{count}}min", { count: min }));
   const h = Math.floor(min / 60);
-  if (h < 24) return `há ${h}h`;
+  if (h < 24) return String(t("dashboardMap.overlay.timeHours", "há {{count}}h", { count: h }));
   const d = Math.floor(h / 24);
-  return `há ${d}d`;
+  return String(t("dashboardMap.overlay.timeDays", "há {{count}}d", { count: d }));
 }
 
 /** 10 minutos sem telemetria → considera-se "desconectado". */
@@ -73,6 +74,7 @@ function isStale(iso: string | null | undefined): boolean {
 }
 
 export default function TripMapOverlay({ detail, onClose }: Props) {
+  const { t } = useTranslation();
   const tempLabel =
     detail.temperaturaAtual === null
       ? "—"
@@ -80,7 +82,7 @@ export default function TripMapOverlay({ detail, onClose }: Props) {
 
   return (
     <div className="trip-map-overlay-wrap" aria-live="polite">
-      <div className="trip-map-overlay" role="dialog" aria-label="Detalhes da viagem">
+      <div className="trip-map-overlay" role="dialog" aria-label={t("dashboardMap.overlay.dialogAria", "Detalhes da viagem")}>
         <div className="trip-map-overlay__head">
           <div className="trip-map-overlay__who">
             <img
@@ -102,17 +104,17 @@ export default function TripMapOverlay({ detail, onClose }: Props) {
               </p>
             </div>
           </div>
-          <button type="button" className="trip-map-overlay__close" onClick={onClose} aria-label="Fechar">
+          <button type="button" className="trip-map-overlay__close" onClick={onClose} aria-label={t("dashboardMap.overlay.closeAria", "Fechar")}>
             ✕
           </button>
         </div>
-        <p className="trip-map-overlay__label">Destino</p>
+        <p className="trip-map-overlay__label">{t("dashboardMap.overlay.destinationLabel", "Destino")}</p>
         <p className="trip-map-overlay__dest">{detail.destinoNome}</p>
         {detail.destinoEndereco ? (
           <p className="trip-map-overlay__addr">{detail.destinoEndereco}</p>
         ) : null}
         <div className="trip-map-overlay__temp-row">
-          <span className="trip-map-overlay__temp-caption">Temperatura</span>
+          <span className="trip-map-overlay__temp-caption">{t("dashboardMap.overlay.tempLabel", "Temperatura")}</span>
           <span className={tempClass(detail.temperaturaAtual, detail.temperaturaMin, detail.temperaturaMax)}>
             {tempLabel}
           </span>
@@ -124,7 +126,7 @@ export default function TripMapOverlay({ detail, onClose }: Props) {
               : ""
           }`}
         >
-          <span className="trip-map-overlay__temp-caption">Última atualização</span>
+          <span className="trip-map-overlay__temp-caption">{t("dashboardMap.overlay.lastUpdateLabel", "Última atualização")}</span>
           {detail.ultimaAtualizacaoAt ? (
             <span
               className="trip-map-overlay__updated-value"
@@ -133,12 +135,12 @@ export default function TripMapOverlay({ detail, onClose }: Props) {
               {formatAbsolute(detail.ultimaAtualizacaoAt)}
               <span className="trip-map-overlay__updated-rel">
                 {" · "}
-                {formatRelative(detail.ultimaAtualizacaoAt)}
+                {formatRelative(detail.ultimaAtualizacaoAt, t)}
               </span>
             </span>
           ) : (
             <span className="trip-map-overlay__updated-value trip-map-overlay__updated-value--muted">
-              sem leitura
+              {t("dashboardMap.overlay.noReading", "sem leitura")}
             </span>
           )}
         </div>

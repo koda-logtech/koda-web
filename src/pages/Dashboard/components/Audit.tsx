@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import ContentHeader from "./ContentHeader";
 import Loading from "@components/common/Loading";
 import { useTelemetriaAuditoria } from "@controllers/cargaController";
@@ -42,6 +43,7 @@ function formatWhen(iso: string): string {
 }
 
 export default function Audit() {
+  const { t } = useTranslation();
   const { data: rawRows = [], isLoading, isError, refetch } = useTelemetriaAuditoria(1, FETCH_LIMIT);
   const rows = rawRows as CargaTelemetriaAuditoria[];
 
@@ -84,12 +86,12 @@ export default function Audit() {
   return (
     <div className="dashboard-page trips-page">
       <ContentHeader
-        title="Auditoria"
-        subtitle="Registos de telemetria por carga — atualização em tempo quase real."
+        title={t("audit.title", "Auditoria")}
+        subtitle={t("audit.subtitle", "Registos de telemetria por carga — atualização em tempo quase real.")}
       />
 
       <div className="page-content">
-        <section className="trips-toolbar" aria-label="Filtros">
+        <section className="trips-toolbar" aria-label={t("audit.filtersAria", "Filtros")}>
           <div className="trips-toolbar-fields">
             <div className="trips-search-row">
               <svg
@@ -111,18 +113,20 @@ export default function Audit() {
               <input
                 type="search"
                 className="trips-search-input"
-                placeholder="Tipo da carga, id da carga ou id do registo…"
+                placeholder={t("audit.searchPlaceholder", "Tipo da carga, id da carga ou id do registo…")}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                aria-label="Busca"
+                aria-label={t("audit.searchAria", "Busca")}
               />
             </div>
           </div>
 
           <aside className="trips-metric-card">
-            <span className="trips-metric-label">Registos carregados</span>
+            <span className="trips-metric-label">{t("audit.recordsLoaded", "Registos carregados")}</span>
             <span className="trips-metric-value">{rows.length}</span>
-            <span className="trips-metric-hint">Até {FETCH_LIMIT} mais recentes · atualização automática a cada 5 s</span>
+            <span className="trips-metric-hint">
+              {t("audit.recordsHint", "Até {{limit}} mais recentes · atualização automática a cada 5 s", { limit: FETCH_LIMIT })}
+            </span>
           </aside>
         </section>
 
@@ -131,26 +135,26 @@ export default function Audit() {
             className="table-container"
             style={{ padding: "2rem", textAlign: "center", color: "var(--text-secondary)" }}
           >
-            <p>Não foi possível carregar a auditoria.</p>
+            <p>{t("audit.loadError", "Não foi possível carregar a auditoria.")}</p>
             <button type="button" className="trips-page-btn" onClick={() => refetch()}>
-              Tentar novamente
+              {t("audit.retry", "Tentar novamente")}
             </button>
           </div>
         ) : (
           <div className="table-container">
             {isLoading ? (
-              <Loading message="Carregando telemetria…" />
+              <Loading message={t("audit.loading", "Carregando telemetria…")} />
             ) : (
               <>
                 <table className="data-table">
                   <thead>
                     <tr>
-                      <th>Data / hora</th>
-                      <th>Carga</th>
-                      <th>Temperatura</th>
-                      <th>Latitude</th>
-                      <th>Longitude</th>
-                      <th>Id registo</th>
+                      <th>{t("audit.tableDate", "Data / hora")}</th>
+                      <th>{t("audit.tableCargo", "Carga")}</th>
+                      <th>{t("audit.tableTemp", "Temperatura")}</th>
+                      <th>{t("audit.tableLat", "Latitude")}</th>
+                      <th>{t("audit.tableLon", "Longitude")}</th>
+                      <th>{t("audit.tableRecordId", "Id registo")}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -158,7 +162,7 @@ export default function Audit() {
                       const c = unwrapCarga(row.carga);
                       const tipo = c?.tipo?.trim() ? c.tipo : "—";
                       const idCarga = row.id_carga;
-                      const t = parseNum(row.temperatura);
+                      const temp = parseNum(row.temperatura);
                       const lat = parseNum(row.latitude);
                       const lon = parseNum(row.longitude);
 
@@ -170,14 +174,14 @@ export default function Audit() {
                           <td>
                             <span className="cell-main-text">{tipo}</span>
                             <span className="cell-sub-text" style={{ display: "block", marginTop: 4 }}>
-                              Carga #{idCarga}
+                              {t("audit.cargoNumber", "Carga #{{id}}", { id: idCarga })}
                             </span>
                           </td>
                           <td>
-                            {t === null ? (
+                            {temp === null ? (
                               <span className="cell-sub-text">—</span>
                             ) : (
-                              <span className="cell-main-text">{t.toFixed(1)}°C</span>
+                              <span className="cell-main-text">{temp.toFixed(1)}°C</span>
                             )}
                           </td>
                           <td>
@@ -207,8 +211,8 @@ export default function Audit() {
                           }}
                         >
                           {rows.length === 0
-                            ? "Nenhum registo de telemetria encontrado."
-                            : "Nenhum resultado com os filtros atuais."}
+                            ? t("audit.noRecords", "Nenhum registo de telemetria encontrado.")
+                            : t("audit.noFilterResults", "Nenhum resultado com os filtros atuais.")}
                         </td>
                       </tr>
                     )}
@@ -218,9 +222,13 @@ export default function Audit() {
                 {total > 0 && (
                   <div className="trips-pagination">
                     <span>
-                      Exibindo {sliceFrom + 1}-{rangeEnd} de {total} resultado
-                      {total !== 1 ? "s" : ""}
-                      {search.trim() ? " (filtrado)" : ""}
+                      {t("audit.paginationShowing", "Exibindo {{from}}-{{to}} de {{total}} resultado{{s}}{{filtered}}", {
+                        from: sliceFrom + 1,
+                        to: rangeEnd,
+                        total,
+                        s: total !== 1 ? "s" : "",
+                        filtered: search.trim() ? t("audit.paginationFiltered", " (filtrado)") : "",
+                      })}
                     </span>
                     <div className="trips-pagination-pages">
                       <button
@@ -228,7 +236,7 @@ export default function Audit() {
                         className="trips-page-btn"
                         disabled={safePage <= 1}
                         onClick={() => setPage((p) => Math.max(1, p - 1))}
-                        aria-label="Página anterior"
+                        aria-label={t("audit.prevPage", "Página anterior")}
                       >
                         ‹
                       </button>
@@ -247,7 +255,7 @@ export default function Audit() {
                         className="trips-page-btn"
                         disabled={safePage >= totalPages}
                         onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                        aria-label="Próxima página"
+                        aria-label={t("audit.nextPage", "Próxima página")}
                       >
                         ›
                       </button>

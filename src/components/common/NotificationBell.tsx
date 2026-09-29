@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useAlertasNotifications } from "@/contexts/AlertasNotificationContext";
 import type { CargaAlerta } from "@/types/models";
 import "./NotificationBell.css";
@@ -15,17 +16,17 @@ function parseNum(v: number | string | null | undefined): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
-function formatRelative(iso: string): string {
-  const t = Date.parse(iso);
-  if (!Number.isFinite(t)) return "—";
-  const diffSec = Math.max(0, Math.floor((Date.now() - t) / 1000));
-  if (diffSec < 60) return `há ${diffSec}s`;
+function formatRelative(iso: string, t: ReturnType<typeof useTranslation>["t"]): string {
+  const time = Date.parse(iso);
+  if (!Number.isFinite(time)) return "—";
+  const diffSec = Math.max(0, Math.floor((Date.now() - time) / 1000));
+  if (diffSec < 60) return String(t("notifications.timeSec", "há {{count}}s", { count: diffSec }));
   const min = Math.floor(diffSec / 60);
-  if (min < 60) return `há ${min}min`;
+  if (min < 60) return String(t("notifications.timeMin", "há {{count}}min", { count: min }));
   const h = Math.floor(min / 60);
-  if (h < 24) return `há ${h}h`;
+  if (h < 24) return String(t("notifications.timeHours", "há {{count}}h", { count: h }));
   const d = Math.floor(h / 24);
-  return `há ${d}d`;
+  return String(t("notifications.timeDays", "há {{count}}d", { count: d }));
 }
 
 interface NotificationBellProps {
@@ -34,6 +35,7 @@ interface NotificationBellProps {
 }
 
 export default function NotificationBell({ onOpenAlertasPage }: NotificationBellProps) {
+  const { t } = useTranslation();
   const { alertasAbertos, totalAbertos } = useAlertasNotifications();
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -66,15 +68,21 @@ export default function NotificationBell({ onOpenAlertasPage }: NotificationBell
         className={`notif-bell-btn ${hasOpen ? "has-alerts" : ""}`}
         aria-label={
           hasOpen
-            ? `Notificações — ${totalAbertos} alerta${totalAbertos !== 1 ? "s" : ""} aberto${
-                totalAbertos !== 1 ? "s" : ""
-              }`
-            : "Notificações — nenhuma pendência"
+            ? totalAbertos === 1
+              ? t("notifications.ariaHasAlerts_one", "Notificações — 1 alerta aberto")
+              : t("notifications.ariaHasAlerts_other", "Notificações — {{count}} alertas abertos", {
+                  count: totalAbertos,
+                })
+            : t("notifications.ariaNoAlerts", "Notificações — nenhuma pendência")
         }
         aria-expanded={open}
         aria-haspopup="menu"
         onClick={() => setOpen((o) => !o)}
-        title={hasOpen ? `${totalAbertos} alerta(s) aberto(s)` : "Sem alertas no momento"}
+        title={
+          hasOpen
+            ? t("notifications.titleHasAlerts", "{{count}} alerta(s) aberto(s)", { count: totalAbertos })
+            : t("notifications.titleNoAlerts", "Sem alertas no momento")
+        }
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -94,11 +102,15 @@ export default function NotificationBell({ onOpenAlertasPage }: NotificationBell
       </button>
 
       {open && (
-        <div className="notif-bell-dropdown" role="menu" aria-label="Alertas abertos">
+        <div className="notif-bell-dropdown" role="menu" aria-label={t("notifications.dropdownAria", "Alertas abertos")}>
           <div className="notif-bell-header">
             <div>
-              <h4>Alertas abertos</h4>
-              <p>{hasOpen ? `${totalAbertos} em andamento` : "Nenhuma pendência ativa"}</p>
+              <h4>{t("notifications.dropdownTitle", "Alertas abertos")}</h4>
+              <p>
+                {hasOpen
+                  ? t("notifications.inProgress", "{{count}} em andamento", { count: totalAbertos })
+                  : t("notifications.noActive", "Nenhuma pendência ativa")}
+              </p>
             </div>
             {onOpenAlertasPage && (
               <button
@@ -109,7 +121,7 @@ export default function NotificationBell({ onOpenAlertasPage }: NotificationBell
                   onOpenAlertasPage();
                 }}
               >
-                Ver todos
+                {t("notifications.viewAll", "Ver todos")}
               </button>
             )}
           </div>
@@ -132,12 +144,12 @@ export default function NotificationBell({ onOpenAlertasPage }: NotificationBell
                   <path d="M9 12l2 2 4-4" />
                   <circle cx="12" cy="12" r="10" />
                 </svg>
-                <p>Tudo sob controle. Nenhum alerta térmico aberto agora.</p>
+                <p>{t("notifications.allUnderControl", "Tudo sob controle. Nenhum alerta térmico aberto agora.")}</p>
               </li>
             )}
             {alertasAbertos.map((a) => {
               const carga = unwrapCarga(a.carga);
-              const tipoCarga = carga?.tipo?.trim() || "Carga sem tipo";
+              const tipoCarga = carga?.tipo?.trim() || t("notifications.noType", "Carga sem tipo");
               const pico = parseNum(a.temperatura_pico);
               const min = parseNum(a.limite_minimo);
               const max = parseNum(a.limite_maximo);
@@ -151,25 +163,32 @@ export default function NotificationBell({ onOpenAlertasPage }: NotificationBell
                   </div>
                   <div className="notif-bell-item-body">
                     <div className="notif-bell-item-title">
-                      Temperatura {a.tipo === "alta" ? "ALTA" : "BAIXA"} —{" "}
+                      {t("notifications.tempPrefix", "Temperatura ")}{a.tipo === "alta" ? t("notifications.high", "ALTA") : t("notifications.low", "BAIXA")} —{" "}
                       <strong>{tipoCarga}</strong>
                     </div>
                     <div className="notif-bell-item-meta">
-                      Carga #{a.id_carga} · Alerta #{a.id}
+                      {t("notifications.itemMeta", "Carga #{{cargaId}} · Alerta #{{alertaId}}", {
+                        cargaId: a.id_carga,
+                        alertaId: a.id,
+                      })}
                       {" · "}
-                      {formatRelative(a.aberto_at)}
+                      {formatRelative(a.aberto_at, t)}
                     </div>
                     <div className="notif-bell-item-temp">
-                      Pico:{" "}
+                      {t("notifications.peakPrefix", "Pico: ")}
                       <strong>{pico !== null ? `${pico.toFixed(1)}°C` : "—"}</strong>
                       <span className="notif-bell-item-range">
                         {" "}
-                        (faixa {min !== null ? min.toFixed(1) : "—"}°C –{" "}
-                        {max !== null ? max.toFixed(1) : "—"}°C)
+                        {t("notifications.range", "(faixa {{min}}°C – {{max}}°C)", {
+                          min: min !== null ? min.toFixed(1) : "—",
+                          max: max !== null ? max.toFixed(1) : "—",
+                        })}
                       </span>
                     </div>
                     <div className="notif-bell-item-pings">
-                      {a.qtd_pings} ping{a.qtd_pings !== 1 ? "s" : ""} fora da faixa
+                      {a.qtd_pings === 1
+                        ? t("notifications.pingsOutOfRange_one", "1 ping fora da faixa")
+                        : t("notifications.pingsOutOfRange_other", "{{count}} pings fora da faixa", { count: a.qtd_pings })}
                     </div>
                   </div>
                 </li>

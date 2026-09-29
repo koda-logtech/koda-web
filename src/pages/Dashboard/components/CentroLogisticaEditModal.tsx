@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import Button from "@components/common/Button";
 import Input from "@components/common/Input";
 import Select from "@components/common/Select";
@@ -51,6 +52,7 @@ export default function CentroLogisticaEditModal({
   onClose,
   centro,
 }: CentroLogisticaEditModalProps) {
+  const { t } = useTranslation();
   const { addToast } = useToast();
   const updateCentro = useUpdateCentroLogistica();
   const [form, setForm] = useState<CentroFormState>(EMPTY_STATE);
@@ -77,7 +79,7 @@ export default function CentroLogisticaEditModal({
 
     const nome = form.nome.trim();
     if (!nome) {
-      addToast({ message: "Informe o nome do centro logístico.", type: "info" });
+      addToast({ message: t("modals.centroLogistica.validationNome", "Informe o nome do centro logístico."), type: "info" });
       return;
     }
 
@@ -85,7 +87,7 @@ export default function CentroLogisticaEditModal({
     const lng = Number.parseFloat(String(form.longitude).replace(",", "."));
 
     if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
-      addToast({ message: "Latitude e longitude devem ser números válidos.", type: "info" });
+      addToast({ message: t("modals.centroLogistica.validationCoords", "Latitude e longitude devem ser números válidos."), type: "info" });
       return;
     }
 
@@ -101,11 +103,11 @@ export default function CentroLogisticaEditModal({
           is_ativo: form.is_ativo,
         },
       });
-      addToast({ message: "Centro logístico atualizado com sucesso!", type: "success" });
+      addToast({ message: t("modals.centroLogistica.updateSuccess", "Centro logístico atualizado com sucesso!"), type: "success" });
       onClose();
     } catch (err) {
       addToast({
-        message: `Não foi possível atualizar o centro logístico. ${getApiErrorMessage(err)}`,
+        message: `${t("modals.centroLogistica.updateError", "Não foi possível atualizar o centro logístico.")} ${getApiErrorMessage(err)}`,
         type: "error",
       });
     }
@@ -128,16 +130,16 @@ export default function CentroLogisticaEditModal({
         aria-labelledby="centro-edit-title"
       >
         <div className="trips-modal-head">
-          <h3 id="centro-edit-title">Editar centro logístico</h3>
-          <p>Atualize as informações da unidade selecionada.</p>
+          <h3 id="centro-edit-title">{t("modals.centroLogistica.title", "Editar centro logístico")}</h3>
+          <p>{t("modals.centroLogistica.subtitle", "Atualize as informações da unidade selecionada.")}</p>
         </div>
 
         <form className="trips-modal-form" onSubmit={handleSubmit}>
           <Input
-            label="Nome da unidade"
+            label={t("modals.centroLogistica.nomeLabel", "Nome da unidade")}
             variant="underlined"
             name="nome"
-            placeholder="Ex: CD São Paulo – Zona Sul"
+            placeholder={t("modals.centroLogistica.nomePlaceholder", "Ex: CD São Paulo – Zona Sul")}
             value={form.nome}
             onChange={handleChange}
             required
@@ -145,15 +147,15 @@ export default function CentroLogisticaEditModal({
 
           <div className="trips-modal-form-row">
             <Input
-              label="Telefone"
+              label={t("modals.centroLogistica.phoneLabel", "Telefone")}
               variant="underlined"
               name="telefone"
-              placeholder="(00) 0000-0000"
+              placeholder={t("modals.centroLogistica.phonePlaceholder", "(00) 0000-0000")}
               value={form.telefone}
               onChange={handleChange}
             />
             <Select
-              label="Status"
+              label={t("modals.centroLogistica.statusLabel", "Status")}
               variant="underlined"
               name="is_ativo"
               value={form.is_ativo ? "true" : "false"}
@@ -161,24 +163,24 @@ export default function CentroLogisticaEditModal({
                 setForm((prev) => ({ ...prev, is_ativo: e.target.value === "true" }))
               }
               options={[
-                { value: "true", label: "Ativo" },
-                { value: "false", label: "Inativo" },
+                { value: "true", label: t("modals.centroLogistica.statusActive", "Ativo") },
+                { value: "false", label: t("modals.centroLogistica.statusInactive", "Inativo") },
               ]}
             />
           </div>
 
           <Input
-            label="Endereço completo"
+            label={t("modals.centroLogistica.addressLabel", "Endereço completo")}
             variant="underlined"
             name="endereco"
-            placeholder="Rua, número, bairro, cidade – UF"
+            placeholder={t("modals.centroLogistica.addressPlaceholder", "Rua, número, bairro, cidade – UF")}
             value={form.endereco}
             onChange={handleChange}
           />
 
           <div className="trips-modal-form-row">
             <Input
-              label="Latitude"
+              label={t("modals.centroLogistica.latitudeLabel", "Latitude")}
               variant="underlined"
               type="number"
               name="latitude"
@@ -186,7 +188,7 @@ export default function CentroLogisticaEditModal({
               onChange={handleChange}
             />
             <Input
-              label="Longitude"
+              label={t("modals.centroLogistica.longitudeLabel", "Longitude")}
               variant="underlined"
               type="number"
               name="longitude"
@@ -197,10 +199,10 @@ export default function CentroLogisticaEditModal({
 
           <div className="trips-modal-actions">
             <Button type="button" variant="secondary" size="medium" onClick={handleClose} disabled={saving}>
-              Cancelar
+              {t("modals.centroLogistica.cancel", "Cancelar")}
             </Button>
             <Button type="submit" variant="primary" size="medium" disabled={saving}>
-              {saving ? "Salvando..." : "Salvar alterações"}
+              {saving ? t("modals.centroLogistica.saving", "Salvando...") : t("modals.centroLogistica.saveChanges", "Salvar alterações")}
             </Button>
           </div>
         </form>

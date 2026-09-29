@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAccessRequests } from '@/hooks/api/useAccessRequests';
 import { AccessRequest } from '@/types/accessRequest';
 import Button from '@/components/common/Button';
@@ -9,12 +10,12 @@ import RejectRequestModal from './components/RejectRequestModal';
 import ReasonDetailsModal from './components/ReasonDetailsModal';
 import './AdminDashboard.css';
 
-function formatDateTime(dateStr?: string) {
+function formatDateTime(dateStr?: string, locale: string = 'pt-BR') {
   if (!dateStr) return '-';
   try {
     const d = new Date(dateStr);
     if (isNaN(d.getTime())) return '-';
-    return new Intl.DateTimeFormat('pt-BR', {
+    return new Intl.DateTimeFormat(locale, {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
@@ -27,6 +28,7 @@ function formatDateTime(dateStr?: string) {
 }
 
 export default function AdminDashboard() {
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { requests, isLoading, isFetching, error, fetchRequests, approveRequest, rejectRequest } = useAccessRequests();
 
@@ -36,6 +38,8 @@ export default function AdminDashboard() {
   const [rejectModalRequest, setRejectModalRequest] = useState<AccessRequest | null>(null);
   const [reasonDetailsRequest, setReasonDetailsRequest] = useState<AccessRequest | null>(null);
 
+  const currentLocale = i18n.language?.startsWith('en') ? 'en-US' : 'pt-BR';
+
   useEffect(() => {
     fetchRequests();
   }, [fetchRequests]);
@@ -44,9 +48,9 @@ export default function AdminDashboard() {
     setProcessingAction({ id, action: 'approve' });
     try {
       await approveRequest(id);
-      setToastMessage({ text: 'Solicitação aprovada e usuário criado com sucesso.', type: 'success' });
+      setToastMessage({ text: t('admin.dashboard.approveSuccess', 'Solicitação aprovada e usuário criado com sucesso.'), type: 'success' });
     } catch (err: any) {
-      setToastMessage({ text: err.message || 'Erro ao aprovar solicitação.', type: 'error' });
+      setToastMessage({ text: err.message || t('admin.dashboard.approveError', 'Erro ao aprovar solicitação.'), type: 'error' });
     } finally {
       setProcessingAction(null);
     }
@@ -58,9 +62,9 @@ export default function AdminDashboard() {
     setProcessingAction({ id, action: 'reject' });
     try {
       await rejectRequest(id, { reason, notify });
-      setToastMessage({ text: 'Solicitação rejeitada com sucesso.', type: 'success' });
+      setToastMessage({ text: t('admin.dashboard.rejectSuccess', 'Solicitação rejeitada com sucesso.'), type: 'success' });
     } catch (err: any) {
-      setToastMessage({ text: err.message || 'Erro ao rejeitar solicitação.', type: 'error' });
+      setToastMessage({ text: err.message || t('admin.dashboard.rejectError', 'Erro ao rejeitar solicitação.'), type: 'error' });
       throw err;
     } finally {
       setProcessingAction(null);
@@ -87,13 +91,13 @@ export default function AdminDashboard() {
       {error && <Toast message={error} type="error" onClose={() => {}} />}
 
       <header className="admin-header">
-        <h1>Painel Administrativo</h1>
+        <h1>{t("admin.dashboard.title", "Painel Administrativo")}</h1>
         <div className="admin-header-actions">
           <Button
             variant="secondary"
             onClick={fetchRequests}
             loading={isFetching}
-            loadingText="Atualizando..."
+            loadingText={t("admin.dashboard.refreshing", "Atualizando...")}
             disabled={processingAction !== null}
           >
             <span className="btn-refresh-icon">
@@ -110,11 +114,11 @@ export default function AdminDashboard() {
               >
                 <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" />
               </svg>
-              Atualizar
+              {t("admin.dashboard.refresh", "Atualizar")}
             </span>
           </Button>
           <Button variant="secondary" onClick={() => navigate('/')}>
-            Voltar ao Dashboard Principal
+            {t("admin.dashboard.backToMain", "Voltar ao Dashboard Principal")}
           </Button>
         </div>
       </header>
@@ -125,13 +129,13 @@ export default function AdminDashboard() {
             className={`admin-tab ${activeTab === 'solicitacoes' ? 'active' : ''}`}
             onClick={() => setActiveTab('solicitacoes')}
           >
-            Solicitações de Acesso
+            {t("admin.dashboard.tabRequests", "Solicitações de Acesso")}
           </button>
           <button
             className={`admin-tab ${activeTab === 'usuarios' ? 'active' : ''}`}
             onClick={() => setActiveTab('usuarios')}
           >
-            Gerenciar Usuários
+            {t("admin.dashboard.tabUsers", "Gerenciar Usuários")}
           </button>
         </div>
 
@@ -141,13 +145,13 @@ export default function AdminDashboard() {
               <table className="admin-table">
                 <thead>
                   <tr>
-                    <th>Nome</th>
-                    <th>E-mail</th>
-                    <th>Empresa</th>
-                    <th>Cargo</th>
-                    <th>Solicitado em</th>
-                    <th>Status</th>
-                    <th>Ações</th>
+                    <th>{t("admin.dashboard.table.name", "Nome")}</th>
+                    <th>{t("admin.dashboard.table.email", "E-mail")}</th>
+                    <th>{t("admin.dashboard.table.company", "Empresa")}</th>
+                    <th>{t("admin.dashboard.table.role", "Cargo")}</th>
+                    <th>{t("admin.dashboard.table.requestedAt", "Solicitado em")}</th>
+                    <th>{t("admin.dashboard.table.status", "Status")}</th>
+                    <th>{t("admin.dashboard.table.actions", "Ações")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -157,10 +161,16 @@ export default function AdminDashboard() {
                       <td>{req.email}</td>
                       <td>{req.empresa}</td>
                       <td>{req.cargo}</td>
-                      <td className="date-cell">{formatDateTime(req.createdAt || req.created_at)}</td>
+                      <td className="date-cell">{formatDateTime(req.createdAt || req.created_at, currentLocale)}</td>
                       <td>
                         <span className={`badge-status ${req.status}`}>
-                          {req.status === 'pending' ? 'Pendente' : req.status === 'approved' ? 'Aprovado' : req.status === 'rejected' ? 'Rejeitado' : req.status}
+                          {req.status === 'pending'
+                            ? t("admin.dashboard.statusPending", "Pendente")
+                            : req.status === 'approved'
+                            ? t("admin.dashboard.statusApproved", "Aprovado")
+                            : req.status === 'rejected'
+                            ? t("admin.dashboard.statusRejected", "Rejeitado")
+                            : req.status}
                         </span>
                       </td>
                       <td>
@@ -170,21 +180,21 @@ export default function AdminDashboard() {
                               size="small"
                               variant="primary"
                               loading={processingAction?.id === req.id && processingAction?.action === 'approve'}
-                              loadingText="Aprovando..."
+                              loadingText={t("admin.dashboard.approving", "Aprovando...")}
                               disabled={processingAction !== null || isFetching}
                               onClick={() => handleApprove(req.id)}
                             >
-                              Aprovar
+                              {t("admin.dashboard.approve", "Aprovar")}
                             </Button>
                             <Button
                               size="small"
                               variant="danger"
                               loading={processingAction?.id === req.id && processingAction?.action === 'reject'}
-                              loadingText="Rejeitando..."
+                              loadingText={t("admin.dashboard.rejecting", "Rejeitando...")}
                               disabled={processingAction !== null || isFetching}
                               onClick={() => setRejectModalRequest(req)}
                             >
-                              Rejeitar
+                              {t("admin.dashboard.reject", "Rejeitar")}
                             </Button>
                           </div>
                         )}
@@ -194,7 +204,7 @@ export default function AdminDashboard() {
                               <button
                                 type="button"
                                 className="btn-view-reason"
-                                title="Visualizar motivo da recusa"
+                                title={t("admin.dashboard.viewReasonTitle", "Visualizar motivo da recusa")}
                                 onClick={() => setReasonDetailsRequest(req)}
                               >
                                 <svg
@@ -212,7 +222,7 @@ export default function AdminDashboard() {
                                   <line x1="12" y1="16" x2="12" y2="12" />
                                   <line x1="12" y1="8" x2="12.01" y2="8" />
                                 </svg>
-                                Ver motivo
+                                {t("admin.dashboard.viewReason", "Ver motivo")}
                               </button>
                             )}
                           </div>
@@ -223,7 +233,7 @@ export default function AdminDashboard() {
                   {requests.length === 0 && (
                     <tr>
                       <td colSpan={7} className="empty-state">
-                        Nenhuma solicitação encontrada.
+                        {t("admin.dashboard.emptyRequests", "Nenhuma solicitação encontrada.")}
                       </td>
                     </tr>
                   )}
@@ -234,9 +244,9 @@ export default function AdminDashboard() {
 
           {activeTab === 'usuarios' && (
             <div className="empty-state">
-              <p>Módulo de gerenciamento de usuários em desenvolvimento.</p>
+              <p>{t("admin.dashboard.usersInProgress", "Módulo de gerenciamento de usuários em desenvolvimento.")}</p>
               <p style={{ fontSize: '0.875rem', marginTop: '0.5rem' }}>
-                Aqui você poderá visualizar, bloquear e criar acessos manualmente.
+                {t("admin.dashboard.usersInProgressSub", "Aqui você poderá visualizar, bloquear e criar acessos manualmente.")}
               </p>
             </div>
           )}

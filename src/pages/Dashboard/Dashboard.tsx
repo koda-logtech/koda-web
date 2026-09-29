@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@hooks/useAuth";
 import { useTheme } from "@hooks/useTheme";
@@ -31,6 +32,98 @@ function Dashboard() {
   const { t, i18n } = useTranslation();
   const [activeTab, setActiveTab] = useState<ActiveTab>("Dashboard");
   const [operationsOpen, setOperationsOpen] = useState(false);
+  const [isLanguageOpen, setIsLanguageOpen] = useState(false);
+  const languageSelectorRef = useRef<HTMLButtonElement>(null);
+  const popoverRef = useRef<HTMLDivElement>(null);
+  const [popoverCoords, setPopoverCoords] = useState<{
+    left: number;
+    bottom?: number;
+    top?: number;
+  }>({ left: 0 });
+
+  const languages = [
+    { code: "pt-BR", label: "Português (BR)", short: "PT" },
+    { code: "en", label: "English", short: "EN" },
+  ];
+
+  const currentLang = i18n.language?.startsWith("en") ? "en" : "pt-BR";
+  const currentLangObj =
+    languages.find((l) => l.code === currentLang) || languages[0];
+
+  const handleLanguageChange = (code: string) => {
+    i18n.changeLanguage(code);
+    setIsLanguageOpen(false);
+  };
+
+  const updatePopoverPosition = () => {
+    if (languageSelectorRef.current) {
+      const rect = languageSelectorRef.current.getBoundingClientRect();
+      const sidebarEl = languageSelectorRef.current.closest(".dashboard-sidebar");
+      const sidebarRect = sidebarEl?.getBoundingClientRect();
+
+      const isMobile =
+        window.innerWidth <= 768 ||
+        window.innerWidth - (sidebarRect ? sidebarRect.right : rect.right) < 220;
+
+      if (isMobile) {
+        setPopoverCoords({
+          left: Math.max(16, rect.left),
+          bottom: window.innerHeight - rect.top + 8,
+        });
+      } else {
+        const left = (sidebarRect ? sidebarRect.right : rect.right) + 8;
+        const bottom = Math.max(16, window.innerHeight - rect.bottom);
+        setPopoverCoords({ left, bottom });
+      }
+    }
+  };
+
+  const handleTogglePopover = () => {
+    if (!isLanguageOpen) {
+      updatePopoverPosition();
+    }
+    setIsLanguageOpen((prev) => !prev);
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Node;
+      if (
+        languageSelectorRef.current &&
+        !languageSelectorRef.current.contains(target) &&
+        popoverRef.current &&
+        !popoverRef.current.contains(target)
+      ) {
+        setIsLanguageOpen(false);
+      }
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsLanguageOpen(false);
+      }
+    };
+
+    const handleScrollOrResize = () => {
+      if (isLanguageOpen) {
+        updatePopoverPosition();
+      }
+    };
+
+    if (isLanguageOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+      document.addEventListener("keydown", handleKeyDown);
+      window.addEventListener("resize", handleScrollOrResize);
+      window.addEventListener("scroll", handleScrollOrResize, true);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("resize", handleScrollOrResize);
+      window.removeEventListener("scroll", handleScrollOrResize, true);
+    };
+  }, [isLanguageOpen]);
 
   const isOperationsActive = activeTab === "Cargas" || activeTab === "Viagens";
 
@@ -324,7 +417,7 @@ function Dashboard() {
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
                     </svg>
-                    <span>Acessos Admin</span>
+                    <span>{t("menu.acessosAdmin", "Acessos Admin")}</span>
                   </button>
                 </li>
               )}
@@ -363,25 +456,108 @@ function Dashboard() {
           </nav>
 
           <div className="sidebar-footer">
-            <div className="language-selector-container sidebar-footer-item" style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
-              <select
-                className="language-selector"
-                value={i18n.language || 'pt-BR'}
-                onChange={(e) => i18n.changeLanguage(e.target.value)}
-                style={{
-                  background: 'transparent',
-                  border: '1px solid var(--border-color)',
-                  color: 'var(--text-color)',
-                  borderRadius: '4px',
-                  padding: '4px'
-                }}
-              >
-                <option value="pt-BR">Português (BR)</option>
-                <option value="en">English</option>
-              </select>
-            </div>
             <div className="sidebar-footer-links">
+              <button
+                ref={languageSelectorRef}
+                type="button"
+                className={`sidebar-footer-item language-selector-btn ${isLanguageOpen ? "open" : ""}`}
+                onClick={handleTogglePopover}
+                aria-expanded={isLanguageOpen}
+                aria-haspopup="listbox"
+                aria-label={t("footer.selecionarIdioma", "Selecionar idioma")}
+              >
+                <div className="language-selector-btn-left">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="2" y1="12" x2="22" y2="12"></line>
+                    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                  </svg>
+                  <span>{currentLangObj.label}</span>
+                </div>
+                <svg
+                  className="language-chevron"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden
+                >
+                  <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+              </button>
+
+              {isLanguageOpen &&
+                createPortal(
+                  <div
+                    ref={popoverRef}
+                    className="language-popover"
+                    role="listbox"
+                    style={{
+                      position: "fixed",
+                      left: `${popoverCoords.left}px`,
+                      bottom:
+                        popoverCoords.bottom !== undefined
+                          ? `${popoverCoords.bottom}px`
+                          : undefined,
+                      top:
+                        popoverCoords.top !== undefined
+                          ? `${popoverCoords.top}px`
+                          : undefined,
+                    }}
+                  >
+                    {languages.map((lang) => {
+                      const isSelected = currentLang === lang.code;
+                      return (
+                        <button
+                          key={lang.code}
+                          type="button"
+                          role="option"
+                          aria-selected={isSelected}
+                          className={`language-popover-item ${isSelected ? "active" : ""}`}
+                          onClick={() => handleLanguageChange(lang.code)}
+                        >
+                          <div className="language-popover-item-left">
+                            <span className="language-badge">{lang.short}</span>
+                            <span>{lang.label}</span>
+                          </div>
+                          {isSelected && (
+                            <svg
+                              className="language-check-icon"
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="16"
+                              height="16"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2.5"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            >
+                              <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>,
+                  document.body
+                )}
+
               <button onClick={toggleTheme} className="sidebar-footer-item theme-toggle">
                 {theme === "light" ? (
                   <>

@@ -1,4 +1,5 @@
 import { createPortal } from 'react-dom';
+import { useTranslation } from 'react-i18next';
 import { AccessRequest } from '@/types/accessRequest';
 import Button from '@/components/common/Button';
 import './ReasonDetailsModal.css';
@@ -10,9 +11,11 @@ interface ReasonDetailsModalProps {
 }
 
 export default function ReasonDetailsModal({ isOpen, onClose, request }: ReasonDetailsModalProps) {
+  const { t } = useTranslation();
+
   if (!isOpen || !request) return null;
 
-  const reason = request.rejectionReason || request.rejection_reason || 'Nenhum motivo detalhado foi registrado.';
+  const reason = request.rejectionReason || request.rejection_reason || t("admin.reasonModal.noReasonProvided", "Nenhum motivo detalhado foi registrado.");
 
   return createPortal(
     <div className="reason-modal-overlay" onClick={onClose}>
@@ -36,7 +39,7 @@ export default function ReasonDetailsModal({ isOpen, onClose, request }: ReasonD
             </svg>
           </div>
           <div>
-            <h3>Motivo da Recusa</h3>
+            <h3>{t("admin.reasonModal.title", "Motivo da Recusa")}</h3>
             <p className="reason-applicant-info">
               {request.nome} &bull; {request.email}
             </p>
@@ -51,7 +54,7 @@ export default function ReasonDetailsModal({ isOpen, onClose, request }: ReasonD
 
         <div className="reason-modal-footer">
           <Button variant="secondary" size="small" onClick={onClose}>
-            Fechar
+            {t("admin.reasonModal.close", "Fechar")}
           </Button>
         </div>
       </div>

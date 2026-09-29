@@ -71,13 +71,22 @@ function formatDuracao(startIso: string, endIso: string | null): string {
 }
 
 function StatusBadge({ status }: { status: CargaAlertaStatus }) {
+  const { t } = useTranslation();
   const label =
-    status === "aberto" ? "Aberto" : status === "resolvido" ? "Resolvido" : "Cancelado";
+    status === "aberto"
+      ? t("alertas.statusOpen", "Aberto")
+      : status === "resolvido"
+        ? t("alertas.statusResolved", "Resolvido")
+        : t("alertas.statusCanceled", "Cancelado");
   return <span className={`alerta-badge alerta-badge--${status}`}>{label}</span>;
 }
 
 function TipoBadge({ tipo }: { tipo: CargaAlertaTipo }) {
-  const label = tipo === "alta" ? "Temp. alta" : "Temp. baixa";
+  const { t } = useTranslation();
+  const label =
+    tipo === "alta"
+      ? t("alertas.highTempBadge", "Temp. alta")
+      : t("alertas.lowTempBadge", "Temp. baixa");
   return (
     <span className={`alerta-badge alerta-badge--${tipo}`}>
       {tipo === "alta" ? "▲ " : "▼ "}
@@ -148,14 +157,20 @@ export default function Alertas() {
   }, [safePage, totalPages]);
 
   const handleCancelar = async (id: number) => {
-    if (!window.confirm(`Cancelar o alerta #${id}? Esta ação não pode ser desfeita.`)) {
+    if (
+      !window.confirm(
+        t("alertas.confirmCancel", "Cancelar o alerta #{{id}}? Esta ação não pode ser desfeita.", {
+          id,
+        })
+      )
+    ) {
       return;
     }
     try {
       await cancelarAlerta.mutateAsync(id);
     } catch (err) {
       // intencional: erro tratado abaixo
-      window.alert("Não foi possível cancelar o alerta. Tente novamente.");
+      window.alert(t("alertas.cancelError", "Não foi possível cancelar o alerta. Tente novamente."));
       console.error(err);
     }
   };
@@ -163,12 +178,15 @@ export default function Alertas() {
   return (
     <div className="dashboard-page trips-page alertas-page">
       <ContentHeader
-        title="Alertas térmicos"
-        subtitle="Eventos contínuos abertos automaticamente quando a temperatura sai da faixa permitida."
+        title={t("alertas.title", "Alertas térmicos")}
+        subtitle={t(
+          "alertas.subtitle",
+          "Eventos contínuos abertos automaticamente quando a temperatura sai da faixa permitida."
+        )}
       />
 
       <div className="page-content">
-        <section className="trips-toolbar" aria-label="Filtros de alertas">
+        <section className="trips-toolbar" aria-label={t("alertas.filtersAria", "Filtros de alertas")}>
           <div className="trips-toolbar-fields">
             <div className="trips-search-row">
               <svg
@@ -190,10 +208,10 @@ export default function Alertas() {
               <input
                 type="search"
                 className="trips-search-input"
-                placeholder="Tipo da carga, id da carga ou id do alerta…"
+                placeholder={t("alertas.searchPlaceholder", "Tipo da carga, id da carga ou id do alerta…")}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                aria-label="Busca"
+                aria-label={t("alertas.searchAria", "Busca")}
               />
             </div>
 
@@ -202,37 +220,39 @@ export default function Alertas() {
                 className="alertas-filter-select"
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
-                aria-label="Filtro por status"
+                aria-label={t("alertas.statusFilter", "Filtro por status")}
               >
-                <option value="todos">Todos os status</option>
-                <option value="aberto">Apenas abertos</option>
-                <option value="resolvido">Apenas resolvidos</option>
-                <option value="cancelado">Apenas cancelados</option>
+                <option value="todos">{t("alertas.allStatuses", "Todos os status")}</option>
+                <option value="aberto">{t("alertas.onlyOpen", "Apenas abertos")}</option>
+                <option value="resolvido">{t("alertas.onlyResolved", "Apenas resolvidos")}</option>
+                <option value="cancelado">{t("alertas.onlyCanceled", "Apenas cancelados")}</option>
               </select>
 
               <select
                 className="alertas-filter-select"
                 value={tipoFilter}
                 onChange={(e) => setTipoFilter(e.target.value as TipoFilter)}
-                aria-label="Filtro por tipo"
+                aria-label={t("alertas.typeFilter", "Filtro por tipo")}
               >
-                <option value="todos">Todos os tipos</option>
-                <option value="alta">Temperatura alta</option>
-                <option value="baixa">Temperatura baixa</option>
+                <option value="todos">{t("alertas.allTypes", "Todos os tipos")}</option>
+                <option value="alta">{t("alertas.highTemp", "Temperatura alta")}</option>
+                <option value="baixa">{t("alertas.lowTemp", "Temperatura baixa")}</option>
               </select>
             </div>
           </div>
 
           <aside className="alertas-metrics">
             <div className="alertas-metric-card alertas-metric-card--alert">
-              <span className="alertas-metric-label">Alertas abertos</span>
+              <span className="alertas-metric-label">{t("alertas.openAlertsTitle", "Alertas abertos")}</span>
               <span className="alertas-metric-value">{abertos}</span>
-              <span className="alertas-metric-hint">Atualização automática a cada 10 s</span>
+              <span className="alertas-metric-hint">{t("alertas.autoUpdate", "Atualização automática a cada 10 s")}</span>
             </div>
             <div className="alertas-metric-card alertas-metric-card--info">
-              <span className="alertas-metric-label">Resolvidos</span>
+              <span className="alertas-metric-label">{t("alertas.resolvedTitle", "Resolvidos")}</span>
               <span className="alertas-metric-value">{resolvidos}</span>
-              <span className="alertas-metric-hint">Nos últimos {FETCH_LIMIT} registos</span>
+              <span className="alertas-metric-hint">
+                {t("alertas.lastRecords", "Nos últimos {{count}} registos", { count: FETCH_LIMIT })}
+              </span>
             </div>
           </aside>
         </section>
@@ -242,30 +262,30 @@ export default function Alertas() {
             className="table-container"
             style={{ padding: "2rem", textAlign: "center", color: "var(--text-secondary)" }}
           >
-            <p>Não foi possível carregar os alertas.</p>
+            <p>{t("alertas.errorLoading", "Não foi possível carregar os alertas.")}</p>
             <button type="button" className="trips-page-btn" onClick={() => refetch()}>
-              Tentar novamente
+              {t("alertas.tryAgain", "Tentar novamente")}
             </button>
           </div>
         ) : (
           <div className="table-container">
             {isLoading ? (
-              <Loading message="Carregando alertas…" />
+              <Loading message={t("alertas.loadingAlerts", "Carregando alertas…")} />
             ) : (
               <>
                 <table className="data-table">
                   <thead>
                     <tr>
-                      <th>{t("alertas.status")}</th>
-                      <th>{t("alertas.type")}</th>
-                      <th>{t("alertas.carga")}</th>
-                      <th>{t("alertas.allowedRange")}</th>
-                      <th>{t("alertas.temps")}</th>
-                      <th>{t("alertas.openedAt")}</th>
-                      <th>{t("alertas.resolvedAt")}</th>
-                      <th>{t("alertas.duration")}</th>
-                      <th>{t("alertas.pings")}</th>
-                      <th>{t("alertas.action")}</th>
+                      <th>{t("alertas.status", "Status")}</th>
+                      <th>{t("alertas.type", "Tipo")}</th>
+                      <th>{t("alertas.carga", "Carga")}</th>
+                      <th>{t("alertas.allowedRange", "Faixa permitida")}</th>
+                      <th>{t("alertas.temps", "Temp. (início / pico / fim)")}</th>
+                      <th>{t("alertas.openedAt", "Aberto em")}</th>
+                      <th>{t("alertas.resolvedAt", "Resolvido em")}</th>
+                      <th>{t("alertas.duration", "Duração")}</th>
+                      <th>{t("alertas.pings", "Pings")}</th>
+                      <th>{t("alertas.action", "Ação")}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -293,7 +313,10 @@ export default function Alertas() {
                               className="cell-sub-text"
                               style={{ display: "block", marginTop: 4 }}
                             >
-                              Carga #{row.id_carga} · Alerta #{row.id}
+                              {t("alertas.cargaSubtext", "Carga #{{cargaId}} · Alerta #{{alertaId}}", {
+                                cargaId: row.id_carga,
+                                alertaId: row.id,
+                              })}
                             </span>
                           </td>
                           <td>
@@ -329,7 +352,7 @@ export default function Alertas() {
                           <td>
                             <span className="cell-sub-text">
                               {formatDuracao(row.aberto_at, row.resolvido_at)}
-                              {isAtivo ? " (em curso)" : ""}
+                              {isAtivo ? ` (${t("alertas.inProgress", "em curso")})` : ""}
                             </span>
                           </td>
                           <td>
@@ -342,9 +365,9 @@ export default function Alertas() {
                                 className="alertas-cancel-btn"
                                 onClick={() => handleCancelar(row.id)}
                                 disabled={cancelarAlerta.isPending}
-                                title="Marcar alerta como cancelado (falso positivo)"
+                                title={t("alertas.cancelAlertTitle", "Marcar alerta como cancelado (falso positivo)")}
                               >
-                                Cancelar
+                                {t("alertas.cancel", "Cancelar")}
                               </button>
                             ) : (
                               <span className="cell-sub-text">—</span>
@@ -364,8 +387,8 @@ export default function Alertas() {
                           }}
                         >
                           {rows.length === 0
-                            ? "Nenhum alerta registado até o momento."
-                            : "Nenhum resultado com os filtros atuais."}
+                            ? t("alertas.noAlertsRegistered", "Nenhum alerta registado até o momento.")
+                            : t("alertas.noResultsWithFilters", "Nenhum resultado com os filtros atuais.")}
                         </td>
                       </tr>
                     )}
@@ -375,10 +398,13 @@ export default function Alertas() {
                 {total > 0 && (
                   <div className="trips-pagination">
                     <span>
-                      Exibindo {sliceFrom + 1}-{rangeEnd} de {total} alerta
-                      {total !== 1 ? "s" : ""}
+                      {t("alertas.showingCount", "Exibindo {{from}}-{{to}} de {{total}} alerta(s)", {
+                        from: sliceFrom + 1,
+                        to: rangeEnd,
+                        total,
+                      })}
                       {search.trim() || statusFilter !== "todos" || tipoFilter !== "todos"
-                        ? " (filtrado)"
+                        ? ` (${t("alertas.filtered", "filtrado")})`
                         : ""}
                     </span>
                     <div className="trips-pagination-pages">
@@ -387,7 +413,7 @@ export default function Alertas() {
                         className="trips-page-btn"
                         disabled={safePage <= 1}
                         onClick={() => setPage((p) => Math.max(1, p - 1))}
-                        aria-label="Página anterior"
+                        aria-label={t("alertas.previousPage", "Página anterior")}
                       >
                         ‹
                       </button>
@@ -406,7 +432,7 @@ export default function Alertas() {
                         className="trips-page-btn"
                         disabled={safePage >= totalPages}
                         onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                        aria-label="Próxima página"
+                        aria-label={t("alertas.nextPage", "Próxima página")}
                       >
                         ›
                       </button>

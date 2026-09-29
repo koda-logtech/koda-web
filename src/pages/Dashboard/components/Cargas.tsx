@@ -125,28 +125,34 @@ export default function Cargas() {
     if (!cargaToDelete) return;
     try {
       await deleteCarga.mutateAsync(cargaToDelete.id);
-      addToast({ message: "Carga excluída com sucesso.", type: "success" });
+      addToast({
+        message: t("cargas.deleteSuccess", "Carga excluída com sucesso."),
+        type: "success",
+      });
       setDeleteModalOpen(false);
       setCargaToDelete(null);
     } catch {
-      addToast({ message: "Não foi possível excluir a carga.", type: "error" });
+      addToast({
+        message: t("cargas.deleteError", "Não foi possível excluir a carga."),
+        type: "error",
+      });
     }
   };
 
   return (
     <div className="dashboard-page trips-page">
       <ContentHeader
-        title="Cargas"
-        subtitle="Gerencie e acompanhe as cargas da operação."
+        title={t("cargas.title", "Cargas")}
+        subtitle={t("cargas.subtitle", "Gerencie e acompanhe as cargas da operação.")}
         actions={
           <Button variant="primary" size="small" onClick={() => setCreateOpen(true)}>
-            + Nova carga
+            {t("cargas.newCarga", "+ Nova carga")}
           </Button>
         }
       />
 
       <div className="page-content">
-        <section className="trips-toolbar" aria-label="Filtros">
+        <section className="trips-toolbar" aria-label={t("cargas.filters", "Filtros")}>
           <div className="trips-toolbar-fields">
             <div className="trips-search-row">
               <svg
@@ -168,35 +174,35 @@ export default function Cargas() {
               <input
                 type="search"
                 className="trips-search-input"
-                placeholder="Tipo ou placa do veículo..."
+                placeholder={t("cargas.searchPlaceholder", "Tipo ou placa do veículo...")}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                aria-label="Busca"
+                aria-label={t("cargas.searchAria", "Busca")}
               />
             </div>
           </div>
 
           <aside className="trips-metric-card">
-            <span className="trips-metric-label">Cargas cadastradas</span>
+            <span className="trips-metric-label">{t("cargas.registered", "Cargas cadastradas")}</span>
             <span className="trips-metric-value">{totalCadastradas}</span>
-            <span className="trips-metric-hint">Total no sistema</span>
+            <span className="trips-metric-hint">{t("cargas.totalInSystem", "Total no sistema")}</span>
           </aside>
         </section>
 
         <div className="table-container">
           {isLoading ? (
-            <Loading message="Carregando cargas..." />
+            <Loading message={t("cargas.loadingCargas", "Carregando cargas...")} />
           ) : (
             <>
               <table className="data-table">
                 <thead>
                   <tr>
-                    <th>{t("cargas.type")}</th>
-                    <th>{t("cargas.vehicle")}</th>
-                    <th>{t("cargas.range")}</th>
-                    <th>{t("cargas.current")}</th>
-                    <th>{t("cargas.location")}</th>
-                    <th style={{ textAlign: "right" }}>Ações</th>
+                    <th>{t("cargas.type", "Tipo")}</th>
+                    <th>{t("cargas.vehicle", "Veículo")}</th>
+                    <th>{t("cargas.range", "Faixa °C")}</th>
+                    <th>{t("cargas.current", "Atual")}</th>
+                    <th>{t("cargas.location", "Localização")}</th>
+                    <th style={{ textAlign: "right" }}>{t("cargas.actions", "Ações")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -210,7 +216,7 @@ export default function Cargas() {
                     const tipo = row.tipo?.trim() ? row.tipo : "—";
                     const faixa =
                       tMin !== null && tMax !== null
-                        ? `${formatTempDisplay(tMin)} a ${formatTempDisplay(tMax)}`
+                        ? `${formatTempDisplay(tMin)} ${t("cargas.rangeTo", "a")} ${formatTempDisplay(tMax)}`
                         : "—";
 
                     return (
@@ -226,7 +232,7 @@ export default function Cargas() {
                         </td>
                         <td>
                           {tAtual === null ? (
-                            <span className="cell-sub-text">N/A</span>
+                            <span className="cell-sub-text">{t("cargas.na", "N/A")}</span>
                           ) : (
                             <span
                               className={
@@ -253,7 +259,7 @@ export default function Cargas() {
                             <button
                               type="button"
                               className="btn-icon-action"
-                              title="Editar"
+                              title={t("common.edit", "Editar")}
                               onClick={() => handleEditClick(row)}
                             >
                               <svg
@@ -274,7 +280,7 @@ export default function Cargas() {
                             <button
                               type="button"
                               className="btn-icon-action danger"
-                              title="Excluir"
+                              title={t("common.delete", "Excluir")}
                               onClick={() => handleDeleteClick(row.id, tipo)}
                             >
                               <svg
@@ -309,7 +315,7 @@ export default function Cargas() {
                           color: "var(--text-secondary)",
                         }}
                       >
-                        Nenhuma carga encontrada com os filtros atuais.
+                        {t("cargas.noCargasFound", "Nenhuma carga encontrada com os filtros atuais.")}
                       </td>
                     </tr>
                   )}
@@ -320,8 +326,16 @@ export default function Cargas() {
                 <div className="trips-pagination">
                   <span>
                     {total === 0
-                      ? "Nenhum resultado"
-                      : `Exibindo ${sliceFrom + 1}-${rangeEnd} de ${total} resultado${total !== 1 ? "s" : ""}`}
+                      ? t("cargas.noResults", "Nenhum resultado")
+                      : t(
+                          "cargas.showingResults",
+                          "Exibindo {{from}}-{{to}} de {{total}} resultados",
+                          {
+                            from: sliceFrom + 1,
+                            to: rangeEnd,
+                            total,
+                          }
+                        )}
                   </span>
                   <div className="trips-pagination-pages">
                     <button
@@ -329,7 +343,7 @@ export default function Cargas() {
                       className="trips-page-btn"
                       disabled={safePage <= 1}
                       onClick={() => setPage((p) => Math.max(1, p - 1))}
-                      aria-label="Página anterior"
+                      aria-label={t("cargas.previousPage", "Página anterior")}
                     >
                       ‹
                     </button>
@@ -348,7 +362,7 @@ export default function Cargas() {
                       className="trips-page-btn"
                       disabled={safePage >= totalPages}
                       onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                      aria-label="Próxima página"
+                      aria-label={t("cargas.nextPage", "Próxima página")}
                     >
                       ›
                     </button>
@@ -375,8 +389,12 @@ export default function Cargas() {
           setCargaToDelete(null);
         }}
         onConfirm={confirmDelete}
-        title={t("cargas.confirmDelete")}
-        message={`Deseja excluir a carga "${cargaToDelete?.label}"? Esta ação não pode ser desfeita.`}
+        title={t("cargas.confirmDelete", "Confirmar exclusão")}
+        message={t(
+          "cargas.deleteConfirmMsg",
+          "Deseja excluir a carga \"{{label}}\"? Esta ação não pode ser desfeita.",
+          { label: cargaToDelete?.label }
+        )}
       />
     </div>
   );

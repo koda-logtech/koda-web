@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import Button from "@components/common/Button";
 import Input from "@components/common/Input";
 import Select from "@components/common/Select";
@@ -62,6 +63,7 @@ function toFormState(e: EntregaCompleta | Entrega | null): TripFormState {
 }
 
 export default function TripEditModal({ isOpen, onClose, entrega }: TripEditModalProps) {
+  const { t } = useTranslation();
   const { addToast } = useToast();
   const updateEntrega = useUpdateEntrega();
   const { data: caminhoes = [] } = useCaminhoes(1, 300, { enabled: isOpen });
@@ -84,11 +86,11 @@ export default function TripEditModal({ isOpen, onClose, entrega }: TripEditModa
     if (!entrega) return;
 
     if (!form.id_caminhao) {
-      addToast({ message: "Selecione um caminhão.", type: "info" });
+      addToast({ message: t("modals.tripEdit.validationTruck", "Selecione um caminhão."), type: "info" });
       return;
     }
     if (!form.id_cliente) {
-      addToast({ message: "Selecione um cliente (destino).", type: "info" });
+      addToast({ message: t("modals.tripEdit.validationClient", "Selecione um cliente (destino)."), type: "info" });
       return;
     }
 
@@ -104,11 +106,11 @@ export default function TripEditModal({ isOpen, onClose, entrega }: TripEditModa
 
     try {
       await updateEntrega.mutateAsync({ id: entrega.id, payload });
-      addToast({ message: "Viagem atualizada com sucesso!", type: "success" });
+      addToast({ message: t("modals.tripEdit.updateSuccess", "Viagem atualizada com sucesso!"), type: "success" });
       onClose();
     } catch (err) {
       addToast({
-        message: `Não foi possível atualizar a viagem. ${getApiErrorMessage(err)}`,
+        message: `${t("modals.tripEdit.updateError", "Não foi possível atualizar a viagem.")} ${getApiErrorMessage(err)}`,
         type: "error",
       });
     }
@@ -133,13 +135,13 @@ export default function TripEditModal({ isOpen, onClose, entrega }: TripEditModa
         aria-labelledby="trip-edit-title"
       >
         <div className="trips-modal-head">
-          <h3 id="trip-edit-title">Editar viagem</h3>
-          <p>Atualize a viagem selecionada — caminhão, cliente, status, datas e observações.</p>
+          <h3 id="trip-edit-title">{t("modals.tripEdit.title", "Editar viagem")}</h3>
+          <p>{t("modals.tripEdit.subtitle", "Atualize a viagem selecionada — caminhão, cliente, status, datas e observações.")}</p>
         </div>
 
         <form className="trips-modal-form" onSubmit={handleSubmit}>
           <Select
-            label="Caminhão"
+            label={t("modals.tripEdit.truckLabel", "Caminhão")}
             variant="underlined"
             name="id_caminhao"
             value={form.id_caminhao}
@@ -147,7 +149,7 @@ export default function TripEditModal({ isOpen, onClose, entrega }: TripEditModa
               setForm((prev) => ({ ...prev, id_caminhao: Number(e.target.value) }))
             }
             options={[
-              { value: 0, label: "Selecione um caminhão..." },
+              { value: 0, label: t("modals.tripEdit.truckPlaceholder", "Selecione um caminhão...") },
               ...caminhoesLista.map((c) => ({
                 value: c.id,
                 label: formatCaminhaoOptionLabel(c),
@@ -156,7 +158,7 @@ export default function TripEditModal({ isOpen, onClose, entrega }: TripEditModa
           />
 
           <Select
-            label="Cliente / destino"
+            label={t("modals.tripEdit.clientLabel", "Cliente / destino")}
             variant="underlined"
             name="id_cliente"
             value={form.id_cliente}
@@ -164,7 +166,7 @@ export default function TripEditModal({ isOpen, onClose, entrega }: TripEditModa
               setForm((prev) => ({ ...prev, id_cliente: Number(e.target.value) }))
             }
             options={[
-              { value: 0, label: "Selecione um cliente..." },
+              { value: 0, label: t("modals.tripEdit.clientPlaceholder", "Selecione um cliente...") },
               ...clientesLista.map((cl) => ({
                 value: cl.id,
                 label: cl.endereco?.trim() ? `${cl.nome} — ${cl.endereco}` : cl.nome,
@@ -173,7 +175,7 @@ export default function TripEditModal({ isOpen, onClose, entrega }: TripEditModa
           />
 
           <Select
-            label="Status"
+            label={t("modals.tripEdit.statusLabel", "Status")}
             variant="underlined"
             name="status"
             value={form.status}
@@ -184,17 +186,17 @@ export default function TripEditModal({ isOpen, onClose, entrega }: TripEditModa
               }))
             }
             options={[
-              { value: "pendente", label: "Pendente" },
-              { value: "em_transito", label: "Em trânsito" },
-              { value: "no_armazem", label: "No armazém" },
-              { value: "entregue", label: "Entregue" },
-              { value: "cancelada", label: "Cancelada" },
+              { value: "pendente", label: t("modals.tripEdit.statusPending", "Pendente") },
+              { value: "em_transito", label: t("modals.tripEdit.statusInTransit", "Em trânsito") },
+              { value: "no_armazem", label: t("modals.tripEdit.statusInWarehouse", "No armazém") },
+              { value: "entregue", label: t("modals.tripEdit.statusDelivered", "Entregue") },
+              { value: "cancelada", label: t("modals.tripEdit.statusCanceled", "Cancelada") },
             ]}
           />
 
           <div className="trips-modal-form-row">
             <Input
-              label="Data de saída"
+              label={t("modals.tripEdit.departureLabel", "Data de saída")}
               variant="underlined"
               name="data_saida"
               type="datetime-local"
@@ -202,7 +204,7 @@ export default function TripEditModal({ isOpen, onClose, entrega }: TripEditModa
               onChange={(e) => setForm((prev) => ({ ...prev, data_saida: e.target.value }))}
             />
             <Input
-              label="Data de previsão"
+              label={t("modals.tripEdit.estimatedLabel", "Data de previsão")}
               variant="underlined"
               name="data_previsao"
               type="datetime-local"
@@ -212,7 +214,7 @@ export default function TripEditModal({ isOpen, onClose, entrega }: TripEditModa
           </div>
 
           <Input
-            label="Data de entrega"
+            label={t("modals.tripEdit.deliveryLabel", "Data de entrega")}
             variant="underlined"
             name="data_entrega"
             type="datetime-local"
@@ -221,23 +223,23 @@ export default function TripEditModal({ isOpen, onClose, entrega }: TripEditModa
           />
 
           <label className="trips-modal-label" htmlFor="trip-edit-obs">
-            Observações
+            {t("modals.tripEdit.notesLabel", "Observações")}
           </label>
           <textarea
             id="trip-edit-obs"
             className="trips-modal-textarea"
             rows={3}
-            placeholder="Instruções ao motorista, restrições de descarga..."
+            placeholder={t("modals.tripEdit.notesPlaceholder", "Instruções ao motorista, restrições de descarga...")}
             value={form.observacoes}
             onChange={(e) => setForm((prev) => ({ ...prev, observacoes: e.target.value }))}
           />
 
           <div className="trips-modal-actions">
             <Button type="button" variant="secondary" size="medium" onClick={handleClose} disabled={saving}>
-              Cancelar
+              {t("modals.tripEdit.cancel", "Cancelar")}
             </Button>
             <Button type="submit" variant="primary" size="medium" disabled={saving}>
-              {saving ? "Salvando..." : "Salvar alterações"}
+              {saving ? t("modals.tripEdit.saving", "Salvando...") : t("modals.tripEdit.saveChanges", "Salvar alterações")}
             </Button>
           </div>
         </form>

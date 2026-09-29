@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useCaminhoes, useCreateCaminhao } from "@controllers/caminhaoController";
 import { useCentrosLogistica } from "@controllers/centroLogisticaController";
 import { useUsers } from "@controllers/userController";
@@ -27,6 +28,7 @@ interface CaminhoesViewProps {
 }
 
 export default function CaminhoesView({ onViewAll }: CaminhoesViewProps) {
+  const { t } = useTranslation();
   const { addToast } = useToast();
   const [formData, setFormData] = useState({
     placa: "",
@@ -70,7 +72,7 @@ export default function CaminhoesView({ onViewAll }: CaminhoesViewProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (formData.id_usuario === 0) {
-      addToast({ message: "Por favor, selecione um motorista responsável.", type: "info" });
+      addToast({ message: t("management.caminhoesView.validationDriver", "Por favor, selecione um motorista responsável."), type: "info" });
       return;
     }
     try {
@@ -87,7 +89,7 @@ export default function CaminhoesView({ onViewAll }: CaminhoesViewProps) {
           : {}),
       };
       await createCaminhao.mutateAsync(payload);
-      addToast({ message: "Caminhão cadastrado com sucesso!", type: "success" });
+      addToast({ message: t("management.caminhoesView.createSuccess", "Caminhão cadastrado com sucesso!"), type: "success" });
       setFormData({
         placa: "",
         modelo: "",
@@ -100,31 +102,31 @@ export default function CaminhoesView({ onViewAll }: CaminhoesViewProps) {
       });
     } catch (error) {
       console.error("Erro ao cadastrar caminhão:", error);
-      addToast({ message: "Erro ao cadastrar caminhão.", type: "error" });
+      addToast({ message: t("management.caminhoesView.createError", "Erro ao cadastrar caminhão."), type: "error" });
     }
   };
 
   return (
     <div className="motoristas-section">
       <div className="motoristas-left">
-        <h3 className="section-subtitle">Novo Caminhão</h3>
+        <h3 className="section-subtitle">{t("management.caminhoesView.newTruckTitle", "Novo Caminhão")}</h3>
         
         <form className="modern-form" onSubmit={handleSubmit}>
           <div className="form-row">
             <Input
-              label="Placa"
+              label={t("management.caminhoesView.plateLabel", "Placa")}
               variant="underlined"
               name="placa"
-              placeholder="ABC-1234"
+              placeholder={t("management.caminhoesView.platePlaceholder", "ABC-1234")}
               value={formData.placa}
               onChange={handleInputChange}
               required
             />
             <Input
-              label="Modelo"
+              label={t("management.caminhoesView.modelLabel", "Modelo")}
               variant="underlined"
               name="modelo"
-              placeholder="Ex: FH 540"
+              placeholder={t("management.caminhoesView.modelPlaceholder", "Ex: FH 540")}
               value={formData.modelo}
               onChange={handleInputChange}
               required
@@ -133,16 +135,16 @@ export default function CaminhoesView({ onViewAll }: CaminhoesViewProps) {
 
           <div className="form-row">
             <Input
-              label="Marca"
+              label={t("management.caminhoesView.brandLabel", "Marca")}
               variant="underlined"
               name="marca"
-              placeholder="Ex: Volvo"
+              placeholder={t("management.caminhoesView.brandPlaceholder", "Ex: Volvo")}
               value={formData.marca}
               onChange={handleInputChange}
               required
             />
             <Input
-              label="Ano"
+              label={t("management.caminhoesView.yearLabel", "Ano")}
               variant="underlined"
               type="number"
               name="ano"
@@ -154,7 +156,7 @@ export default function CaminhoesView({ onViewAll }: CaminhoesViewProps) {
 
           <div className="form-row">
             <Input
-              label="Capacidade (kg)"
+              label={t("management.caminhoesView.capacityLabel", "Capacidade (kg)")}
               variant="underlined"
               type="number"
               name="capacidade_kg"
@@ -163,28 +165,28 @@ export default function CaminhoesView({ onViewAll }: CaminhoesViewProps) {
               required
             />
             <Select
-              label="Status Inicial"
+              label={t("management.caminhoesView.statusLabel", "Status Inicial")}
               variant="underlined"
               name="status"
               value={formData.status}
               onChange={handleInputChange}
               options={[
-                { value: "disponivel", label: "Disponível" },
-                { value: "em_rota", label: "Em Rota" },
-                { value: "manutencao", label: "Manutenção" },
-                { value: "inativo", label: "Inativo" },
+                { value: "disponivel", label: t("management.caminhoesView.statusDisponivel", "Disponível") },
+                { value: "em_rota", label: t("management.caminhoesView.statusEmRota", "Em Rota") },
+                { value: "manutencao", label: t("management.caminhoesView.statusManutencao", "Manutenção") },
+                { value: "inativo", label: t("management.caminhoesView.statusInativo", "Inativo") },
               ]}
             />
           </div>
 
           <Select
-            label="Motorista Responsável"
+            label={t("management.caminhoesView.driverLabel", "Motorista Responsável")}
             variant="underlined"
             name="id_usuario"
             value={formData.id_usuario}
             onChange={handleInputChange}
             options={[
-              { value: 0, label: "Selecione um motorista..." },
+              { value: 0, label: t("management.caminhoesView.driverPlaceholder", "Selecione um motorista...") },
               ...drivers.map((user) => ({
                 value: Number(user.id),
                 label: user.name,
@@ -193,13 +195,13 @@ export default function CaminhoesView({ onViewAll }: CaminhoesViewProps) {
           />
 
           <Select
-            label="Centro logístico"
+            label={t("management.caminhoesView.centerLabel", "Centro logístico")}
             variant="underlined"
             name="id_centro_logistica"
             value={formData.id_centro_logistica}
             onChange={handleInputChange}
             options={[
-              { value: 0, label: "Nenhum (opcional)" },
+              { value: 0, label: t("management.caminhoesView.centerNone", "Nenhum (opcional)") },
               ...centrosAtivos.map((c) => ({
                 value: c.id,
                 label: c.nome,
@@ -209,14 +211,14 @@ export default function CaminhoesView({ onViewAll }: CaminhoesViewProps) {
 
           <div style={{ marginTop: '1rem' }}>
             <Button type="submit" variant="primary" size="medium">
-              Salvar Caminhão
+              {t("management.caminhoesView.submitButton", "Salvar Caminhão")}
             </Button>
           </div>
         </form>
       </div>
 
       <div className="motoristas-right">
-        <h3 className="section-subtitle">Frota Ativa</h3>
+        <h3 className="section-subtitle">{t("management.caminhoesView.listTitle", "Frota Ativa")}</h3>
         {loadingTrucks ? (
           <Loading />
         ) : (
@@ -233,20 +235,24 @@ export default function CaminhoesView({ onViewAll }: CaminhoesViewProps) {
                       {truck.marca} ({truck.ano})
                     </p>
                     <p className="cell-sub-text" style={{ marginTop: 2 }}>{labelMotorista(truck.nome_motorista)}</p>
-                    <p className="cell-sub-text" style={{ marginTop: 2 }}>Carga: {labelTipoCarga(truck.tipo_carga)}</p>
-                    <p className="cell-sub-text" style={{ marginTop: 2 }}>Centro: {labelCentro(truck.nome_centro_logistica)}</p>
+                    <p className="cell-sub-text" style={{ marginTop: 2 }}>
+                      {t("management.caminhoesView.cargoPrefix", "Carga: ")}{labelTipoCarga(truck.tipo_carga != null && String(truck.tipo_carga).trim() !== "" ? truck.tipo_carga : t("management.caminhoesView.noCargoLinked", "Sem carga vinculada"))}
+                    </p>
+                    <p className="cell-sub-text" style={{ marginTop: 2 }}>
+                      {t("management.caminhoesView.centerPrefix", "Centro: ")}{labelCentro(truck.nome_centro_logistica)}
+                    </p>
                   </div>
                   <span className={`status-badge ${truck.status}`} style={{ fontSize: '0.65rem' }}>
                     {truck.status.replace(/_/g, " ")}
                   </span>
                 </div>
               ))}
-              {trucks.length === 0 && <p style={{ textAlign: 'center', color: '#999' }}>Sem registros.</p>}
+              {trucks.length === 0 && <p style={{ textAlign: 'center', color: '#999' }}>{t("management.caminhoesView.noRecords", "Sem registros.")}</p>}
             </div>
             
             <div className="view-all-container">
               <button className="btn-text" onClick={onViewAll}>
-                Listagem Completa →
+                {t("management.caminhoesView.viewAll", "Listagem Completa →")}
               </button>
             </div>
           </>

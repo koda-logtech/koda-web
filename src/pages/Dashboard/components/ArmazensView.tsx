@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useArmazens, useCreateArmazem } from "@controllers/armazemController";
 import { useToast } from "@/contexts/ToastContext";
 
@@ -12,6 +13,7 @@ interface ArmazensViewProps {
 }
 
 export default function ArmazensView({ onViewAll }: ArmazensViewProps) {
+  const { t } = useTranslation();
   const { addToast } = useToast();
   const [formData, setFormData] = useState({
     nome: "",
@@ -40,7 +42,7 @@ export default function ArmazensView({ onViewAll }: ArmazensViewProps) {
     e.preventDefault();
     try {
       await createArmazem.mutateAsync(formData);
-      addToast({ message: "Armazém cadastrado com sucesso!", type: "success" });
+      addToast({ message: t("management.armazensView.createSuccess", "Armazém cadastrado com sucesso!"), type: "success" });
       setFormData({
         nome: "",
         endereco: "",
@@ -53,21 +55,21 @@ export default function ArmazensView({ onViewAll }: ArmazensViewProps) {
       });
     } catch (error) {
       console.error("Erro ao cadastrar armazém:", error);
-      addToast({ message: "Erro ao cadastrar armazém.", type: "error" });
+      addToast({ message: t("management.armazensView.createError", "Erro ao cadastrar armazém."), type: "error" });
     }
   };
 
   return (
     <div className="motoristas-section">
       <div className="motoristas-left">
-        <h3 className="section-subtitle">Novo Armazém Parceiro</h3>
+        <h3 className="section-subtitle">{t("management.armazensView.newWarehouseTitle", "Novo Armazém Parceiro")}</h3>
         
         <form className="modern-form" onSubmit={handleSubmit}>
           <Input
-            label="Nome do Armazém"
+            label={t("management.armazensView.nameLabel", "Nome do Armazém")}
             variant="underlined"
             name="nome"
-            placeholder="Digite o nome..."
+            placeholder={t("management.armazensView.namePlaceholder", "Digite o nome...")}
             value={formData.nome}
             onChange={handleInputChange}
             required
@@ -75,19 +77,19 @@ export default function ArmazensView({ onViewAll }: ArmazensViewProps) {
 
           <div className="form-row">
             <Input
-              label="Email de Contato"
+              label={t("management.armazensView.emailLabel", "Email de Contato")}
               variant="underlined"
               type="email"
               name="email"
-              placeholder="Ex: armazem@parceiro.com"
+              placeholder={t("management.armazensView.emailPlaceholder", "Ex: armazem@parceiro.com")}
               value={formData.email}
               onChange={handleInputChange}
             />
             <Input
-              label="Telefone"
+              label={t("management.armazensView.phoneLabel", "Telefone")}
               variant="underlined"
               name="telefone"
-              placeholder="(00) 0000-0000"
+              placeholder={t("management.armazensView.phonePlaceholder", "(00) 0000-0000")}
               value={formData.telefone}
               onChange={handleInputChange}
             />
@@ -95,7 +97,7 @@ export default function ArmazensView({ onViewAll }: ArmazensViewProps) {
 
           <div className="form-row">
             <Input
-              label="Capacidade (kg)"
+              label={t("management.armazensView.capacityLabel", "Capacidade (kg)")}
               variant="underlined"
               type="number"
               name="capacidade_kg"
@@ -103,30 +105,30 @@ export default function ArmazensView({ onViewAll }: ArmazensViewProps) {
               onChange={handleInputChange}
             />
             <Select
-              label="Status"
+              label={t("management.armazensView.statusLabel", "Status")}
               variant="underlined"
               name="is_ativo"
               value={formData.is_ativo ? "true" : "false"}
               onChange={(e) => setFormData(prev => ({ ...prev, is_ativo: e.target.value === "true" }))}
               options={[
-                { value: "true", label: "Ativo" },
-                { value: "false", label: "Inativo" }
+                { value: "true", label: t("management.armazensView.statusActive", "Ativo") },
+                { value: "false", label: t("management.armazensView.statusInactive", "Inativo") }
               ]}
             />
           </div>
 
           <Input
-            label="Endereço Completo"
+            label={t("management.armazensView.addressLabel", "Endereço Completo")}
             variant="underlined"
             name="endereco"
-            placeholder="Rua, Número, Bairro, Cidade - UF"
+            placeholder={t("management.armazensView.addressPlaceholder", "Rua, Número, Bairro, Cidade - UF")}
             value={formData.endereco}
             onChange={handleInputChange}
           />
 
           <div className="form-row">
             <Input
-              label="Latitude"
+              label={t("management.armazensView.latitudeLabel", "Latitude")}
               variant="underlined"
               type="number"
               name="latitude"
@@ -134,7 +136,7 @@ export default function ArmazensView({ onViewAll }: ArmazensViewProps) {
               onChange={handleInputChange}
             />
             <Input
-              label="Longitude"
+              label={t("management.armazensView.longitudeLabel", "Longitude")}
               variant="underlined"
               type="number"
               name="longitude"
@@ -145,14 +147,14 @@ export default function ArmazensView({ onViewAll }: ArmazensViewProps) {
 
           <div style={{ marginTop: '1rem' }}>
             <Button type="submit" variant="primary" size="medium">
-              Salvar Armazém
+              {t("management.armazensView.submitButton", "Salvar Armazém")}
             </Button>
           </div>
         </form>
       </div>
 
       <div className="motoristas-right">
-        <h3 className="section-subtitle">Armazéns Parceiros</h3>
+        <h3 className="section-subtitle">{t("management.armazensView.listTitle", "Armazéns Parceiros")}</h3>
         {loadingWarehouses ? (
           <Loading />
         ) : (
@@ -165,19 +167,19 @@ export default function ArmazensView({ onViewAll }: ArmazensViewProps) {
                   </div>
                   <div className="driver-info">
                     <h4>{armazem.nome}</h4>
-                    <p>{armazem.email || armazem.telefone || "Sem contato"}</p>
+                    <p>{armazem.email || armazem.telefone || t("management.armazensView.noContact", "Sem contato")}</p>
                   </div>
                   <span className={`status-badge ${armazem.is_ativo ? "active" : "inactive"}`} style={{ fontSize: '0.65rem' }}>
-                    {armazem.is_ativo ? "Ativo" : "Inativo"}
+                    {armazem.is_ativo ? t("management.armazensView.statusActive", "Ativo") : t("management.armazensView.statusInactive", "Inativo")}
                   </span>
                 </div>
               ))}
-              {warehouses.length === 0 && <p style={{ textAlign: 'center', color: '#999' }}>Sem registros.</p>}
+              {warehouses.length === 0 && <p style={{ textAlign: 'center', color: '#999' }}>{t("management.armazensView.noRecords", "Sem registros.")}</p>}
             </div>
             
             <div className="view-all-container">
               <button className="btn-text" onClick={onViewAll}>
-                Listagem Completa →
+                {t("management.armazensView.viewAll", "Listagem Completa →")}
               </button>
             </div>
           </>

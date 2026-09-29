@@ -1,5 +1,6 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import i18n from '@/i18n';
 
 import type { EntregaCompleta } from '@/types/models';
 import { parseTemp, tempKind, entregaDesconectada } from '@/utils/dashboardOperationKpis';
@@ -24,13 +25,15 @@ export interface ExportDashboardPdfOptions {
   nowMs?: number;
 }
 
-const STATUS_LABELS: Record<string, string> = {
-  pendente: 'Pendente',
-  em_transito: 'Em trânsito',
-  no_armazem: 'No armazém',
-  entregue: 'Entregue',
-  cancelada: 'Cancelada',
-};
+function getStatusLabels(): Record<string, string> {
+  return {
+    pendente: i18n.t('pdf.statusPendente', 'Pendente'),
+    em_transito: i18n.t('pdf.statusEmTransito', 'Em trânsito'),
+    no_armazem: i18n.t('pdf.statusNoArmazem', 'No armazém'),
+    entregue: i18n.t('pdf.statusEntregue', 'Entregue'),
+    cancelada: i18n.t('pdf.statusCancelada', 'Cancelada'),
+  };
+}
 
 function fmtTemp(n: number | null): string {
   if (n === null) return '—';
@@ -42,9 +45,9 @@ function fmtFaixa(min: number | null, max: number | null): string {
   return `${fmtTemp(min)} / ${fmtTemp(max)}`;
 }
 
-function fmtDateTime(ms: number | null | undefined): string {
+function fmtDateTime(ms: number | null | undefined, locale: string = 'pt-BR'): string {
   if (ms == null || !Number.isFinite(ms) || ms <= 0) return '—';
-  return new Date(ms).toLocaleString('pt-BR', {
+  return new Date(ms).toLocaleString(locale, {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
@@ -54,26 +57,30 @@ function fmtDateTime(ms: number | null | undefined): string {
   });
 }
 
-function fmtUltimaTelemetria(iso: string | null | undefined, nowMs: number): string {
-  if (!iso) return 'Sem telemetria';
+function fmtUltimaTelemetria(iso: string | null | undefined, nowMs: number, locale: string = 'pt-BR'): string {
+  if (!iso) return i18n.t('pdf.noTelemetry', 'Sem telemetria');
   const t = Date.parse(iso);
-  if (!Number.isFinite(t)) return 'Sem telemetria';
+  if (!Number.isFinite(t)) return i18n.t('pdf.noTelemetry', 'Sem telemetria');
   const diffMs = Math.max(0, nowMs - t);
   const diffMin = Math.floor(diffMs / 60_000);
-  const horaTexto = new Date(t).toLocaleTimeString('pt-BR', {
+  const horaTexto = new Date(t).toLocaleTimeString(locale, {
     hour: '2-digit',
     minute: '2-digit',
   });
-  if (diffMin <= 0) return `${horaTexto} (agora)`;
-  if (diffMin < 60) return `${horaTexto} (há ${diffMin} min)`;
+  if (diffMin <= 0) return i18n.t('pdf.telemetryNow', '{{time}} (agora)', { time: horaTexto });
+  if (diffMin < 60) {
+    return i18n.t('pdf.telemetryMinutesAgo', '{{time}} (há {{count}} min)', { time: horaTexto, count: diffMin });
+  }
   const diffH = Math.floor(diffMin / 60);
-  return `${horaTexto} (há ${diffH}h)`;
+  return i18n.t('pdf.telemetryHoursAgo', '{{time}} (há {{count}}h)', { time: horaTexto, count: diffH });
 }
 
 /** Gera e baixa um PDF com a foto atual da operação. */
 export function exportDashboardPdf(options: ExportDashboardPdfOptions): void {
   const { liveTrips, entregas, kpis, serverUpdatedAtMs } = options;
   const nowMs = options.nowMs ?? Date.now();
+  const locale = i18n.language?.startsWith('en') ? 'en-US' : 'pt-BR';
+  const statusLabels = getStatusLabels();
 
   const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
   const pageWidth = doc.internal.pageSize.getWidth();
@@ -83,28 +90,40 @@ export function exportDashboardPdf(options: ExportDashboardPdfOptions): void {
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(18);
   doc.setTextColor(20, 20, 20);
-  doc.text('Koda — Relatório da Operação', marginX, 50);
+  doc.text(i18n.t('pdf.title', 'Koda — Relatório da Operação'), marginX, 50);
 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(10);
   doc.setTextColor(90, 90, 90);
-  doc.text(`Gerado em: ${fmtDateTime(nowMs)}`, marginX, 68);
-  doc.text(`Dados do servidor às: ${fmtDateTime(serverUpdatedAtMs)}`, marginX, 82);
-  doc.text(`Total de entregas no sistema: ${entregas.length}`, marginX, 96);
+  doc.text(
+    i18n.t('pdf.generatedAt', 'Gerado em: {{date}}', { date: fmtDateTime(nowMs, locale) }),
+    marginX,
+    68,
+  );
+  doc.text(
+    i18n.t('pdf.serverDataAt', 'Dados do servidor às: {{date}}', { date: fmtDateTime(serverUpdatedAtMs, locale) }),
+    marginX,
+    82,
+  );
+  doc.text(
+    i18n.t('pdf.totalDeliveries', 'Total de entregas no sistema: {{count}}', { count: entregas.length }),
+    marginX,
+    96,
+  );
 
   // ---------- KPIs ----------
   let cursorY = 120;
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(12);
   doc.setTextColor(20, 20, 20);
-  doc.text('Indicadores chave', marginX, cursorY);
+  doc.text(i18n.t('pdf.keyIndicators', 'Indicadores chave'), marginX, cursorY);
   cursorY += 10;
 
   const kpiCards: Array<{ label: string; value: number; color: [number, number, number] }> = [
-    { label: 'Em trânsito', value: kpis.emTransito, color: [52, 152, 219] },
-    { label: 'Risco térmico', value: kpis.riscoTermico, color: [241, 196, 15] },
-    { label: 'Desconectados', value: kpis.desconectados, color: [231, 76, 60] },
-    { label: 'Alertas ativos', value: kpis.alertasAtivos, color: [155, 89, 182] },
+    { label: i18n.t('pdf.kpiInTransit', 'Em trânsito'), value: kpis.emTransito, color: [52, 152, 219] },
+    { label: i18n.t('pdf.kpiThermalRisk', 'Risco térmico'), value: kpis.riscoTermico, color: [241, 196, 15] },
+    { label: i18n.t('pdf.kpiDisconnected', 'Desconectados'), value: kpis.desconectados, color: [231, 76, 60] },
+    { label: i18n.t('pdf.kpiActiveAlerts', 'Alertas ativos'), value: kpis.alertasAtivos, color: [155, 89, 182] },
   ];
 
   const kpiGap = 14;
@@ -139,7 +158,19 @@ export function exportDashboardPdf(options: ExportDashboardPdfOptions): void {
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(12);
   doc.setTextColor(20, 20, 20);
-  doc.text(`Monitoramento Live (${liveTrips.length} viagens)`, marginX, cursorY);
+  doc.text(
+    i18n.t('pdf.liveMonitoringTitle', 'Monitoramento Live ({{count}} viagens)', { count: liveTrips.length }),
+    marginX,
+    cursorY,
+  );
+
+  const statusForaDaFaixa = i18n.t('pdf.thermalOutOfRange', 'Fora da faixa');
+  const statusProximoLimite = i18n.t('pdf.thermalNearLimit', 'Próximo do limite');
+  const statusNormal = i18n.t('pdf.thermalNormal', 'Normal');
+  const statusSemLeitura = i18n.t('pdf.thermalNoReading', 'Sem leitura');
+  const simText = i18n.t('pdf.yes', 'Sim');
+  const naoText = i18n.t('pdf.no', 'Não');
+  const semEnderecoText = i18n.t('pdf.noAddress', 'Sem endereço');
 
   const rows = liveTrips.map((row) => {
     const tAtual = parseTemp(row.temperatura_atual);
@@ -153,41 +184,41 @@ export function exportDashboardPdf(options: ExportDashboardPdfOptions): void {
     const veiculo = modelo ? `${placa} (${modelo})` : placa;
     const motorista = row.nome_motorista?.trim() || '—';
     const cliente = row.nome_cliente?.trim() || '—';
-    const endereco = row.endereco_cliente?.trim() || 'Sem endereço';
+    const endereco = row.endereco_cliente?.trim() || semEnderecoText;
 
     let statusTemp = '—';
-    if (tk === 'danger') statusTemp = 'Fora da faixa';
-    else if (tk === 'warn') statusTemp = 'Próximo do limite';
-    else if (tk === 'neutral') statusTemp = 'Normal';
-    else if (tk === 'none') statusTemp = 'Sem leitura';
+    if (tk === 'danger') statusTemp = statusForaDaFaixa;
+    else if (tk === 'warn') statusTemp = statusProximoLimite;
+    else if (tk === 'neutral') statusTemp = statusNormal;
+    else if (tk === 'none') statusTemp = statusSemLeitura;
 
     return [
       veiculo,
       motorista,
       `${cliente}\n${endereco}`,
-      STATUS_LABELS[row.status] ?? row.status,
+      statusLabels[row.status] ?? row.status,
       fmtTemp(tAtual),
       fmtFaixa(tMin, tMax),
       statusTemp,
-      fmtUltimaTelemetria(row.ultima_auditoria_at, nowMs),
-      desconectada ? 'Sim' : 'Não',
+      fmtUltimaTelemetria(row.ultima_auditoria_at, nowMs, locale),
+      desconectada ? simText : naoText,
     ];
   });
 
   autoTable(doc, {
     startY: cursorY + 12,
     head: [[
-      'Veículo',
-      'Motorista',
-      'Destino',
-      'Status',
-      'Temp. atual',
-      'Faixa (mín / máx)',
-      'Estado térmico',
-      'Última telemetria',
-      'Desconectado',
+      i18n.t('pdf.colVehicle', 'Veículo'),
+      i18n.t('pdf.colDriver', 'Motorista'),
+      i18n.t('pdf.colDestination', 'Destino'),
+      i18n.t('pdf.colStatus', 'Status'),
+      i18n.t('pdf.colCurrentTemp', 'Temp. atual'),
+      i18n.t('pdf.colRange', 'Faixa (mín / máx)'),
+      i18n.t('pdf.colThermalState', 'Estado térmico'),
+      i18n.t('pdf.colLastTelemetry', 'Última telemetria'),
+      i18n.t('pdf.colDisconnected', 'Desconectado'),
     ]],
-    body: rows.length > 0 ? rows : [['—', '—', 'Nenhuma viagem ativa.', '—', '—', '—', '—', '—', '—']],
+    body: rows.length > 0 ? rows : [['—', '—', i18n.t('pdf.noActiveTrips', 'Nenhuma viagem ativa.'), '—', '—', '—', '—', '—', '—']],
     styles: {
       font: 'helvetica',
       fontSize: 9,
@@ -217,17 +248,17 @@ export function exportDashboardPdf(options: ExportDashboardPdfOptions): void {
     didParseCell: (data) => {
       if (data.section !== 'body') return;
       // "Desconectado" = Sim → vermelho
-      if (data.column.index === 8 && data.cell.raw === 'Sim') {
+      if (data.column.index === 8 && data.cell.raw === simText) {
         data.cell.styles.textColor = [192, 57, 43];
         data.cell.styles.fontStyle = 'bold';
       }
       // Estado térmico → cor de acordo
       if (data.column.index === 6) {
         const v = String(data.cell.raw ?? '');
-        if (v === 'Fora da faixa') {
+        if (v === statusForaDaFaixa) {
           data.cell.styles.textColor = [192, 57, 43];
           data.cell.styles.fontStyle = 'bold';
-        } else if (v === 'Próximo do limite') {
+        } else if (v === statusProximoLimite) {
           data.cell.styles.textColor = [183, 142, 16];
         }
       }
@@ -238,17 +269,18 @@ export function exportDashboardPdf(options: ExportDashboardPdfOptions): void {
       doc.setFontSize(8);
       doc.setTextColor(140, 140, 140);
       doc.text(
-        'Relatório gerado automaticamente pelo painel Koda.',
+        i18n.t('pdf.footerNotice', 'Relatório gerado automaticamente pelo painel Koda.'),
         marginX,
         pageHeight - 18,
       );
-      const pageStr = `Página ${doc.getCurrentPageInfo().pageNumber}`;
+      const pageStr = i18n.t('pdf.page', 'Página {{page}}', { page: doc.getCurrentPageInfo().pageNumber });
       doc.text(pageStr, pageWidth - marginX, pageHeight - 18, { align: 'right' });
     },
   });
 
   const now = new Date(nowMs);
   const pad = (n: number) => String(n).padStart(2, '0');
-  const filename = `koda-relatorio-${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}-${pad(now.getHours())}${pad(now.getMinutes())}.pdf`;
+  const filenamePrefix = i18n.t('pdf.filenamePrefix', 'koda-relatorio');
+  const filename = `${filenamePrefix}-${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}-${pad(now.getHours())}${pad(now.getMinutes())}.pdf`;
   doc.save(filename);
 }
