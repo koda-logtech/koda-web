@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import Button from "@components/common/Button";
 import Input from "@components/common/Input";
 import Select from "@components/common/Select";
@@ -18,6 +19,7 @@ interface TripCreateModalProps {
 }
 
 export default function TripCreateModal({ isOpen, onClose }: TripCreateModalProps) {
+  const { t } = useTranslation();
   const { addToast } = useToast();
   const { data: caminhoes = [] } = useCaminhoes(1, 300);
   const { data: clientes = [] } = useClientes(1, 500);
@@ -45,11 +47,11 @@ export default function TripCreateModal({ isOpen, onClose }: TripCreateModalProp
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!idCaminhao) {
-      addToast({ message: "Selecione um caminhão.", type: "info" });
+      addToast({ message: t("modals.tripCreate.validationTruck", "Selecione um caminhão."), type: "info" });
       return;
     }
     if (!idCliente) {
-      addToast({ message: "Selecione um cliente (destino).", type: "info" });
+      addToast({ message: t("modals.tripCreate.validationClient", "Selecione um cliente (destino)."), type: "info" });
       return;
     }
 
@@ -64,11 +66,11 @@ export default function TripCreateModal({ isOpen, onClose }: TripCreateModalProp
 
     try {
       await createEntrega.mutateAsync(payload);
-      addToast({ message: "Entrega criada com sucesso.", type: "success" });
+      addToast({ message: t("modals.tripCreate.createSuccess", "Entrega criada com sucesso."), type: "success" });
       handleClose();
     } catch {
       addToast({
-        message: "Não foi possível criar a entrega. Verifique os dados e tente novamente.",
+        message: t("modals.tripCreate.createError", "Não foi possível criar a entrega. Verifique os dados e tente novamente."),
         type: "error",
       });
     }
@@ -92,22 +94,23 @@ export default function TripCreateModal({ isOpen, onClose }: TripCreateModalProp
         aria-labelledby="trips-modal-title"
       >
         <div className="trips-modal-head">
-          <h3 id="trips-modal-title">Nova viagem</h3>
+          <h3 id="trips-modal-title">{t("modals.tripCreate.title", "Nova viagem")}</h3>
           <p>
-            Nova entrega inicia como <strong>pendente</strong>. Escolha o caminhão, o cliente e as
-            datas previstas.
+            {t("modals.tripCreate.subtitlePre", "Nova entrega inicia como")}{" "}
+            <strong>{t("modals.tripCreate.subtitlePending", "pendente")}</strong>.{" "}
+            {t("modals.tripCreate.subtitlePost", "Escolha o caminhão, o cliente e as datas previstas.")}
           </p>
         </div>
 
         <form className="trips-modal-form" onSubmit={handleSubmit}>
           <Select
-            label="Caminhão"
+            label={t("modals.tripCreate.truckLabel", "Caminhão")}
             variant="underlined"
             name="idCaminhao"
             value={idCaminhao}
             onChange={(e) => setIdCaminhao(Number(e.target.value))}
             options={[
-              { value: 0, label: "Selecione um caminhão..." },
+              { value: 0, label: t("modals.tripCreate.truckPlaceholder", "Selecione um caminhão...") },
               ...caminhoesLista.map((c) => ({
                 value: c.id,
                 label: formatCaminhaoOptionLabel(c),
@@ -116,13 +119,13 @@ export default function TripCreateModal({ isOpen, onClose }: TripCreateModalProp
           />
 
           <Select
-            label="Cliente / destino"
+            label={t("modals.tripCreate.clientLabel", "Cliente / destino")}
             variant="underlined"
             name="idCliente"
             value={idCliente}
             onChange={(e) => setIdCliente(Number(e.target.value))}
             options={[
-              { value: 0, label: "Selecione um cliente..." },
+              { value: 0, label: t("modals.tripCreate.clientPlaceholder", "Selecione um cliente...") },
               ...clientesLista.map((cl) => ({
                 value: cl.id,
                 label: cl.endereco?.trim()
@@ -134,7 +137,7 @@ export default function TripCreateModal({ isOpen, onClose }: TripCreateModalProp
 
           <div className="trips-modal-form-row">
             <Input
-              label="Data de saída"
+              label={t("modals.tripCreate.departureLabel", "Data de saída")}
               variant="underlined"
               name="dataSaida"
               type="datetime-local"
@@ -142,7 +145,7 @@ export default function TripCreateModal({ isOpen, onClose }: TripCreateModalProp
               onChange={(e) => setDataSaida(e.target.value)}
             />
             <Input
-              label="Data de previsão"
+              label={t("modals.tripCreate.estimatedLabel", "Data de previsão")}
               variant="underlined"
               name="dataPrevisao"
               type="datetime-local"
@@ -152,20 +155,20 @@ export default function TripCreateModal({ isOpen, onClose }: TripCreateModalProp
           </div>
 
           <label className="trips-modal-label" htmlFor="trip-obs">
-            Observações
+            {t("modals.tripCreate.notesLabel", "Observações")}
           </label>
           <textarea
             id="trip-obs"
             className="trips-modal-textarea"
             rows={3}
-            placeholder="Instruções ao motorista, restrições de descarga..."
+            placeholder={t("modals.tripCreate.notesPlaceholder", "Instruções ao motorista, restrições de descarga...")}
             value={observacoes}
             onChange={(e) => setObservacoes(e.target.value)}
           />
 
           <div className="trips-modal-actions">
             <Button type="button" variant="secondary" size="medium" onClick={handleClose}>
-              Cancelar
+              {t("modals.tripCreate.cancel", "Cancelar")}
             </Button>
             <Button
               type="submit"
@@ -173,7 +176,7 @@ export default function TripCreateModal({ isOpen, onClose }: TripCreateModalProp
               size="medium"
               disabled={createEntrega.isPending}
             >
-              {createEntrega.isPending ? "Salvando..." : "Criar viagem"}
+              {createEntrega.isPending ? t("modals.tripCreate.saving", "Salvando...") : t("modals.tripCreate.createButton", "Criar viagem")}
             </Button>
           </div>
         </form>

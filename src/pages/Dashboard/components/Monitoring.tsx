@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useEffect, useMemo, useState } from "react";
 import Loading from "@components/common/Loading";
 import { useTelemetriaAuditoriaPorCarga } from "@controllers/cargaController";
@@ -69,6 +70,8 @@ function toMapTrip(row: EntregaCompleta, nowMs: number): DashboardMapTrip | null
  * Mesmo bloco de mapa do `DashboardOverview` (map-section / map-placeholder), em tela cheia na área principal.
  */
 export default function Monitoring() {
+  const { t } = useTranslation();
+
   const mapboxToken = (window.__ENV__?.VITE_MAPBOX_TOKEN || import.meta.env.VITE_MAPBOX_TOKEN)?.trim();
   const hasMap = Boolean(mapboxToken);
 
@@ -128,14 +131,14 @@ export default function Monitoring() {
       motoristaAvatarUrl: row.motorista_avatar_url,
       placa: row.placa_caminhao?.trim() || "—",
       modelo: row.modelo_caminhao?.trim() ?? null,
-      destinoNome: row.nome_cliente?.trim() || "Destino",
+      destinoNome: row.nome_cliente?.trim() || t("monitoring.destination", "Destino"),
       destinoEndereco: row.endereco_cliente?.trim() ?? null,
       temperaturaAtual: parseTemp(row.temperatura_atual),
       temperaturaMin: parseTemp(row.temperatura_minima),
       temperaturaMax: parseTemp(row.temperatura_maxima),
       ultimaAtualizacaoAt: row.ultima_auditoria_at ?? null,
     };
-  }, [liveTrips, selectedEntregaId]);
+  }, [liveTrips, selectedEntregaId, t]);
 
   const directionEnabled =
     hasMap &&
@@ -178,7 +181,7 @@ export default function Monitoring() {
       <div className="map-section">
         <div className="map-placeholder">
           {isLoading ? (
-            <Loading message="Carregando dados..." />
+            <Loading message={t("monitoring.loadingData", "Carregando dados...")} />
           ) : hasMap ? (
             mapTrips.length > 0 ? (
               <DashboardMap
@@ -198,7 +201,9 @@ export default function Monitoring() {
               />
             ) : (
               <div className="map-mock-bg">
-                <div className="map-text">Nenhuma viagem com coordenadas para exibir</div>
+                <div className="map-text">
+                  {t("monitoring.noTrips", "Nenhuma viagem com coordenadas para exibir")}
+                </div>
               </div>
             )
           ) : (
@@ -210,8 +215,12 @@ export default function Monitoring() {
 
               <div className="map-live-indicator">
                 <span className="live-bullet"></span>
-                <strong>LIVE:</strong>{" "}
-                {liveTrips.length > 0 ? `${liveTrips.length} veículos em operação` : "Sem viagens com mapa"}
+                <strong>{t("monitoring.live", "LIVE:")}</strong>{" "}
+                {liveTrips.length > 0
+                  ? t("monitoring.vehiclesOperating", "{{count}} veículos em operação", {
+                      count: liveTrips.length,
+                    })
+                  : t("monitoring.noMapTrips", "Sem viagens com mapa")}
               </div>
 
               <div className="map-mock-bg">
@@ -219,7 +228,9 @@ export default function Monitoring() {
                 <div className="vehicle-marker pulse-warning" style={{ top: "55%", left: "60%" }}></div>
                 <div className="vehicle-marker pulse-active" style={{ top: "20%", left: "75%" }}></div>
                 <div className="vehicle-marker pulse-danger" style={{ top: "45%", left: "25%" }}></div>
-                <div className="map-text">Configure VITE_MAPBOX_TOKEN para o mapa</div>
+                <div className="map-text">
+                  {t("monitoring.configureMapbox", "Configure VITE_MAPBOX_TOKEN para o mapa")}
+                </div>
               </div>
             </>
           )}

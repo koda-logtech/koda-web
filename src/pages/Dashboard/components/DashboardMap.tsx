@@ -1,4 +1,5 @@
 import { useLayoutEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import MapBox, { Layer, Marker, NavigationControl, Source } from 'react-map-gl/mapbox';
 import type { MapRef } from 'react-map-gl/mapbox';
 import mapboxgl from 'mapbox-gl';
@@ -99,12 +100,13 @@ function TraveledRouteLayer({ geometry }: { geometry: MultiLineStringGeometry })
 }
 
 function DestinationPin({ lng, lat, label }: { lng: number; lat: number; label: string }) {
+  const { t } = useTranslation();
   const cells = 5;
   const size = 16;
   const cell = size / cells;
   return (
     <Marker longitude={lng} latitude={lat} anchor="center">
-      <div className="dashboard-map-dest-wrap" role="img" aria-label={`Destino: ${label}`}>
+      <div className="dashboard-map-dest-wrap" role="img" aria-label={t("dashboardMap.destAria", "Destino: {{label}}", { label })}>
         <div className="dashboard-map-dest-grid">
           <svg viewBox={`0 0 ${size} ${size}`} width="100%" height="100%" aria-hidden>
             {Array.from({ length: cells * cells }, (_, i) => {
@@ -161,6 +163,7 @@ function TripMarkers({
   selectedTripId: string | null;
   onSelectTrip: (id: string) => void;
 }) {
+  const { t } = useTranslation();
   return (
     <>
       {trips.map((trip) => {
@@ -176,7 +179,7 @@ function TripMarkers({
                 onSelectTrip(trip.id);
               }}
               title={trip.modeloLabel}
-              aria-label={`Caminhão ${trip.placa}`}
+              aria-label={t("dashboardMap.truckAria", "Caminhão {{placa}}", { placa: trip.placa })}
             />
           </Marker>
         );
@@ -198,6 +201,7 @@ export default function DashboardMap({
   tripOverlay,
   onCloseTripOverlay,
 }: Props) {
+  const { t } = useTranslation();
   const mapRef = useRef<MapRef>(null);
   const fitGenerationRef = useRef(0);
   const [isMapReady, setIsMapReady] = useState(false);
@@ -339,7 +343,7 @@ export default function DashboardMap({
             onClick={onTogglePartnerWarehouses}
             aria-pressed={showPartnerWarehouses}
           >
-            Armazéns parceiros
+            {t("dashboardMap.partnerWarehouses", "Armazéns parceiros")}
           </button>
         </div>
       </div>
@@ -348,8 +352,8 @@ export default function DashboardMap({
         <div className="dashboard-map-live">
           <span className="dashboard-map-live-dot" />
           <span>
-            <strong style={{ marginRight: '0.35rem' }}>LIVE:</strong>
-            {trips.length} veículos em operação
+            <strong style={{ marginRight: '0.35rem' }}>{t("dashboardMap.live", "LIVE:")}</strong>
+            {t("dashboardMap.vehiclesInOperation", "{{count}} veículos em operação", { count: trips.length })}
           </span>
         </div>
       ) : null}

@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useEffect, useMemo, useState } from "react";
 import ContentHeader from "./ContentHeader";
 import TripCreateModal from "./TripCreateModal";
@@ -44,25 +45,6 @@ function formatTempDisplay(n: number): string {
   return `${Number.isInteger(n) ? String(n) : n.toFixed(1)}°C`;
 }
 
-const ENTREGA_STATUS_OPTIONS = [
-  { value: "all", label: "Todos os status" },
-  { value: "pendente", label: "Pendente" },
-  { value: "em_transito", label: "Em trânsito" },
-  { value: "no_armazem", label: "No armazém" },
-  { value: "entregue", label: "Entregue" },
-  { value: "cancelada", label: "Cancelada" },
-];
-
-function labelEntregaStatus(status: string): string {
-  const map: Record<string, string> = {
-    pendente: "Pendente",
-    em_transito: "Em trânsito",
-    no_armazem: "No armazém",
-    entregue: "Entregue",
-    cancelada: "Cancelada",
-  };
-  return map[status] ?? status;
-}
 
 function initials(nome: string): string {
   const safe = nome.trim() || "?";
@@ -73,6 +55,8 @@ function initials(nome: string): string {
 const STATUS_ATIVOS = new Set(["pendente", "em_transito", "no_armazem"]);
 
 export default function Trips() {
+  const { t } = useTranslation();
+
   const { addToast } = useToast();
   const { data: entregasRaw = [], isLoading } = useEntregasCompleto(1, FETCH_LIMIT);
   const deleteEntrega = useDeleteEntrega();
@@ -147,15 +131,44 @@ export default function Trips() {
     setDeleteModalOpen(true);
   };
 
+  const entregaStatusOptions = useMemo(
+    () => [
+      { value: "all", label: t("trips.allStatuses", "Todos os status") },
+      { value: "pendente", label: t("trips.pending", "Pendente") },
+      { value: "em_transito", label: t("trips.inTransit", "Em trânsito") },
+      { value: "no_armazem", label: t("trips.inWarehouse", "No armazém") },
+      { value: "entregue", label: t("trips.delivered", "Entregue") },
+      { value: "cancelada", label: t("trips.canceled", "Cancelada") },
+    ],
+    [t]
+  );
+
+  const labelEntregaStatus = (status: string): string => {
+    const map: Record<string, string> = {
+      pendente: t("trips.pending", "Pendente"),
+      em_transito: t("trips.inTransit", "Em trânsito"),
+      no_armazem: t("trips.inWarehouse", "No armazém"),
+      entregue: t("trips.delivered", "Entregue"),
+      cancelada: t("trips.canceled", "Cancelada"),
+    };
+    return map[status] ?? status;
+  };
+
   const confirmDelete = async () => {
     if (!viagemToDelete) return;
     try {
       await deleteEntrega.mutateAsync(viagemToDelete.id);
-      addToast({ message: "Entrega excluída com sucesso.", type: "success" });
+      addToast({
+        message: t("trips.deleteSuccess", "Entrega excluída com sucesso."),
+        type: "success",
+      });
       setDeleteModalOpen(false);
       setViagemToDelete(null);
     } catch {
-      addToast({ message: "Não foi possível excluir.", type: "error" });
+      addToast({
+        message: t("trips.deleteError", "Não foi possível excluir."),
+        type: "error",
+      });
     }
   };
 
@@ -195,17 +208,17 @@ export default function Trips() {
   return (
     <div className="dashboard-page trips-page">
       <ContentHeader
-        title="Viagens"
-        subtitle="Gerencie e acompanhe as viagens da operação."
+        title={t("trips.title", "Viagens")}
+        subtitle={t("trips.mainSubtitle", "Gerencie e acompanhe as viagens da operação.")}
         actions={
           <Button variant="primary" size="small" onClick={() => setCreateOpen(true)}>
-            + Nova viagem
+            {t("trips.newTrip", "+ Nova viagem")}
           </Button>
         }
       />
 
       <div className="page-content">
-        <section className="trips-toolbar" aria-label="Filtros">
+        <section className="trips-toolbar" aria-label={t("trips.filters", "Filtros")}>
           <div className="trips-toolbar-fields">
             <div className="trips-search-row">
               <svg
@@ -227,22 +240,22 @@ export default function Trips() {
               <input
                 type="search"
                 className="trips-search-input"
-                placeholder="Cliente, endereço, placa ou motorista..."
+                placeholder={t("trips.searchPlaceholder", "Cliente, endereço, placa ou motorista...")}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                aria-label="Busca geral"
+                aria-label={t("trips.generalSearch", "Busca geral")}
               />
             </div>
 
             <div className="trips-filter-row">
               <Select
-                label="Motorista"
+                label={t("trips.driver", "Motorista")}
                 variant="underlined"
                 name="motoristaId"
                 value={motoristaId}
                 onChange={handleMotoristaChange}
                 options={[
-                  { value: 0, label: "Todos os motoristas" },
+                  { value: 0, label: t("trips.allDrivers", "Todos os motoristas") },
                   ...drivers.map((d) => ({
                     value: Number(d.id),
                     label: d.name,
@@ -250,37 +263,37 @@ export default function Trips() {
                 ]}
               />
               <Select
-                label="Status"
+                label={t("trips.status", "Status")}
                 variant="underlined"
                 name="status"
                 value={statusFilter}
                 onChange={handleStatusChange}
-                options={ENTREGA_STATUS_OPTIONS}
+                options={entregaStatusOptions}
               />
             </div>
           </div>
 
           <aside className="trips-metric-card">
-            <span className="trips-metric-label">Viagens ativas</span>
+            <span className="trips-metric-label">{t("trips.activeTrips", "Viagens ativas")}</span>
             <span className="trips-metric-value">{viagensAtivas}</span>
-            <span className="trips-metric-hint">Pendente, em trânsito ou no armazém</span>
+            <span className="trips-metric-hint">{t("trips.subtitle", "Pendente, em trânsito ou no armazém")}</span>
           </aside>
         </section>
 
         <div className="table-container">
           {isLoading ? (
-            <Loading message="Carregando entregas..." />
+            <Loading message={t("trips.loadingTrips", "Carregando entregas...")} />
           ) : (
             <>
               <table className="data-table">
                 <thead>
                   <tr>
-                    <th>Motorista</th>
-                    <th>Veículo</th>
-                    <th>Destino</th>
-                    <th>Status</th>
-                    <th>Temp. atual</th>
-                    <th style={{ textAlign: "right" }}>Ações</th>
+                    <th>{t("trips.driver", "Motorista")}</th>
+                    <th>{t("trips.vehicle", "Veículo")}</th>
+                    <th>{t("trips.destination", "Destino")}</th>
+                    <th>{t("trips.status", "Status")}</th>
+                    <th>{t("trips.currentTemp", "Temp. atual")}</th>
+                    <th style={{ textAlign: "right" }}>{t("trips.actions", "Ações")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -294,7 +307,7 @@ export default function Trips() {
                     const cliente = row.nome_cliente?.trim() ? row.nome_cliente : "—";
                     const endereco = row.endereco_cliente?.trim()
                       ? row.endereco_cliente
-                      : "Sem endereço";
+                      : t("trips.noAddress", "Sem endereço");
 
                     return (
                       <tr key={row.id}>
@@ -322,7 +335,7 @@ export default function Trips() {
                         </td>
                         <td>
                           {tAtual === null ? (
-                            <span className="cell-sub-text">N/A</span>
+                            <span className="cell-sub-text">{t("trips.na", "N/A")}</span>
                           ) : (
                             <span
                               className={
@@ -342,7 +355,7 @@ export default function Trips() {
                             <button
                               type="button"
                               className="btn-icon-action"
-                              title="Editar"
+                              title={t("common.edit", "Editar")}
                               onClick={() => handleEditClick(row)}
                             >
                               <svg
@@ -363,7 +376,7 @@ export default function Trips() {
                             <button
                               type="button"
                               className="btn-icon-action danger"
-                              title="Excluir"
+                              title={t("common.delete", "Excluir")}
                               onClick={() =>
                                 handleDeleteClick(
                                   row.id,
@@ -403,7 +416,7 @@ export default function Trips() {
                           color: "var(--text-secondary)",
                         }}
                       >
-                        Nenhuma entrega encontrada com os filtros atuais.
+                        {t("trips.noTripsFound", "Nenhuma entrega encontrada com os filtros atuais.")}
                       </td>
                     </tr>
                   )}
@@ -414,8 +427,16 @@ export default function Trips() {
                 <div className="trips-pagination">
                   <span>
                     {total === 0
-                      ? "Nenhum resultado"
-                      : `Exibindo ${sliceFrom + 1}-${rangeEnd} de ${total} resultado${total !== 1 ? "s" : ""}`}
+                      ? t("trips.noResults", "Nenhum resultado")
+                      : t(
+                          "trips.showingResults",
+                          "Exibindo {{from}}-{{to}} de {{total}} resultados",
+                          {
+                            from: sliceFrom + 1,
+                            to: rangeEnd,
+                            total,
+                          }
+                        )}
                   </span>
                   <div className="trips-pagination-pages">
                     <button
@@ -423,7 +444,7 @@ export default function Trips() {
                       className="trips-page-btn"
                       disabled={safePage <= 1}
                       onClick={() => setPage((p) => Math.max(1, p - 1))}
-                      aria-label="Página anterior"
+                      aria-label={t("trips.previousPage", "Página anterior")}
                     >
                       ‹
                     </button>
@@ -442,7 +463,7 @@ export default function Trips() {
                       className="trips-page-btn"
                       disabled={safePage >= totalPages}
                       onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                      aria-label="Próxima página"
+                      aria-label={t("trips.nextPage", "Próxima página")}
                     >
                       ›
                     </button>
@@ -469,8 +490,12 @@ export default function Trips() {
           setViagemToDelete(null);
         }}
         onConfirm={confirmDelete}
-        title="Confirmar exclusão"
-        message={`Deseja excluir a entrega "${viagemToDelete?.label}"? Esta ação não pode ser desfeita.`}
+        title={t("trips.confirmDelete", "Confirmar exclusão")}
+        message={t(
+          "trips.deleteConfirmMsg",
+          "Deseja excluir a entrega \"{{label}}\"? Esta ação não pode ser desfeita.",
+          { label: viagemToDelete?.label }
+        )}
       />
     </div>
   );

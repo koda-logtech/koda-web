@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useEffect, useMemo, useState } from "react";
 import Button from "@components/common/Button";
 import Loading from "@components/common/Loading";
@@ -77,6 +78,8 @@ function toMapTrip(row: EntregaCompleta, nowMs: number): DashboardMapTrip | null
 }
 
 export default function DashboardOverview() {
+  const { t } = useTranslation();
+
   const mapboxToken = (window.__ENV__?.VITE_MAPBOX_TOKEN || import.meta.env.VITE_MAPBOX_TOKEN)?.trim();
   const hasMap = Boolean(mapboxToken);
   const { addToast } = useToast();
@@ -159,14 +162,14 @@ export default function DashboardOverview() {
       motoristaAvatarUrl: row.motorista_avatar_url,
       placa: row.placa_caminhao?.trim() || "—",
       modelo: row.modelo_caminhao?.trim() ?? null,
-      destinoNome: row.nome_cliente?.trim() || "Destino",
+      destinoNome: row.nome_cliente?.trim() || t("dashboardOverview.destination", "Destino"),
       destinoEndereco: row.endereco_cliente?.trim() ?? null,
       temperaturaAtual: parseTemp(row.temperatura_atual),
       temperaturaMin: parseTemp(row.temperatura_minima),
       temperaturaMax: parseTemp(row.temperatura_maxima),
       ultimaAtualizacaoAt: row.ultima_auditoria_at ?? null,
     };
-  }, [liveTrips, selectedEntregaId]);
+  }, [liveTrips, selectedEntregaId, t]);
 
   const directionEnabled =
     hasMap &&
@@ -233,10 +236,16 @@ export default function DashboardOverview() {
         serverUpdatedAtMs: dataUpdatedAt,
         nowMs,
       });
-      addToast({ message: "Relatório PDF gerado com sucesso.", type: "success" });
+      addToast({
+        message: t("dashboardOverview.pdfSuccess", "Relatório PDF gerado com sucesso."),
+        type: "success",
+      });
     } catch (err) {
       console.error("Falha ao gerar PDF:", err);
-      addToast({ message: "Não foi possível gerar o PDF.", type: "error" });
+      addToast({
+        message: t("dashboardOverview.pdfError", "Não foi possível gerar o PDF."),
+        type: "error",
+      });
     } finally {
       setIsExporting(false);
     }
@@ -263,7 +272,7 @@ export default function DashboardOverview() {
             </svg>
             <input
               type="text"
-              placeholder="Buscar veículo ou rota..."
+              placeholder={t("dashboardOverview.searchPlaceholder", "Buscar veículo ou rota...")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -280,10 +289,16 @@ export default function DashboardOverview() {
 
       <div className="page-top-actions">
         <div className="title-group">
-          <h1>Visão Geral da Operação</h1>
+          <h1>{t("dashboardOverview.title", "Visão Geral da Operação")}</h1>
           <p className="subtitle">
-            Monitoramento ao vivo • Dados do servidor às {subtitleAtualizacao} • Atualização a cada{" "}
-            {DASHBOARD_LIVE_REFETCH_MS / 1000}s
+            {t(
+              "dashboardOverview.liveSubtitle",
+              "Monitoramento ao vivo • Dados do servidor às {{time}} • Atualização a cada {{seconds}}s",
+              {
+                time: subtitleAtualizacao,
+                seconds: DASHBOARD_LIVE_REFETCH_MS / 1000,
+              }
+            )}
           </p>
         </div>
         <div className="button-group">
@@ -292,12 +307,12 @@ export default function DashboardOverview() {
             size="medium"
             onClick={handleExportPdf}
             disabled={isExporting || isLoading}
-            title="Baixar PDF com a foto atual da operação"
+            title={t("dashboardOverview.downloadPdf")}
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '8px' }}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-            {isExporting ? "Gerando..." : "Exportar Relatórios"}
+            {isExporting ? t("dashboardOverview.generating") : t("dashboardOverview.exportReports")}
           </Button>
-          {/* <Button variant="primary" size="medium">+ Novo Manifesto</Button> */}
+          {/* <Button variant="primary" size="medium">{t("dashboardOverview.newManifest")}</Button> */}
         </div>
       </div>
 
@@ -321,10 +336,12 @@ export default function DashboardOverview() {
               <circle cx="5.5" cy="18.5" r="2.5"></circle>
               <circle cx="18.5" cy="18.5" r="2.5"></circle>
             </svg>
-            <span className="metric-label">EM TRÂNSITO</span>
+            <span className="metric-label">{t("dashboardOverview.inTransit", "EM TRÂNSITO")}</span>
           </div>
           <h2 className="metric-value">{formatMetricKpi(kpis.emTransito)}</h2>
-          <span className="metric-subtext">Viagens ativas com mapa (lista Monitoramento Live)</span>
+          <span className="metric-subtext">
+            {t("dashboardOverview.activeTripsWithMap", "Viagens ativas com mapa (lista Monitoramento Live)")}
+          </span>
         </div>
 
         <div className="metric-card warning">
@@ -343,10 +360,12 @@ export default function DashboardOverview() {
             >
               <path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"></path>
             </svg>
-            <span className="metric-label">RISCO TÉRMICO</span>
+            <span className="metric-label">{t("dashboardOverview.thermalRisk", "RISCO TÉRMICO")}</span>
           </div>
           <h2 className="metric-value">{formatMetricKpi(kpis.riscoTermico)}</h2>
-          <span className="metric-subtext">Temperatura fora do mínimo/máximo da carga</span>
+          <span className="metric-subtext">
+            {t("dashboardOverview.outOfRange", "Temperatura fora do mínimo/máximo da carga")}
+          </span>
         </div>
 
         <div className="metric-card danger">
@@ -370,10 +389,12 @@ export default function DashboardOverview() {
               <path d="M7 20v-4"></path>
               <line x1="1" y1="1" x2="23" y2="23"></line>
             </svg>
-            <span className="metric-label">DESCONECTADOS</span>
+            <span className="metric-label">{t("dashboardOverview.disconnected", "DESCONECTADOS")}</span>
           </div>
           <h2 className="metric-value">{formatMetricKpi(kpis.desconectados)}</h2>
-          <span className="metric-subtext">Sem telemetria ou última leitura há mais de 10 min</span>
+          <span className="metric-subtext">
+            {t("dashboardOverview.noTelemetry", "Sem telemetria ou última leitura há mais de 10 min")}
+          </span>
         </div>
 
         <div className="metric-card dark-theme">
@@ -394,10 +415,10 @@ export default function DashboardOverview() {
               <line x1="12" y1="9" x2="12" y2="13"></line>
               <line x1="12" y1="17" x2="12.01" y2="17"></line>
             </svg>
-            <span className="metric-label">ALERTAS ATIVOS</span>
+            <span className="metric-label">{t("dashboardOverview.activeAlerts", "ALERTAS ATIVOS")}</span>
           </div>
           <h2 className="metric-value">{formatMetricKpi(kpis.alertasAtivos)}</h2>
-          <span className="metric-subtext">Prioridade Alta</span>
+          <span className="metric-subtext">{t("dashboardOverview.highPriority", "Prioridade Alta")}</span>
         </div>
       </div>
 
@@ -405,7 +426,7 @@ export default function DashboardOverview() {
         <div className="map-section">
           <div className="map-placeholder">
             {isLoading ? (
-              <Loading message="Carregando dados..." />
+              <Loading message={t("dashboardOverview.loadingData", "Carregando dados...")} />
             ) : hasMap ? (
               mapTrips.length > 0 ? (
                 <DashboardMap
@@ -425,7 +446,9 @@ export default function DashboardOverview() {
                 />
               ) : (
                 <div className="map-mock-bg">
-                  <div className="map-text">Nenhuma viagem com coordenadas para exibir</div>
+                  <div className="map-text">
+                    {t("dashboardOverview.noTripsWithCoords", "Nenhuma viagem com coordenadas para exibir")}
+                  </div>
                 </div>
               )
             ) : (
@@ -437,8 +460,12 @@ export default function DashboardOverview() {
 
                 <div className="map-live-indicator">
                   <span className="live-bullet"></span>
-                  <strong>LIVE:</strong>{" "}
-                  {liveTrips.length > 0 ? `${liveTrips.length} veículos em operação` : "Sem viagens com mapa"}
+                  <strong>{t("dashboardOverview.live", "LIVE:")}</strong>{" "}
+                  {liveTrips.length > 0
+                    ? t("dashboardOverview.vehiclesOperating", "{{count}} veículos em operação", {
+                        count: liveTrips.length,
+                      })
+                    : t("dashboardOverview.noMapTrips", "Sem viagens com mapa")}
                 </div>
 
                 <div className="map-mock-bg">
@@ -446,7 +473,9 @@ export default function DashboardOverview() {
                   <div className="vehicle-marker pulse-warning" style={{ top: '55%', left: '60%' }}></div>
                   <div className="vehicle-marker pulse-active" style={{ top: '20%', left: '75%' }}></div>
                   <div className="vehicle-marker pulse-danger" style={{ top: '45%', left: '25%' }}></div>
-                  <div className="map-text">Configure VITE_MAPBOX_TOKEN para o mapa</div>
+                  <div className="map-text">
+                    {t("dashboardOverview.configureMapbox", "Configure VITE_MAPBOX_TOKEN para o mapa")}
+                  </div>
                 </div>
               </>
             )}
@@ -455,7 +484,7 @@ export default function DashboardOverview() {
 
         <div className="monitoring-sidebar">
           <div className="sidebar-header-live">
-            <h3>Monitoramento Live</h3>
+            <h3>{t("dashboardOverview.liveMonitoring", "Monitoramento Live")}</h3>
             {/* <button type="button" className="filter-btn" title="Filtrar">
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
             </button> */}
@@ -463,10 +492,13 @@ export default function DashboardOverview() {
 
           <div className="live-cards-list">
             {isLoading ? (
-              <Loading message="Carregando..." />
+              <Loading message={t("dashboardOverview.loading", "Carregando...")} />
             ) : liveTrips.length === 0 ? (
               <p className="route-info" style={{ padding: "0.5rem 0" }}>
-                Nenhuma viagem ativa com origem e destino geocodificados.
+                {t(
+                  "dashboardOverview.noActiveTripsGeocoded",
+                  "Nenhuma viagem ativa com origem e destino geocodificados."
+                )}
               </p>
             ) : (
               liveTrips.map((row) => {
@@ -480,7 +512,7 @@ export default function DashboardOverview() {
                 const cliente = row.nome_cliente?.trim() ? row.nome_cliente : "—";
                 const endereco = row.endereco_cliente?.trim()
                   ? row.endereco_cliente
-                  : "Sem endereço";
+                  : t("dashboardOverview.noAddress", "Sem endereço");
                 const selected = selectedEntregaId === row.id;
                 const isDesconectada = entregaDesconectada(row, nowMs);
 
@@ -505,8 +537,8 @@ export default function DashboardOverview() {
                         {isDesconectada && (
                           <span
                             className="live-card-disconnected"
-                            title="Sem telemetria há mais de 10 minutos"
-                            aria-label="Sem telemetria há mais de 10 minutos"
+                            title={t("dashboardOverview.disconnectedDesc", "Sem telemetria há mais de 10 minutos")}
+                            aria-label={t("dashboardOverview.disconnectedDesc", "Sem telemetria há mais de 10 minutos")}
                           >
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
@@ -528,7 +560,7 @@ export default function DashboardOverview() {
                               <path d="M8.53 16.11a6 6 0 016.95 0" />
                               <line x1="12" y1="20" x2="12.01" y2="20" />
                             </svg>
-                            Desconectado
+                            {t("dashboardOverview.disconnectedBadge", "Desconectado")}
                           </span>
                         )}
                       </span>
@@ -561,7 +593,7 @@ export default function DashboardOverview() {
           </div>
 
           {/* <div className="sidebar-footer-action">
-            <button type="button" className="view-all-btn">VER MANIFESTO COMPLETO</button>
+            <button type="button" className="view-all-btn">{t("dashboardOverview.viewFullManifest")}</button>
           </div> */}
         </div>
       </div>

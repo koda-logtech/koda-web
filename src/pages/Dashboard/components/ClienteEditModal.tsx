@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import Button from "@components/common/Button";
 import Input from "@components/common/Input";
 import Select from "@components/common/Select";
@@ -53,6 +54,7 @@ function toFormState(c: Cliente | null): ClienteFormState {
 }
 
 export default function ClienteEditModal({ isOpen, onClose, cliente }: ClienteEditModalProps) {
+  const { t } = useTranslation();
   const { addToast } = useToast();
   const updateCliente = useUpdateCliente();
   const [form, setForm] = useState<ClienteFormState>(EMPTY_STATE);
@@ -79,7 +81,7 @@ export default function ClienteEditModal({ isOpen, onClose, cliente }: ClienteEd
 
     const nome = form.nome.trim();
     if (!nome) {
-      addToast({ message: "Informe o nome do cliente.", type: "info" });
+      addToast({ message: t("modals.cliente.validationNome", "Informe o nome do cliente."), type: "info" });
       return;
     }
 
@@ -87,7 +89,7 @@ export default function ClienteEditModal({ isOpen, onClose, cliente }: ClienteEd
     const lng = Number.parseFloat(String(form.longitude).replace(",", "."));
 
     if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
-      addToast({ message: "Latitude e longitude devem ser números válidos.", type: "info" });
+      addToast({ message: t("modals.cliente.validationCoords", "Latitude e longitude devem ser números válidos."), type: "info" });
       return;
     }
 
@@ -105,11 +107,11 @@ export default function ClienteEditModal({ isOpen, onClose, cliente }: ClienteEd
           is_ativo: form.is_ativo,
         },
       });
-      addToast({ message: "Cliente atualizado com sucesso!", type: "success" });
+      addToast({ message: t("modals.cliente.updateSuccess", "Cliente atualizado com sucesso!"), type: "success" });
       onClose();
     } catch (err) {
       addToast({
-        message: `Não foi possível atualizar o cliente. ${getApiErrorMessage(err)}`,
+        message: `${t("modals.cliente.updateError", "Não foi possível atualizar o cliente.")} ${getApiErrorMessage(err)}`,
         type: "error",
       });
     }
@@ -132,16 +134,16 @@ export default function ClienteEditModal({ isOpen, onClose, cliente }: ClienteEd
         aria-labelledby="cliente-edit-title"
       >
         <div className="trips-modal-head">
-          <h3 id="cliente-edit-title">Editar cliente</h3>
-          <p>Atualize as informações do cliente selecionado.</p>
+          <h3 id="cliente-edit-title">{t("modals.cliente.title", "Editar cliente")}</h3>
+          <p>{t("modals.cliente.subtitle", "Atualize as informações do cliente selecionado.")}</p>
         </div>
 
         <form className="trips-modal-form" onSubmit={handleSubmit}>
           <Input
-            label="Nome Completo / Razão Social"
+            label={t("modals.cliente.nomeLabel", "Nome Completo / Razão Social")}
             variant="underlined"
             name="nome"
-            placeholder="Digite o nome..."
+            placeholder={t("modals.cliente.nomePlaceholder", "Digite o nome...")}
             value={form.nome}
             onChange={handleChange}
             required
@@ -149,19 +151,19 @@ export default function ClienteEditModal({ isOpen, onClose, cliente }: ClienteEd
 
           <div className="trips-modal-form-row">
             <Input
-              label="Email"
+              label={t("modals.cliente.emailLabel", "Email")}
               variant="underlined"
               type="email"
               name="email"
-              placeholder="Ex: cliente@empresa.com"
+              placeholder={t("modals.cliente.emailPlaceholder", "Ex: cliente@empresa.com")}
               value={form.email}
               onChange={handleChange}
             />
             <Input
-              label="Telefone"
+              label={t("modals.cliente.phoneLabel", "Telefone")}
               variant="underlined"
               name="telefone"
-              placeholder="(00) 00000-0000"
+              placeholder={t("modals.cliente.phonePlaceholder", "(00) 00000-0000")}
               value={form.telefone}
               onChange={handleChange}
             />
@@ -169,15 +171,15 @@ export default function ClienteEditModal({ isOpen, onClose, cliente }: ClienteEd
 
           <div className="trips-modal-form-row">
             <Input
-              label="CPF / CNPJ"
+              label={t("modals.cliente.docLabel", "CPF / CNPJ")}
               variant="underlined"
               name="documento"
-              placeholder="000.000.000-00"
+              placeholder={t("modals.cliente.docPlaceholder", "000.000.000-00")}
               value={form.documento}
               onChange={handleChange}
             />
             <Select
-              label="Status"
+              label={t("modals.cliente.statusLabel", "Status")}
               variant="underlined"
               name="is_ativo"
               value={form.is_ativo ? "true" : "false"}
@@ -185,24 +187,24 @@ export default function ClienteEditModal({ isOpen, onClose, cliente }: ClienteEd
                 setForm((prev) => ({ ...prev, is_ativo: e.target.value === "true" }))
               }
               options={[
-                { value: "true", label: "Ativo" },
-                { value: "false", label: "Inativo" },
+                { value: "true", label: t("modals.cliente.statusActive", "Ativo") },
+                { value: "false", label: t("modals.cliente.statusInactive", "Inativo") },
               ]}
             />
           </div>
 
           <Input
-            label="Endereço"
+            label={t("modals.cliente.addressLabel", "Endereço")}
             variant="underlined"
             name="endereco"
-            placeholder="Rua, Número, Bairro, Cidade - UF"
+            placeholder={t("modals.cliente.addressPlaceholder", "Rua, Número, Bairro, Cidade - UF")}
             value={form.endereco}
             onChange={handleChange}
           />
 
           <div className="trips-modal-form-row">
             <Input
-              label="Latitude"
+              label={t("modals.cliente.latitudeLabel", "Latitude")}
               variant="underlined"
               type="number"
               name="latitude"
@@ -210,7 +212,7 @@ export default function ClienteEditModal({ isOpen, onClose, cliente }: ClienteEd
               onChange={handleChange}
             />
             <Input
-              label="Longitude"
+              label={t("modals.cliente.longitudeLabel", "Longitude")}
               variant="underlined"
               type="number"
               name="longitude"
@@ -221,10 +223,10 @@ export default function ClienteEditModal({ isOpen, onClose, cliente }: ClienteEd
 
           <div className="trips-modal-actions">
             <Button type="button" variant="secondary" size="medium" onClick={handleClose} disabled={saving}>
-              Cancelar
+              {t("modals.cliente.cancel", "Cancelar")}
             </Button>
             <Button type="submit" variant="primary" size="medium" disabled={saving}>
-              {saving ? "Salvando..." : "Salvar alterações"}
+              {saving ? t("modals.cliente.saving", "Salvando...") : t("modals.cliente.saveChanges", "Salvar alterações")}
             </Button>
           </div>
         </form>

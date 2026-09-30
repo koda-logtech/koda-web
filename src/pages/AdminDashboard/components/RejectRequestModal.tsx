@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { useTranslation } from 'react-i18next';
 import { AccessRequest } from '@/types/accessRequest';
 import Button from '@/components/common/Button';
 import './RejectRequestModal.css';
@@ -25,6 +26,7 @@ export default function RejectRequestModal({
   onConfirm,
   request,
 }: RejectRequestModalProps) {
+  const { t } = useTranslation();
   const [selectedPreset, setSelectedPreset] = useState(PRESET_REASONS[0]);
   const [customDetails, setCustomDetails] = useState('');
   const [notifyApplicant, setNotifyApplicant] = useState(true);
@@ -43,20 +45,38 @@ export default function RejectRequestModal({
 
   if (!isOpen || !request) return null;
 
-  const isOther = selectedPreset === 'Outro motivo (especificar abaixo)';
+  const isOther = selectedPreset === PRESET_REASONS[4] || selectedPreset === 'Outro motivo (especificar abaixo)';
+
+  const getPresetLabel = (preset: string) => {
+    switch (preset) {
+      case PRESET_REASONS[0]:
+        return t('admin.rejectModal.presetInvalidEmail', 'E-mail corporativo inválido ou não reconhecido');
+      case PRESET_REASONS[1]:
+        return t('admin.rejectModal.presetNoCompanyAffiliation', 'Empresa sem vínculo ou cadastro ativo na plataforma');
+      case PRESET_REASONS[2]:
+        return t('admin.rejectModal.presetInconsistentData', 'Dados cadastrais inconsistentes ou incompletos');
+      case PRESET_REASONS[3]:
+        return t('admin.rejectModal.presetDuplicateRequest', 'Solicitação de acesso em duplicidade');
+      case PRESET_REASONS[4]:
+        return t('admin.rejectModal.presetOther', 'Outro motivo (especificar abaixo)');
+      default:
+        return preset;
+    }
+  };
 
   const handleConfirm = async () => {
     setErrorMessage(null);
 
-    let finalReason = selectedPreset;
+    let finalReason = getPresetLabel(selectedPreset);
     if (isOther) {
       if (!customDetails.trim()) {
-        setErrorMessage('Por favor, informe a justificativa da recusa.');
+        setErrorMessage(t('admin.rejectModal.validationRequired', 'Por favor, informe a justificativa da recusa.'));
         return;
       }
       finalReason = customDetails.trim();
     } else if (customDetails.trim()) {
-      finalReason = `${selectedPreset}. Obs: ${customDetails.trim()}`;
+      const obs = t('admin.rejectModal.obsPrefix', 'Obs:');
+      finalReason = `${getPresetLabel(selectedPreset)}. ${obs} ${customDetails.trim()}`;
     }
 
     try {
@@ -64,7 +84,7 @@ export default function RejectRequestModal({
       await onConfirm(finalReason, notifyApplicant);
       onClose();
     } catch (err: any) {
-      setErrorMessage(err.message || 'Erro ao rejeitar solicitação.');
+      setErrorMessage(err.message || t('admin.rejectModal.errorRejecting', 'Erro ao rejeitar solicitação.'));
     } finally {
       setIsSubmitting(false);
     }
@@ -92,22 +112,22 @@ export default function RejectRequestModal({
             </svg>
           </div>
           <div>
-            <h3>Rejeitar Solicitação de Acesso</h3>
-            <p>Confirme a recusa do pedido e informe a justificativa.</p>
+            <h3>{t("admin.rejectModal.title", "Rejeitar Solicitação de Acesso")}</h3>
+            <p>{t("admin.rejectModal.subtitle", "Confirme a recusa do pedido e informe a justificativa.")}</p>
           </div>
         </div>
 
         <div className="reject-applicant-summary">
           <div className="applicant-item">
-            <span className="applicant-label">Solicitante:</span>
+            <span className="applicant-label">{t("admin.rejectModal.applicantLabel", "Solicitante:")}</span>
             <span className="applicant-value">{request.nome}</span>
           </div>
           <div className="applicant-item">
-            <span className="applicant-label">E-mail:</span>
+            <span className="applicant-label">{t("admin.rejectModal.emailLabel", "E-mail:")}</span>
             <span className="applicant-value">{request.email}</span>
           </div>
           <div className="applicant-item">
-            <span className="applicant-label">Empresa / Cargo:</span>
+            <span className="applicant-label">{t("admin.rejectModal.companyRoleLabel", "Empresa / Cargo:")}</span>
             <span className="applicant-value">{request.empresa} &bull; {request.cargo}</span>
           </div>
         </div>
@@ -121,7 +141,7 @@ export default function RejectRequestModal({
 
         <div className="reject-form-group">
           <label htmlFor="reject-preset-select" className="reject-field-label">
-            Motivo da Rejeição:
+            {t("admin.rejectModal.reasonLabel", "Motivo da Rejeição:")}
           </label>
           <select
             id="reject-preset-select"
@@ -132,7 +152,7 @@ export default function RejectRequestModal({
           >
             {PRESET_REASONS.map((preset) => (
               <option key={preset} value={preset}>
-                {preset}
+                {getPresetLabel(preset)}
               </option>
             ))}
           </select>
@@ -140,7 +160,9 @@ export default function RejectRequestModal({
 
         <div className="reject-form-group">
           <label htmlFor="reject-details-textarea" className="reject-field-label">
-            {isOther ? 'Justificativa (Obrigatória):' : 'Observações adicionais (Opcional):'}
+            {isOther
+              ? t("admin.rejectModal.justificationRequired", "Justificativa (Obrigatória):")
+              : t("admin.rejectModal.additionalNotesOptional", "Observações adicionais (Opcional):")}
           </label>
           <textarea
             id="reject-details-textarea"
@@ -149,8 +171,8 @@ export default function RejectRequestModal({
             disabled={isSubmitting}
             placeholder={
               isOther
-                ? 'Descreva claramente o motivo para constar no registro e no e-mail...'
-                : 'Adicione detalhes extras para orientar o solicitante...'
+                ? t("admin.rejectModal.placeholderOther", "Descreva claramente o motivo para constar no registro e no e-mail...")
+                : t("admin.rejectModal.placeholderNotes", "Adicione detalhes extras para orientar o solicitante...")
             }
             value={customDetails}
             onChange={(e) => setCustomDetails(e.target.value)}
@@ -167,7 +189,7 @@ export default function RejectRequestModal({
             />
             <span className="checkbox-custom" />
             <span className="checkbox-text">
-              Notificar solicitante por e-mail com o motivo
+              {t("admin.rejectModal.notifyApplicant", "Notificar solicitante por e-mail com o motivo")}
             </span>
           </label>
         </div>
@@ -179,16 +201,16 @@ export default function RejectRequestModal({
             disabled={isSubmitting}
             onClick={onClose}
           >
-            Cancelar
+            {t("admin.rejectModal.cancel", "Cancelar")}
           </Button>
           <Button
             type="button"
             variant="danger"
             loading={isSubmitting}
-            loadingText="Rejeitando..."
+            loadingText={t("admin.rejectModal.confirming", "Rejeitando...")}
             onClick={handleConfirm}
           >
-            Confirmar Rejeição
+            {t("admin.rejectModal.confirm", "Confirmar Rejeição")}
           </Button>
         </div>
       </div>

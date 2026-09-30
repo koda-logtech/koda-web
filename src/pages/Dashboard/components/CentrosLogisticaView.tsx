@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   useCentrosLogistica,
   useCreateCentroLogistica,
@@ -15,6 +16,7 @@ interface CentrosLogisticaViewProps {
 }
 
 export default function CentrosLogisticaView({ onViewAll }: CentrosLogisticaViewProps) {
+  const { t } = useTranslation();
   const { addToast } = useToast();
   const [formData, setFormData] = useState({
     nome: "",
@@ -43,7 +45,7 @@ export default function CentrosLogisticaView({ onViewAll }: CentrosLogisticaView
     e.preventDefault();
     try {
       await createCentro.mutateAsync(formData);
-      addToast({ message: "Centro logístico cadastrado com sucesso!", type: "success" });
+      addToast({ message: t("management.centrosView.createSuccess", "Centro logístico cadastrado com sucesso!"), type: "success" });
       setFormData({
         nome: "",
         endereco: "",
@@ -54,21 +56,21 @@ export default function CentrosLogisticaView({ onViewAll }: CentrosLogisticaView
       });
     } catch (error) {
       console.error("Erro ao cadastrar centro logístico:", error);
-      addToast({ message: "Erro ao cadastrar centro logístico.", type: "error" });
+      addToast({ message: t("management.centrosView.createError", "Erro ao cadastrar centro logístico."), type: "error" });
     }
   };
 
   return (
     <div className="motoristas-section">
       <div className="motoristas-left">
-        <h3 className="section-subtitle">Novo Centro Logístico</h3>
+        <h3 className="section-subtitle">{t("management.centrosView.newCenterTitle", "Novo Centro Logístico")}</h3>
 
         <form className="modern-form" onSubmit={handleSubmit}>
           <Input
-            label="Nome da unidade"
+            label={t("management.centrosView.nomeLabel", "Nome da unidade")}
             variant="underlined"
             name="nome"
-            placeholder="Ex: CD São Paulo – Zona Sul"
+            placeholder={t("management.centrosView.nomePlaceholder", "Ex: CD São Paulo – Zona Sul")}
             value={formData.nome}
             onChange={handleInputChange}
             required
@@ -76,15 +78,15 @@ export default function CentrosLogisticaView({ onViewAll }: CentrosLogisticaView
 
           <div className="form-row">
             <Input
-              label="Telefone"
+              label={t("management.centrosView.phoneLabel", "Telefone")}
               variant="underlined"
               name="telefone"
-              placeholder="(00) 0000-0000"
+              placeholder={t("management.centrosView.phonePlaceholder", "(00) 0000-0000")}
               value={formData.telefone}
               onChange={handleInputChange}
             />
             <Select
-              label="Status"
+              label={t("management.centrosView.statusLabel", "Status")}
               variant="underlined"
               name="is_ativo"
               value={formData.is_ativo ? "true" : "false"}
@@ -95,24 +97,24 @@ export default function CentrosLogisticaView({ onViewAll }: CentrosLogisticaView
                 }))
               }
               options={[
-                { value: "true", label: "Ativo" },
-                { value: "false", label: "Inativo" },
+                { value: "true", label: t("management.centrosView.statusActive", "Ativo") },
+                { value: "false", label: t("management.centrosView.statusInactive", "Inativo") },
               ]}
             />
           </div>
 
           <Input
-            label="Endereço completo"
+            label={t("management.centrosView.addressLabel", "Endereço completo")}
             variant="underlined"
             name="endereco"
-            placeholder="Rua, número, bairro, cidade – UF"
+            placeholder={t("management.centrosView.addressPlaceholder", "Rua, número, bairro, cidade – UF")}
             value={formData.endereco}
             onChange={handleInputChange}
           />
 
           <div className="form-row">
             <Input
-              label="Latitude"
+              label={t("management.centrosView.latitudeLabel", "Latitude")}
               variant="underlined"
               type="number"
               name="latitude"
@@ -120,7 +122,7 @@ export default function CentrosLogisticaView({ onViewAll }: CentrosLogisticaView
               onChange={handleInputChange}
             />
             <Input
-              label="Longitude"
+              label={t("management.centrosView.longitudeLabel", "Longitude")}
               variant="underlined"
               type="number"
               name="longitude"
@@ -131,14 +133,14 @@ export default function CentrosLogisticaView({ onViewAll }: CentrosLogisticaView
 
           <div style={{ marginTop: "1rem" }}>
             <Button type="submit" variant="primary" size="medium">
-              Salvar Centro Logístico
+              {t("management.centrosView.submitButton", "Salvar Centro Logístico")}
             </Button>
           </div>
         </form>
       </div>
 
       <div className="motoristas-right">
-        <h3 className="section-subtitle">Centros cadastrados</h3>
+        <h3 className="section-subtitle">{t("management.centrosView.listTitle", "Centros cadastrados")}</h3>
         {loadingCentros ? (
           <Loading />
         ) : (
@@ -177,24 +179,24 @@ export default function CentrosLogisticaView({ onViewAll }: CentrosLogisticaView
                   </div>
                   <div className="driver-info">
                     <h4>{centro.nome}</h4>
-                    <p>{centro.telefone || centro.endereco || "Sem contato"}</p>
+                    <p>{centro.telefone || centro.endereco || t("management.centrosView.noContact", "Sem contato")}</p>
                   </div>
                   <span
                     className={`status-badge ${centro.is_ativo ? "active" : "inactive"}`}
                     style={{ fontSize: "0.65rem" }}
                   >
-                    {centro.is_ativo ? "Ativo" : "Inativo"}
+                    {centro.is_ativo ? t("management.centrosView.statusActive", "Ativo") : t("management.centrosView.statusInactive", "Inativo")}
                   </span>
                 </div>
               ))}
               {centros.length === 0 && (
-                <p style={{ textAlign: "center", color: "#999" }}>Sem registros.</p>
+                <p style={{ textAlign: "center", color: "#999" }}>{t("management.centrosView.noRecords", "Sem registros.")}</p>
               )}
             </div>
 
             <div className="view-all-container">
               <button className="btn-text" onClick={onViewAll}>
-                Listagem Completa →
+                {t("management.centrosView.viewAll", "Listagem Completa →")}
               </button>
             </div>
           </>

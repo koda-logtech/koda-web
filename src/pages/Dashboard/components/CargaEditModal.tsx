@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import Button from "@components/common/Button";
 import Input from "@components/common/Input";
 import { useUpdateCarga } from "@controllers/cargaController";
@@ -46,6 +47,7 @@ function toFormState(c: Carga | null): CargaFormState {
 }
 
 export default function CargaEditModal({ isOpen, onClose, carga }: CargaEditModalProps) {
+  const { t } = useTranslation();
   const { addToast } = useToast();
   const updateCarga = useUpdateCarga();
   const [form, setForm] = useState<CargaFormState>(EMPTY_STATE);
@@ -72,7 +74,7 @@ export default function CargaEditModal({ isOpen, onClose, carga }: CargaEditModa
 
     const tipo = form.tipo.trim();
     if (!tipo) {
-      addToast({ message: "Informe o tipo da carga.", type: "info" });
+      addToast({ message: t("modals.cargaEdit.validationTipo", "Informe o tipo da carga."), type: "info" });
       return;
     }
 
@@ -84,24 +86,24 @@ export default function CargaEditModal({ isOpen, onClose, carga }: CargaEditModa
 
     if (!Number.isFinite(min) || !Number.isFinite(max)) {
       addToast({
-        message: "Preencha temperaturas mínima e máxima com números válidos.",
+        message: t("modals.cargaEdit.validationTemps", "Preencha temperaturas mínima e máxima com números válidos."),
         type: "info",
       });
       return;
     }
     if (min > max) {
       addToast({
-        message: "A temperatura mínima não pode ser maior que a máxima.",
+        message: t("modals.cargaEdit.validationTempRange", "A temperatura mínima não pode ser maior que a máxima."),
         type: "info",
       });
       return;
     }
     if (!Number.isFinite(atual)) {
-      addToast({ message: "Temperatura atual deve ser um número válido.", type: "info" });
+      addToast({ message: t("modals.cargaEdit.validationTempCurrent", "Temperatura atual deve ser um número válido."), type: "info" });
       return;
     }
     if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
-      addToast({ message: "Latitude e longitude devem ser números válidos.", type: "info" });
+      addToast({ message: t("modals.cargaEdit.validationCoords", "Latitude e longitude devem ser números válidos."), type: "info" });
       return;
     }
 
@@ -117,11 +119,11 @@ export default function CargaEditModal({ isOpen, onClose, carga }: CargaEditModa
           longitude: lng,
         },
       });
-      addToast({ message: "Carga atualizada com sucesso!", type: "success" });
+      addToast({ message: t("modals.cargaEdit.updateSuccess", "Carga atualizada com sucesso!"), type: "success" });
       onClose();
     } catch (err) {
       addToast({
-        message: `Não foi possível atualizar a carga. ${getApiErrorMessage(err)}`,
+        message: `${t("modals.cargaEdit.updateError", "Não foi possível atualizar a carga.")} ${getApiErrorMessage(err)}`,
         type: "error",
       });
     }
@@ -144,19 +146,18 @@ export default function CargaEditModal({ isOpen, onClose, carga }: CargaEditModa
         aria-labelledby="carga-edit-title"
       >
         <div className="trips-modal-head">
-          <h3 id="carga-edit-title">Editar carga</h3>
+          <h3 id="carga-edit-title">{t("modals.cargaEdit.title", "Editar carga")}</h3>
           <p>
-            Ajuste o tipo, faixa de temperatura e localização da carga. O vínculo com o caminhão
-            é gerenciado pela tabela de caminhões.
+            {t("modals.cargaEdit.subtitle", "Ajuste o tipo, faixa de temperatura e localização da carga. O vínculo com o caminhão é gerenciado pela tabela de caminhões.")}
           </p>
         </div>
 
         <form className="trips-modal-form" onSubmit={handleSubmit}>
           <Input
-            label="Tipo de carga"
+            label={t("modals.cargaEdit.tipoLabel", "Tipo de carga")}
             variant="underlined"
             name="tipo"
-            placeholder="Ex.: refrigerada, seca, frigorífica..."
+            placeholder={t("modals.cargaEdit.tipoPlaceholder", "Ex.: refrigerada, seca, frigorífica...")}
             value={form.tipo}
             onChange={handleChange}
             required
@@ -164,7 +165,7 @@ export default function CargaEditModal({ isOpen, onClose, carga }: CargaEditModa
 
           <div className="trips-modal-form-row">
             <Input
-              label="Temp. mínima (°C)"
+              label={t("modals.cargaEdit.tempMinLabel", "Temp. mínima (°C)")}
               variant="underlined"
               name="temperatura_minima"
               type="text"
@@ -173,7 +174,7 @@ export default function CargaEditModal({ isOpen, onClose, carga }: CargaEditModa
               onChange={handleChange}
             />
             <Input
-              label="Temp. máxima (°C)"
+              label={t("modals.cargaEdit.tempMaxLabel", "Temp. máxima (°C)")}
               variant="underlined"
               name="temperatura_maxima"
               type="text"
@@ -184,7 +185,7 @@ export default function CargaEditModal({ isOpen, onClose, carga }: CargaEditModa
           </div>
 
           <Input
-            label="Temp. atual (°C)"
+            label={t("modals.cargaEdit.tempCurrentLabel", "Temp. atual (°C)")}
             variant="underlined"
             name="temperatura_atual"
             type="text"
@@ -195,7 +196,7 @@ export default function CargaEditModal({ isOpen, onClose, carga }: CargaEditModa
 
           <div className="trips-modal-form-row">
             <Input
-              label="Latitude"
+              label={t("modals.cargaEdit.latitudeLabel", "Latitude")}
               variant="underlined"
               name="latitude"
               type="text"
@@ -204,7 +205,7 @@ export default function CargaEditModal({ isOpen, onClose, carga }: CargaEditModa
               onChange={handleChange}
             />
             <Input
-              label="Longitude"
+              label={t("modals.cargaEdit.longitudeLabel", "Longitude")}
               variant="underlined"
               name="longitude"
               type="text"
@@ -216,10 +217,10 @@ export default function CargaEditModal({ isOpen, onClose, carga }: CargaEditModa
 
           <div className="trips-modal-actions">
             <Button type="button" variant="secondary" size="medium" onClick={handleClose} disabled={saving}>
-              Cancelar
+              {t("modals.cargaEdit.cancel", "Cancelar")}
             </Button>
             <Button type="submit" variant="primary" size="medium" disabled={saving}>
-              {saving ? "Salvando..." : "Salvar alterações"}
+              {saving ? t("modals.cargaEdit.saving", "Salvando...") : t("modals.cargaEdit.saveChanges", "Salvar alterações")}
             </Button>
           </div>
         </form>

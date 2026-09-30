@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useState } from "react";
 import { useUsers, useDeleteUser } from "@controllers/userController";
 import { useCaminhoes, useDeleteCaminhao } from "@controllers/caminhaoController";
@@ -33,7 +34,17 @@ type SubSection =
   | "Armazéns Parceiros"
   | "Centros Logísticos";
 
+const TAB_I18N_KEYS: Record<SubSection, string> = {
+  "Motoristas": "management.drivers",
+  "Caminhões": "management.trucks",
+  "Clientes": "management.clients",
+  "Armazéns Parceiros": "management.partnerWarehouses",
+  "Centros Logísticos": "management.logisticsCenters",
+};
+
 export default function Management() {
+  const { t } = useTranslation();
+
   const [activeSubTab, setActiveSubTab] = useState<SubSection>("Motoristas");
   const [showFullMotoristas, setShowFullMotoristas] = useState(false);
   const [showFullCaminhoes, setShowFullCaminhoes] = useState(false);
@@ -160,12 +171,18 @@ export default function Management() {
         await deleteCentroLogistica.mutateAsync(entityToDelete.id);
       }
 
-      addToast({ message: "Excluído com sucesso!", type: "success" });
+      addToast({
+        message: t("management.deleteSuccess", "Excluído com sucesso!"),
+        type: "success",
+      });
       setIsDeleteModalOpen(false);
       setEntityToDelete(null);
     } catch (error) {
       console.error("Erro ao deletar entidade:", error);
-      addToast({ message: "Erro ao excluir. Tente novamente.", type: "error" });
+      addToast({
+        message: t("management.deleteError", "Erro ao excluir. Tente novamente."),
+        type: "error",
+      });
     }
   };
 
@@ -176,7 +193,13 @@ export default function Management() {
         activeSubTab !== "Clientes" &&
         activeSubTab !== "Armazéns Parceiros" &&
         activeSubTab !== "Centros Logísticos") {
-      return <Loading message={`Carregando ${activeSubTab}...`} />;
+      return (
+        <Loading
+          message={t("management.loadingTab", "Carregando {{tab}}...", {
+            tab: t(TAB_I18N_KEYS[activeSubTab], activeSubTab),
+          })}
+        />
+      );
     }
 
     const filteredData = (data: any[], key: string) => {
@@ -197,15 +220,15 @@ export default function Management() {
             <div className="table-header-modern">
               <div className="table-header-left">
                 <Button variant="primary" size="small" onClick={() => { setShowFullMotoristas(false); setSearchTerm(""); }}>
-                  ← Voltar
+                  {t("management.back", "← Voltar")}
                 </Button>
-                <h3 className="table-title">Listagem de Motoristas</h3>
+                <h3 className="table-title">{t("management.driversListTitle", "Listagem de Motoristas")}</h3>
               </div>
               <div className="table-search-wrapper">
                 <svg className="search-icon-fixed" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                 <input 
                   type="text" 
-                  placeholder="Pesquisar por nome..." 
+                  placeholder={t("management.searchByName", "Pesquisar por nome...")} 
                   className="table-search-input"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
@@ -215,10 +238,10 @@ export default function Management() {
             <table className="data-table">
               <thead>
                 <tr>
-                  <th>Motorista</th>
-                  <th>Contato</th>
-                  <th>Cargo / Status</th>
-                  <th style={{ textAlign: 'right' }}>Ações</th>
+                  <th>{t("management.table.driver", "Motorista")}</th>
+                  <th>{t("management.table.contact", "Contato")}</th>
+                  <th>{t("management.table.roleStatus", "Cargo / Status")}</th>
+                  <th style={{ textAlign: 'right' }}>{t("management.table.actions", "Ações")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -230,13 +253,13 @@ export default function Management() {
                     </td>
                     <td>
                       <span className="cell-main-text">{m.email}</span>
-                      <span className="cell-sub-text">{m.phone || "Sem telefone"}</span>
+                      <span className="cell-sub-text">{m.phone || t("management.noPhone", "Sem telefone")}</span>
                     </td>
                     <td>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <span className="cell-main-text" style={{ fontSize: '0.85rem' }}>{m.role}</span>
                         <span className={`status-badge ${m.is_active ? "active" : "inactive"}`}>
-                          {m.is_active ? "Ativo" : "Inativo"}
+                          {m.is_active ? t("management.active", "Ativo") : t("management.inactive", "Inativo")}
                         </span>
                       </div>
                     </td>
@@ -244,14 +267,14 @@ export default function Management() {
                       <div className="table-actions">
                         <button
                           className="btn-icon-action"
-                          title="Editar"
+                          title={t("common.edit", "Editar")}
                           onClick={() => handleEditMotoristaClick(m as User)}
                         >
                           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                         </button>
                         <button 
                           className="btn-icon-action danger" 
-                          title="Excluir"
+                          title={t("common.delete", "Excluir")}
                           onClick={() => handleDeleteClick(m.id, m.name)}
                         >
                           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
@@ -262,7 +285,7 @@ export default function Management() {
                 ))}
                 {filteredMotoristas.length === 0 && (
                   <tr>
-                    <td colSpan={4} style={{ textAlign: "center", padding: '3rem', color: '#999' }}>Nenhum motorista encontrado.</td>
+                    <td colSpan={4} style={{ textAlign: "center", padding: '3rem', color: '#999' }}>{t("management.noDriversFound", "Nenhum motorista encontrado.")}</td>
                   </tr>
                 )}
               </tbody>
@@ -295,15 +318,15 @@ export default function Management() {
             <div className="table-header-modern">
               <div className="table-header-left">
                 <Button variant="primary" size="small" onClick={() => { setShowFullCaminhoes(false); setSearchTerm(""); }}>
-                                  ← Voltar
-                                </Button>
-                <h3 className="table-title">Gestão de Frota</h3>
+                  {t("management.back", "← Voltar")}
+                </Button>
+                <h3 className="table-title">{t("management.fleetManagementTitle", "Gestão de Frota")}</h3>
               </div>
               <div className="table-search-wrapper">
                 <svg className="search-icon-fixed" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                 <input 
                   type="text" 
-                  placeholder="Placa, modelo, motorista, carga, centro..." 
+                  placeholder={t("management.searchTrucksPlaceholder", "Placa, modelo, motorista, carga, centro...")} 
                   className="table-search-input"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
@@ -313,13 +336,13 @@ export default function Management() {
             <table className="data-table">
               <thead>
                 <tr>
-                  <th>Veículo</th>
-                  <th>Especificações</th>
-                  <th>Motorista</th>
-                  <th>Carga</th>
-                  <th>Centro logístico</th>
-                  <th>Status</th>
-                  <th style={{ textAlign: 'right' }}>Ações</th>
+                  <th>{t("management.table.vehicle", "Veículo")}</th>
+                  <th>{t("management.table.specs", "Especificações")}</th>
+                  <th>{t("management.table.driver", "Motorista")}</th>
+                  <th>{t("management.table.load", "Carga")}</th>
+                  <th>{t("management.table.logisticsCenter", "Centro logístico")}</th>
+                  <th>{t("management.table.status", "Status")}</th>
+                  <th style={{ textAlign: 'right' }}>{t("management.table.actions", "Ações")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -331,14 +354,14 @@ export default function Management() {
                     </td>
                     <td>
                       <span className="cell-main-text">{c.marca}</span>
-                      <span className="cell-sub-text">Ano: {c.ano}</span>
+                      <span className="cell-sub-text">{t("management.year", "Ano: {{year}}", { year: c.ano })}</span>
                     </td>
                     <td>
                       <span className="cell-main-text">{c.nome_motorista?.trim() ? c.nome_motorista : "—"}</span>
                     </td>
                     <td>
                       <span className={c.tipo_carga != null && String(c.tipo_carga).trim() !== "" ? "cell-main-text" : "cell-sub-text"}>
-                        {c.tipo_carga != null && String(c.tipo_carga).trim() !== "" ? c.tipo_carga : "Sem carga vinculada"}
+                        {c.tipo_carga != null && String(c.tipo_carga).trim() !== "" ? c.tipo_carga : t("management.noLoadLinked", "Sem carga vinculada")}
                       </span>
                     </td>
                     <td>
@@ -353,14 +376,14 @@ export default function Management() {
                       <div className="table-actions">
                         <button
                           className="btn-icon-action"
-                          title="Editar"
+                          title={t("common.edit", "Editar")}
                           onClick={() => handleEditCaminhaoClick(c as CaminhaoCompleto)}
                         >
                           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                         </button>
                         <button 
                           className="btn-icon-action danger" 
-                          title="Excluir"
+                          title={t("common.delete", "Excluir")}
                           onClick={() => handleDeleteClick(c.id, c.placa)}
                         >
                           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
@@ -371,7 +394,7 @@ export default function Management() {
                 ))}
                 {filteredCaminhoes.length === 0 && (
                   <tr>
-                    <td colSpan={7} style={{ textAlign: "center", padding: '3rem', color: '#999' }}>Nenhum caminhão encontrado.</td>
+                    <td colSpan={7} style={{ textAlign: "center", padding: '3rem', color: '#999' }}>{t("management.noTrucksFound", "Nenhum caminhão encontrado.")}</td>
                   </tr>
                 )}
               </tbody>
@@ -388,15 +411,15 @@ export default function Management() {
             <div className="table-header-modern">
               <div className="table-header-left">
                 <Button variant="primary" size="small" onClick={() => { setShowFullClientes(false); setSearchTerm(""); }}>
-                  ← Voltar
+                  {t("management.back", "← Voltar")}
                 </Button>
-                <h3 className="table-title">Base de Clientes</h3>
+                <h3 className="table-title">{t("management.clientsBaseTitle", "Base de Clientes")}</h3>
               </div>
               <div className="table-search-wrapper">
                 <svg className="search-icon-fixed" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                 <input 
                   type="text" 
-                  placeholder="Pesquisar por nome..." 
+                  placeholder={t("management.searchByName", "Pesquisar por nome...")} 
                   className="table-search-input"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
@@ -406,10 +429,10 @@ export default function Management() {
             <table className="data-table">
               <thead>
                 <tr>
-                  <th>Cliente</th>
-                  <th>Contato / Documento</th>
-                  <th>Status</th>
-                  <th style={{ textAlign: 'right' }}>Ações</th>
+                  <th>{t("management.table.client", "Cliente")}</th>
+                  <th>{t("management.table.contactDoc", "Contato / Documento")}</th>
+                  <th>{t("management.table.status", "Status")}</th>
+                  <th style={{ textAlign: 'right' }}>{t("management.table.actions", "Ações")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -417,29 +440,29 @@ export default function Management() {
                   <tr key={cl.id}>
                     <td>
                       <span className="cell-main-text">{cl.nome}</span>
-                      <span className="cell-sub-text">{cl.endereco || "Endereço não informado"}</span>
+                      <span className="cell-sub-text">{cl.endereco || t("management.noAddressProvided", "Endereço não informado")}</span>
                     </td>
                     <td>
-                      <span className="cell-main-text">{cl.email || "Sem email"}</span>
+                      <span className="cell-main-text">{cl.email || t("management.noEmail", "Sem email")}</span>
                       <span className="cell-sub-text">DOC: {cl.documento || "-"}</span>
                     </td>
                     <td>
                       <span className={`status-badge ${cl.is_ativo ? "active" : "inactive"}`}>
-                        {cl.is_ativo ? "Ativo" : "Inativo"}
+                        {cl.is_ativo ? t("management.active", "Ativo") : t("management.inactive", "Inativo")}
                       </span>
                     </td>
                     <td>
                       <div className="table-actions">
                         <button
                           className="btn-icon-action"
-                          title="Editar"
+                          title={t("common.edit", "Editar")}
                           onClick={() => handleEditClienteClick(cl as Cliente)}
                         >
                           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                         </button>
                         <button 
                           className="btn-icon-action danger" 
-                          title="Excluir"
+                          title={t("common.delete", "Excluir")}
                           onClick={() => handleDeleteClick(cl.id, cl.nome)}
                         >
                           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
@@ -450,7 +473,7 @@ export default function Management() {
                 ))}
                 {filteredClientes.length === 0 && (
                   <tr>
-                    <td colSpan={4} style={{ textAlign: "center", padding: '3rem', color: '#999' }}>Nenhum cliente encontrado.</td>
+                    <td colSpan={4} style={{ textAlign: "center", padding: '3rem', color: '#999' }}>{t("management.noClientsFound", "Nenhum cliente encontrado.")}</td>
                   </tr>
                 )}
               </tbody>
@@ -467,15 +490,15 @@ export default function Management() {
             <div className="table-header-modern">
               <div className="table-header-left">
                 <Button variant="primary" size="small" onClick={() => { setShowFullArmazens(false); setSearchTerm(""); }}>
-                  ← Voltar
+                  {t("management.back", "← Voltar")}
                 </Button>
-                <h3 className="table-title">Rede de Armazéns</h3>
+                <h3 className="table-title">{t("management.warehousesNetworkTitle", "Rede de Armazéns")}</h3>
               </div>
               <div className="table-search-wrapper">
                 <svg className="search-icon-fixed" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                 <input 
                   type="text" 
-                  placeholder="Pesquisar por nome..." 
+                  placeholder={t("management.searchByName", "Pesquisar por nome...")} 
                   className="table-search-input"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
@@ -485,10 +508,10 @@ export default function Management() {
             <table className="data-table">
               <thead>
                 <tr>
-                  <th>Unidade</th>
-                  <th>Contato / Capacidade</th>
-                  <th>Status</th>
-                  <th style={{ textAlign: 'right' }}>Ações</th>
+                  <th>{t("management.table.unit", "Unidade")}</th>
+                  <th>{t("management.table.contactCapacity", "Contato / Capacidade")}</th>
+                  <th>{t("management.table.status", "Status")}</th>
+                  <th style={{ textAlign: 'right' }}>{t("management.table.actions", "Ações")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -496,29 +519,29 @@ export default function Management() {
                   <tr key={a.id}>
                     <td>
                       <span className="cell-main-text">{a.nome}</span>
-                      <span className="cell-sub-text">{a.endereco || "Localização não definida"}</span>
+                      <span className="cell-sub-text">{a.endereco || t("management.locationNotDefined", "Localização não definida")}</span>
                     </td>
                     <td>
-                      <span className="cell-main-text">{a.email || a.telefone || "Sem contato"}</span>
-                      <span className="cell-sub-text">Capacidade: {a.capacidade_kg}kg</span>
+                      <span className="cell-main-text">{a.email || a.telefone || t("management.noContact", "Sem contato")}</span>
+                      <span className="cell-sub-text">{t("management.capacityKg", "Capacidade: {{cap}}kg", { cap: a.capacidade_kg })}</span>
                     </td>
                     <td>
                       <span className={`status-badge ${a.is_ativo ? "active" : "inactive"}`}>
-                        {a.is_ativo ? "Ativo" : "Inativo"}
+                        {a.is_ativo ? t("management.active", "Ativo") : t("management.inactive", "Inativo")}
                       </span>
                     </td>
                     <td>
                       <div className="table-actions">
                         <button
                           className="btn-icon-action"
-                          title="Editar"
+                          title={t("common.edit", "Editar")}
                           onClick={() => handleEditArmazemClick(a as Armazem)}
                         >
                           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                         </button>
                         <button 
                           className="btn-icon-action danger" 
-                          title="Excluir"
+                          title={t("common.delete", "Excluir")}
                           onClick={() => handleDeleteClick(a.id, a.nome)}
                         >
                           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
@@ -529,7 +552,7 @@ export default function Management() {
                 ))}
                 {filteredArmazens.length === 0 && (
                   <tr>
-                    <td colSpan={4} style={{ textAlign: "center", padding: '3rem', color: '#999' }}>Nenhum armazém encontrado.</td>
+                    <td colSpan={4} style={{ textAlign: "center", padding: '3rem', color: '#999' }}>{t("management.noWarehousesFound", "Nenhum armazém encontrado.")}</td>
                   </tr>
                 )}
               </tbody>
@@ -546,15 +569,15 @@ export default function Management() {
             <div className="table-header-modern">
               <div className="table-header-left">
                 <Button variant="primary" size="small" onClick={() => { setShowFullCentrosLogistica(false); setSearchTerm(""); }}>
-                  ← Voltar
+                  {t("management.back", "← Voltar")}
                 </Button>
-                <h3 className="table-title">Centros Logísticos</h3>
+                <h3 className="table-title">{t("management.logisticsCentersTitle", "Centros Logísticos")}</h3>
               </div>
               <div className="table-search-wrapper">
                 <svg className="search-icon-fixed" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                 <input 
                   type="text" 
-                  placeholder="Pesquisar por nome..." 
+                  placeholder={t("management.searchByName", "Pesquisar por nome...")} 
                   className="table-search-input"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
@@ -564,11 +587,11 @@ export default function Management() {
             <table className="data-table">
               <thead>
                 <tr>
-                  <th>Unidade</th>
-                  <th>Contato / Endereço</th>
-                  <th>Coordenadas</th>
-                  <th>Status</th>
-                  <th style={{ textAlign: 'right' }}>Ações</th>
+                  <th>{t("management.table.unit", "Unidade")}</th>
+                  <th>{t("management.table.contactAddress", "Contato / Endereço")}</th>
+                  <th>{t("management.table.coordinates", "Coordenadas")}</th>
+                  <th>{t("management.table.status", "Status")}</th>
+                  <th style={{ textAlign: 'right' }}>{t("management.table.actions", "Ações")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -579,8 +602,8 @@ export default function Management() {
                       <span className="cell-sub-text">ID: #{c.id}</span>
                     </td>
                     <td>
-                      <span className="cell-main-text">{c.telefone || "Sem telefone"}</span>
-                      <span className="cell-sub-text">{c.endereco || "Endereço não informado"}</span>
+                      <span className="cell-main-text">{c.telefone || t("management.noPhone", "Sem telefone")}</span>
+                      <span className="cell-sub-text">{c.endereco || t("management.noAddressProvided", "Endereço não informado")}</span>
                     </td>
                     <td>
                       <span className="cell-main-text">{c.latitude != null ? String(c.latitude) : "—"}</span>
@@ -588,21 +611,21 @@ export default function Management() {
                     </td>
                     <td>
                       <span className={`status-badge ${c.is_ativo ? "active" : "inactive"}`}>
-                        {c.is_ativo ? "Ativo" : "Inativo"}
+                        {c.is_ativo ? t("management.active", "Ativo") : t("management.inactive", "Inativo")}
                       </span>
                     </td>
                     <td>
                       <div className="table-actions">
                         <button
                           className="btn-icon-action"
-                          title="Editar"
+                          title={t("common.edit", "Editar")}
                           onClick={() => handleEditCentroClick(c as CentroLogistica)}
                         >
                           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                         </button>
                         <button 
                           className="btn-icon-action danger" 
-                          title="Excluir"
+                          title={t("common.delete", "Excluir")}
                           onClick={() => handleDeleteClick(c.id, c.nome)}
                         >
                           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
@@ -613,7 +636,7 @@ export default function Management() {
                 ))}
                 {filteredCentros.length === 0 && (
                   <tr>
-                    <td colSpan={5} style={{ textAlign: "center", padding: '3rem', color: '#999' }}>Nenhum centro logístico encontrado.</td>
+                    <td colSpan={5} style={{ textAlign: "center", padding: '3rem', color: '#999' }}>{t("management.noCentersFound", "Nenhum centro logístico encontrado.")}</td>
                   </tr>
                 )}
               </tbody>
@@ -642,7 +665,7 @@ export default function Management() {
                   if (tab !== "Centros Logísticos") setShowFullCentrosLogistica(false);
                 }}
               >
-                {tab}
+                {t(TAB_I18N_KEYS[tab], tab)}
               </button>
             ))}
           </div>
@@ -670,8 +693,8 @@ export default function Management() {
         isOpen={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}
         onConfirm={confirmDelete}
-        title="Confirmar Exclusão"
-        message={`Tem certeza que deseja excluir "${entityToDelete?.name}"? Esta ação não pode ser desfeita.`}
+        title={t("management.confirmDelete", "Confirmar Exclusão")}
+        message={t("management.deleteConfirmMsg", "Tem certeza que deseja excluir \"{{name}}\"? Esta ação não pode ser desfeita.", { name: entityToDelete?.name })}
       />
 
       <ArmazemEditModal

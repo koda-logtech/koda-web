@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useClientes, useCreateCliente } from "@controllers/clienteController";
 import { useToast } from "@/contexts/ToastContext";
 
@@ -12,6 +13,7 @@ interface ClientesViewProps {
 }
 
 export default function ClientesView({ onViewAll }: ClientesViewProps) {
+  const { t } = useTranslation();
   const { addToast } = useToast();
   const [formData, setFormData] = useState({
     nome: "",
@@ -40,7 +42,7 @@ export default function ClientesView({ onViewAll }: ClientesViewProps) {
     e.preventDefault();
     try {
       await createCliente.mutateAsync(formData);
-      addToast({ message: "Cliente cadastrado com sucesso!", type: "success" });
+      addToast({ message: t("management.clientesView.createSuccess", "Cliente cadastrado com sucesso!"), type: "success" });
       setFormData({
         nome: "",
         email: "",
@@ -53,21 +55,21 @@ export default function ClientesView({ onViewAll }: ClientesViewProps) {
       });
     } catch (error) {
       console.error("Erro ao cadastrar cliente:", error);
-      addToast({ message: "Erro ao cadastrar cliente.", type: "error" });
+      addToast({ message: t("management.clientesView.createError", "Erro ao cadastrar cliente."), type: "error" });
     }
   };
 
   return (
     <div className="motoristas-section">
       <div className="motoristas-left">
-        <h3 className="section-subtitle">Novo Cliente</h3>
+        <h3 className="section-subtitle">{t("management.clientesView.newClientTitle", "Novo Cliente")}</h3>
         
         <form className="modern-form" onSubmit={handleSubmit}>
           <Input
-            label="Nome Completo / Razão Social"
+            label={t("management.clientesView.nameLabel", "Nome Completo / Razão Social")}
             variant="underlined"
             name="nome"
-            placeholder="Digite o nome..."
+            placeholder={t("management.clientesView.namePlaceholder", "Digite o nome...")}
             value={formData.nome}
             onChange={handleInputChange}
             required
@@ -75,19 +77,19 @@ export default function ClientesView({ onViewAll }: ClientesViewProps) {
 
           <div className="form-row">
             <Input
-              label="Email"
+              label={t("management.clientesView.emailLabel", "Email")}
               variant="underlined"
               type="email"
               name="email"
-              placeholder="Ex: cliente@empresa.com"
+              placeholder={t("management.clientesView.emailPlaceholder", "Ex: cliente@empresa.com")}
               value={formData.email}
               onChange={handleInputChange}
             />
             <Input
-              label="Telefone"
+              label={t("management.clientesView.phoneLabel", "Telefone")}
               variant="underlined"
               name="telefone"
-              placeholder="(00) 00000-0000"
+              placeholder={t("management.clientesView.phonePlaceholder", "(00) 00000-0000")}
               value={formData.telefone}
               onChange={handleInputChange}
             />
@@ -95,38 +97,38 @@ export default function ClientesView({ onViewAll }: ClientesViewProps) {
 
           <div className="form-row">
             <Input
-              label="CPF / CNPJ"
+              label={t("management.clientesView.docLabel", "CPF / CNPJ")}
               variant="underlined"
               name="documento"
-              placeholder="000.000.000-00"
+              placeholder={t("management.clientesView.docPlaceholder", "000.000.000-00")}
               value={formData.documento}
               onChange={handleInputChange}
             />
             <Select
-              label="Status"
+              label={t("management.clientesView.statusLabel", "Status")}
               variant="underlined"
               name="is_ativo"
               value={formData.is_ativo ? "true" : "false"}
               onChange={(e) => setFormData(prev => ({ ...prev, is_ativo: e.target.value === "true" }))}
               options={[
-                { value: "true", label: "Ativo" },
-                { value: "false", label: "Inativo" }
+                { value: "true", label: t("management.clientesView.statusActive", "Ativo") },
+                { value: "false", label: t("management.clientesView.statusInactive", "Inativo") }
               ]}
             />
           </div>
 
           <Input
-            label="Endereço"
+            label={t("management.clientesView.addressLabel", "Endereço")}
             variant="underlined"
             name="endereco"
-            placeholder="Rua, Número, Bairro, Cidade - UF"
+            placeholder={t("management.clientesView.addressPlaceholder", "Rua, Número, Bairro, Cidade - UF")}
             value={formData.endereco}
             onChange={handleInputChange}
           />
 
           <div className="form-row">
             <Input
-              label="Latitude"
+              label={t("management.clientesView.latitudeLabel", "Latitude")}
               variant="underlined"
               type="number"
               name="latitude"
@@ -134,7 +136,7 @@ export default function ClientesView({ onViewAll }: ClientesViewProps) {
               onChange={handleInputChange}
             />
             <Input
-              label="Longitude"
+              label={t("management.clientesView.longitudeLabel", "Longitude")}
               variant="underlined"
               type="number"
               name="longitude"
@@ -145,14 +147,14 @@ export default function ClientesView({ onViewAll }: ClientesViewProps) {
 
           <div style={{ marginTop: '1rem' }}>
             <Button type="submit" variant="primary" size="medium">
-              Salvar Cliente
+              {t("management.clientesView.submitButton", "Salvar Cliente")}
             </Button>
           </div>
         </form>
       </div>
 
       <div className="motoristas-right">
-        <h3 className="section-subtitle">Clientes Cadastrados</h3>
+        <h3 className="section-subtitle">{t("management.clientesView.listTitle", "Clientes Cadastrados")}</h3>
         {loadingClients ? (
           <Loading />
         ) : (
@@ -165,19 +167,19 @@ export default function ClientesView({ onViewAll }: ClientesViewProps) {
                   </div>
                   <div className="driver-info">
                     <h4>{client.nome}</h4>
-                    <p>{client.email || client.documento || "Sem contato"}</p>
+                    <p>{client.email || client.documento || t("management.clientesView.noContact", "Sem contato")}</p>
                   </div>
                   <span className={`status-badge ${client.is_ativo ? "active" : "inactive"}`} style={{ fontSize: '0.65rem' }}>
-                    {client.is_ativo ? "Ativo" : "Inativo"}
+                    {client.is_ativo ? t("management.clientesView.statusActive", "Ativo") : t("management.clientesView.statusInactive", "Inativo")}
                   </span>
                 </div>
               ))}
-              {clients.length === 0 && <p style={{ textAlign: 'center', color: '#999' }}>Sem registros.</p>}
+              {clients.length === 0 && <p style={{ textAlign: 'center', color: '#999' }}>{t("management.clientesView.noRecords", "Sem registros.")}</p>}
             </div>
             
             <div className="view-all-container">
               <button className="btn-text" onClick={onViewAll}>
-                Listagem Completa →
+                {t("management.clientesView.viewAll", "Listagem Completa →")}
               </button>
             </div>
           </>

@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import './Select.css';
 
 interface SelectOption {
@@ -25,10 +26,12 @@ export default function Select({
   value,
   onChange,
   error,
-  placeholder = 'Selecione...',
+  placeholder,
   containerStyle,
   name,
 }: SelectProps) {
+  const { t } = useTranslation();
+  const actualPlaceholder = placeholder || t("select.placeholder", "Selecione...");
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -65,23 +68,38 @@ export default function Select({
       )}
       
       <div className={`select-custom-container ${variant} ${isOpen ? 'is-open' : ''} ${error ? 'has-error' : ''}`}>
-        <div className="select-trigger" onClick={handleToggle}>
+        <div
+          className="select-trigger"
+          onClick={handleToggle}
+          role="button"
+          aria-haspopup="listbox"
+          aria-expanded={isOpen}
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              handleToggle();
+            }
+          }}
+        >
           <span className={`trigger-text ${!selectedOption ? 'placeholder' : ''}`}>
-            {selectedOption ? selectedOption.label : placeholder}
+            {selectedOption ? selectedOption.label : actualPlaceholder}
           </span>
-          <div className="select-arrow-icon">
+          <div className="select-arrow-icon" aria-hidden="true">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
           </div>
         </div>
 
         {isOpen && (
           <div className="select-dropdown-menu">
-            <div className="select-options-list">
+            <div className="select-options-list" role="listbox">
               {options.map((option) => (
                 <div 
                   key={option.value} 
                   className={`select-option-item ${option.value === value ? 'selected' : ''}`}
                   onClick={() => handleSelect(option.value)}
+                  role="option"
+                  aria-selected={option.value === value}
                 >
                   {option.label}
                   {option.value === value && (
@@ -89,13 +107,17 @@ export default function Select({
                   )}
                 </div>
               ))}
-              {options.length === 0 && <div className="select-no-options">Nenhuma opção disponível</div>}
+              {options.length === 0 && (
+                <div className="select-no-options">
+                  {t("select.noOptions", "Nenhuma opção disponível")}
+                </div>
+              )}
             </div>
           </div>
         )}
       </div>
       
-      {error && <span className="select-error-message">{error}</span>}
+      {error && <span className="select-error-message" role="alert">{error}</span>}
     </div>
   );
 }

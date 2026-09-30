@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import Button from "@components/common/Button";
 import Input from "@components/common/Input";
 import Select from "@components/common/Select";
@@ -53,6 +54,7 @@ function toFormState(a: Armazem | null): ArmazemFormState {
 }
 
 export default function ArmazemEditModal({ isOpen, onClose, armazem }: ArmazemEditModalProps) {
+  const { t } = useTranslation();
   const { addToast } = useToast();
   const updateArmazem = useUpdateArmazem();
   const [form, setForm] = useState<ArmazemFormState>(EMPTY_STATE);
@@ -79,7 +81,7 @@ export default function ArmazemEditModal({ isOpen, onClose, armazem }: ArmazemEd
 
     const nome = form.nome.trim();
     if (!nome) {
-      addToast({ message: "Informe o nome do armazém.", type: "info" });
+      addToast({ message: t("modals.armazem.validationName", "Informe o nome do armazém."), type: "info" });
       return;
     }
 
@@ -88,11 +90,11 @@ export default function ArmazemEditModal({ isOpen, onClose, armazem }: ArmazemEd
     const lng = Number.parseFloat(String(form.longitude).replace(",", "."));
 
     if (!Number.isFinite(capacidade) || capacidade < 0) {
-      addToast({ message: "Capacidade deve ser um número válido.", type: "info" });
+      addToast({ message: t("modals.armazem.validationCapacity", "Capacidade deve ser um número válido."), type: "info" });
       return;
     }
     if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
-      addToast({ message: "Latitude e longitude devem ser números válidos.", type: "info" });
+      addToast({ message: t("modals.armazem.validationCoords", "Latitude e longitude devem ser números válidos."), type: "info" });
       return;
     }
 
@@ -110,11 +112,11 @@ export default function ArmazemEditModal({ isOpen, onClose, armazem }: ArmazemEd
           is_ativo: form.is_ativo,
         },
       });
-      addToast({ message: "Armazém atualizado com sucesso!", type: "success" });
+      addToast({ message: t("modals.armazem.updateSuccess", "Armazém atualizado com sucesso!"), type: "success" });
       onClose();
     } catch (err) {
       addToast({
-        message: `Não foi possível atualizar o armazém. ${getApiErrorMessage(err)}`,
+        message: `${t("modals.armazem.updateError", "Não foi possível atualizar o armazém.")} ${getApiErrorMessage(err)}`,
         type: "error",
       });
     }
@@ -137,16 +139,16 @@ export default function ArmazemEditModal({ isOpen, onClose, armazem }: ArmazemEd
         aria-labelledby="armazem-edit-title"
       >
         <div className="trips-modal-head">
-          <h3 id="armazem-edit-title">Editar armazém</h3>
-          <p>Atualize as informações do armazém parceiro selecionado.</p>
+          <h3 id="armazem-edit-title">{t("modals.armazem.editTitle", "Editar armazém")}</h3>
+          <p>{t("modals.armazem.editSubtitle", "Atualize as informações do armazém parceiro selecionado.")}</p>
         </div>
 
         <form className="trips-modal-form" onSubmit={handleSubmit}>
           <Input
-            label="Nome do Armazém"
+            label={t("modals.armazem.nameLabel", "Nome do Armazém")}
             variant="underlined"
             name="nome"
-            placeholder="Digite o nome..."
+            placeholder={t("modals.armazem.namePlaceholder", "Digite o nome...")}
             value={form.nome}
             onChange={handleChange}
             required
@@ -154,19 +156,19 @@ export default function ArmazemEditModal({ isOpen, onClose, armazem }: ArmazemEd
 
           <div className="trips-modal-form-row">
             <Input
-              label="Email de Contato"
+              label={t("modals.armazem.emailLabel", "Email de Contato")}
               variant="underlined"
               type="email"
               name="email"
-              placeholder="Ex: armazem@parceiro.com"
+              placeholder={t("modals.armazem.emailPlaceholder", "Ex: armazem@parceiro.com")}
               value={form.email}
               onChange={handleChange}
             />
             <Input
-              label="Telefone"
+              label={t("modals.armazem.phoneLabel", "Telefone")}
               variant="underlined"
               name="telefone"
-              placeholder="(00) 0000-0000"
+              placeholder={t("modals.armazem.phonePlaceholder", "(00) 0000-0000")}
               value={form.telefone}
               onChange={handleChange}
             />
@@ -174,7 +176,7 @@ export default function ArmazemEditModal({ isOpen, onClose, armazem }: ArmazemEd
 
           <div className="trips-modal-form-row">
             <Input
-              label="Capacidade (kg)"
+              label={t("modals.armazem.capacityLabel", "Capacidade (kg)")}
               variant="underlined"
               type="number"
               name="capacidade_kg"
@@ -182,7 +184,7 @@ export default function ArmazemEditModal({ isOpen, onClose, armazem }: ArmazemEd
               onChange={handleChange}
             />
             <Select
-              label="Status"
+              label={t("modals.armazem.statusLabel", "Status")}
               variant="underlined"
               name="is_ativo"
               value={form.is_ativo ? "true" : "false"}
@@ -190,24 +192,24 @@ export default function ArmazemEditModal({ isOpen, onClose, armazem }: ArmazemEd
                 setForm((prev) => ({ ...prev, is_ativo: e.target.value === "true" }))
               }
               options={[
-                { value: "true", label: "Ativo" },
-                { value: "false", label: "Inativo" },
+                { value: "true", label: t("modals.armazem.statusActive", "Ativo") },
+                { value: "false", label: t("modals.armazem.statusInactive", "Inativo") },
               ]}
             />
           </div>
 
           <Input
-            label="Endereço Completo"
+            label={t("modals.armazem.addressLabel", "Endereço Completo")}
             variant="underlined"
             name="endereco"
-            placeholder="Rua, Número, Bairro, Cidade - UF"
+            placeholder={t("modals.armazem.addressPlaceholder", "Rua, Número, Bairro, Cidade - UF")}
             value={form.endereco}
             onChange={handleChange}
           />
 
           <div className="trips-modal-form-row">
             <Input
-              label="Latitude"
+              label={t("modals.armazem.latitudeLabel", "Latitude")}
               variant="underlined"
               type="number"
               name="latitude"
@@ -215,7 +217,7 @@ export default function ArmazemEditModal({ isOpen, onClose, armazem }: ArmazemEd
               onChange={handleChange}
             />
             <Input
-              label="Longitude"
+              label={t("modals.armazem.longitudeLabel", "Longitude")}
               variant="underlined"
               type="number"
               name="longitude"
@@ -226,10 +228,10 @@ export default function ArmazemEditModal({ isOpen, onClose, armazem }: ArmazemEd
 
           <div className="trips-modal-actions">
             <Button type="button" variant="secondary" size="medium" onClick={handleClose} disabled={saving}>
-              Cancelar
+              {t("modals.armazem.cancel", "Cancelar")}
             </Button>
             <Button type="submit" variant="primary" size="medium" disabled={saving}>
-              {saving ? "Salvando..." : "Salvar alterações"}
+              {saving ? t("modals.armazem.saving", "Salvando...") : t("modals.armazem.saveChanges", "Salvar alterações")}
             </Button>
           </div>
         </form>

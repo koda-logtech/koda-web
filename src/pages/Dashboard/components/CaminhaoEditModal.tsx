@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import Button from "@components/common/Button";
 import Input from "@components/common/Input";
 import Select from "@components/common/Select";
@@ -55,6 +56,7 @@ function toFormState(c: CaminhaoCompleto | Caminhao | null): CaminhaoFormState {
 }
 
 export default function CaminhaoEditModal({ isOpen, onClose, caminhao }: CaminhaoEditModalProps) {
+  const { t } = useTranslation();
   const { addToast } = useToast();
   const updateCaminhao = useUpdateCaminhao();
   const { data: users = [] } = useUsers(1, 100, { enabled: isOpen });
@@ -100,7 +102,7 @@ export default function CaminhaoEditModal({ isOpen, onClose, caminhao }: Caminha
     const marca = form.marca.trim();
 
     if (!placa || !modelo || !marca) {
-      addToast({ message: "Placa, modelo e marca são obrigatórios.", type: "info" });
+      addToast({ message: t("modals.caminhao.validationRequired", "Placa, modelo e marca são obrigatórios."), type: "info" });
       return;
     }
 
@@ -108,15 +110,15 @@ export default function CaminhaoEditModal({ isOpen, onClose, caminhao }: Caminha
     const capacidade = Number.parseFloat(String(form.capacidade_kg).replace(",", "."));
 
     if (!Number.isFinite(ano) || ano < 1900) {
-      addToast({ message: "Informe um ano válido.", type: "info" });
+      addToast({ message: t("modals.caminhao.validationYear", "Informe um ano válido."), type: "info" });
       return;
     }
     if (!Number.isFinite(capacidade) || capacidade < 0) {
-      addToast({ message: "Capacidade deve ser um número válido.", type: "info" });
+      addToast({ message: t("modals.caminhao.validationCapacity", "Capacidade deve ser um número válido."), type: "info" });
       return;
     }
     if (!form.id_usuario) {
-      addToast({ message: "Selecione um motorista responsável.", type: "info" });
+      addToast({ message: t("modals.caminhao.validationDriver", "Selecione um motorista responsável."), type: "info" });
       return;
     }
 
@@ -134,11 +136,11 @@ export default function CaminhaoEditModal({ isOpen, onClose, caminhao }: Caminha
           status: form.status,
         },
       });
-      addToast({ message: "Caminhão atualizado com sucesso!", type: "success" });
+      addToast({ message: t("modals.caminhao.updateSuccess", "Caminhão atualizado com sucesso!"), type: "success" });
       onClose();
     } catch (err) {
       addToast({
-        message: `Não foi possível atualizar o caminhão. ${getApiErrorMessage(err)}`,
+        message: `${t("modals.caminhao.updateError", "Não foi possível atualizar o caminhão.")} ${getApiErrorMessage(err)}`,
         type: "error",
       });
     }
@@ -161,26 +163,26 @@ export default function CaminhaoEditModal({ isOpen, onClose, caminhao }: Caminha
         aria-labelledby="caminhao-edit-title"
       >
         <div className="trips-modal-head">
-          <h3 id="caminhao-edit-title">Editar caminhão</h3>
-          <p>Atualize as informações do veículo selecionado.</p>
+          <h3 id="caminhao-edit-title">{t("modals.caminhao.editTitle", "Editar caminhão")}</h3>
+          <p>{t("modals.caminhao.editSubtitle", "Atualize as informações do veículo selecionado.")}</p>
         </div>
 
         <form className="trips-modal-form" onSubmit={handleSubmit}>
           <div className="trips-modal-form-row">
             <Input
-              label="Placa"
+              label={t("modals.caminhao.plateLabel", "Placa")}
               variant="underlined"
               name="placa"
-              placeholder="ABC-1234"
+              placeholder={t("modals.caminhao.platePlaceholder", "ABC-1234")}
               value={form.placa}
               onChange={handleChange}
               required
             />
             <Input
-              label="Modelo"
+              label={t("modals.caminhao.modelLabel", "Modelo")}
               variant="underlined"
               name="modelo"
-              placeholder="Ex: FH 540"
+              placeholder={t("modals.caminhao.modelPlaceholder", "Ex: FH 540")}
               value={form.modelo}
               onChange={handleChange}
               required
@@ -189,16 +191,16 @@ export default function CaminhaoEditModal({ isOpen, onClose, caminhao }: Caminha
 
           <div className="trips-modal-form-row">
             <Input
-              label="Marca"
+              label={t("modals.caminhao.brandLabel", "Marca")}
               variant="underlined"
               name="marca"
-              placeholder="Ex: Volvo"
+              placeholder={t("modals.caminhao.brandPlaceholder", "Ex: Volvo")}
               value={form.marca}
               onChange={handleChange}
               required
             />
             <Input
-              label="Ano"
+              label={t("modals.caminhao.yearLabel", "Ano")}
               variant="underlined"
               type="number"
               name="ano"
@@ -210,7 +212,7 @@ export default function CaminhaoEditModal({ isOpen, onClose, caminhao }: Caminha
 
           <div className="trips-modal-form-row">
             <Input
-              label="Capacidade (kg)"
+              label={t("modals.caminhao.capacityLabel", "Capacidade (kg)")}
               variant="underlined"
               type="number"
               name="capacidade_kg"
@@ -219,29 +221,29 @@ export default function CaminhaoEditModal({ isOpen, onClose, caminhao }: Caminha
               required
             />
             <Select
-              label="Status"
+              label={t("modals.caminhao.statusLabel", "Status")}
               variant="underlined"
               name="status"
               value={form.status}
               onChange={handleChange}
               options={[
-                { value: "disponivel", label: "Disponível" },
-                { value: "em_espera", label: "Em Espera" },
-                { value: "em_rota", label: "Em Rota" },
-                { value: "manutencao", label: "Manutenção" },
-                { value: "inativo", label: "Inativo" },
+                { value: "disponivel", label: t("modals.caminhao.statusDisponivel", "Disponível") },
+                { value: "em_espera", label: t("modals.caminhao.statusEmEspera", "Em Espera") },
+                { value: "em_rota", label: t("modals.caminhao.statusEmRota", "Em Rota") },
+                { value: "manutencao", label: t("modals.caminhao.statusManutencao", "Manutenção") },
+                { value: "inativo", label: t("modals.caminhao.statusInativo", "Inativo") },
               ]}
             />
           </div>
 
           <Select
-            label="Motorista Responsável"
+            label={t("modals.caminhao.driverLabel", "Motorista Responsável")}
             variant="underlined"
             name="id_usuario"
             value={form.id_usuario}
             onChange={handleChange}
             options={[
-              { value: 0, label: "Selecione um motorista..." },
+              { value: 0, label: t("modals.caminhao.driverPlaceholder", "Selecione um motorista...") },
               ...drivers.map((u) => ({
                 value: Number(u.id),
                 label: u.name,
@@ -250,13 +252,13 @@ export default function CaminhaoEditModal({ isOpen, onClose, caminhao }: Caminha
           />
 
           <Select
-            label="Centro logístico"
+            label={t("modals.caminhao.centerLabel", "Centro logístico")}
             variant="underlined"
             name="id_centro_logistica"
             value={form.id_centro_logistica}
             onChange={handleChange}
             options={[
-              { value: 0, label: "Nenhum (opcional)" },
+              { value: 0, label: t("modals.caminhao.centerNone", "Nenhum (opcional)") },
               ...centrosAtivos.map((c) => ({
                 value: c.id,
                 label: c.nome,
@@ -266,10 +268,10 @@ export default function CaminhaoEditModal({ isOpen, onClose, caminhao }: Caminha
 
           <div className="trips-modal-actions">
             <Button type="button" variant="secondary" size="medium" onClick={handleClose} disabled={saving}>
-              Cancelar
+              {t("modals.caminhao.cancel", "Cancelar")}
             </Button>
             <Button type="submit" variant="primary" size="medium" disabled={saving}>
-              {saving ? "Salvando..." : "Salvar alterações"}
+              {saving ? t("modals.caminhao.saving", "Salvando...") : t("modals.caminhao.saveChanges", "Salvar alterações")}
             </Button>
           </div>
         </form>

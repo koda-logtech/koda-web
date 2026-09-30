@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { useUsers, useCreateUser } from "@controllers/userController";
 import { useToast } from "@/contexts/ToastContext";
 
@@ -12,6 +13,7 @@ interface MotoristasViewProps {
 }
 
 export default function MotoristasView({ onViewAll }: MotoristasViewProps) {
+  const { t } = useTranslation();
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { addToast } = useToast();
@@ -60,7 +62,7 @@ export default function MotoristasView({ onViewAll }: MotoristasViewProps) {
     e.preventDefault();
     try {
       await createUser.mutateAsync(formData);
-      addToast({ message: "Motorista cadastrado com sucesso!", type: "success" });
+      addToast({ message: t("management.motoristasView.createSuccess", "Motorista cadastrado com sucesso!"), type: "success" });
       setFormData({
         name: "",
         email: "",
@@ -73,14 +75,14 @@ export default function MotoristasView({ onViewAll }: MotoristasViewProps) {
       setAvatarPreview(null);
     } catch (error) {
       console.error("Erro ao cadastrar motorista:", error);
-      addToast({ message: "Erro ao cadastrar motorista.", type: "error" });
+      addToast({ message: t("management.motoristasView.createError", "Erro ao cadastrar motorista."), type: "error" });
     }
   };
 
   return (
     <div className="motoristas-section">
       <div className="motoristas-left">
-        <h3 className="section-subtitle">Novo Cadastro</h3>
+        <h3 className="section-subtitle">{t("management.motoristasView.newDriverTitle", "Novo Cadastro")}</h3>
 
         <form className="modern-form" onSubmit={handleSubmit}>
           {/* Avatar Upload Component */}
@@ -108,7 +110,7 @@ export default function MotoristasView({ onViewAll }: MotoristasViewProps) {
                     <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
                     <circle cx="12" cy="13" r="4"></circle>
                   </svg>
-                  <span>ADICIONAR FOTO</span>
+                  <span>{t("management.motoristasView.addPhoto", "ADICIONAR FOTO")}</span>
                 </div>
               )}
             </div>
@@ -119,14 +121,14 @@ export default function MotoristasView({ onViewAll }: MotoristasViewProps) {
               accept="image/*"
               onChange={handleFileChange}
             />
-            <span className="upload-label">Avatar do Motorista</span>
+            <span className="upload-label">{t("management.motoristasView.avatarLabel", "Avatar do Motorista")}</span>
           </div>
 
           <Input
-            label="Nome Completo"
+            label={t("management.motoristasView.nameLabel", "Nome Completo")}
             variant="underlined"
             name="name"
-            placeholder="Digite o nome..."
+            placeholder={t("management.motoristasView.namePlaceholder", "Digite o nome...")}
             value={formData.name}
             onChange={handleInputChange}
             required
@@ -134,20 +136,20 @@ export default function MotoristasView({ onViewAll }: MotoristasViewProps) {
 
           <div className="form-row">
             <Input
-              label="Email"
+              label={t("management.motoristasView.emailLabel", "Email")}
               variant="underlined"
               type="email"
               name="email"
-              placeholder="Ex: joao@empresa.com"
+              placeholder={t("management.motoristasView.emailPlaceholder", "Ex: joao@empresa.com")}
               value={formData.email}
               onChange={handleInputChange}
               required
             />
             <Input
-              label="Telefone"
+              label={t("management.motoristasView.phoneLabel", "Telefone")}
               variant="underlined"
               name="phone"
-              placeholder="(00) 00000-0000"
+              placeholder={t("management.motoristasView.phonePlaceholder", "(00) 00000-0000")}
               value={formData.phone}
               onChange={handleInputChange}
             />
@@ -155,7 +157,7 @@ export default function MotoristasView({ onViewAll }: MotoristasViewProps) {
 
           <div className="form-row">
             <Input
-              label="Senha Temporária"
+              label={t("management.motoristasView.passwordLabel", "Senha Temporária")}
               variant="underlined"
               type="password"
               name="password"
@@ -165,7 +167,7 @@ export default function MotoristasView({ onViewAll }: MotoristasViewProps) {
               required
             />
             <Select
-              label="Status do Acesso"
+              label={t("management.motoristasView.statusLabel", "Status do Acesso")}
               variant="underlined"
               name="is_active"
               value={formData.is_active ? "true" : "false"}
@@ -176,22 +178,22 @@ export default function MotoristasView({ onViewAll }: MotoristasViewProps) {
                 }))
               }
               options={[
-                { value: "true", label: "Liberado (Ativo)" },
-                { value: "false", label: "Bloqueado (Inativo)" },
+                { value: "true", label: t("management.motoristasView.statusActive", "Liberado (Ativo)") },
+                { value: "false", label: t("management.motoristasView.statusInactive", "Bloqueado (Inativo)") },
               ]}
             />
           </div>
 
           <div style={{ marginTop: "1rem" }}>
             <Button type="submit" variant="primary" size="medium">
-              Salvar Motorista
+              {t("management.motoristasView.submitButton", "Salvar Motorista")}
             </Button>
           </div>
         </form>
       </div>
 
       <div className="motoristas-right">
-        <h3 className="section-subtitle">Ativos no Sistema</h3>
+        <h3 className="section-subtitle">{t("management.motoristasView.listTitle", "Ativos no Sistema")}</h3>
         {loading ? (
           <Loading />
         ) : (
@@ -215,20 +217,20 @@ export default function MotoristasView({ onViewAll }: MotoristasViewProps) {
                     className={`status-badge ${driver.is_active ? "active" : "inactive"}`}
                     style={{ fontSize: "0.65rem" }}
                   >
-                    {driver.is_active ? "Ativo" : "Inativo"}
+                    {driver.is_active ? t("management.motoristasView.statusActive", "Ativo") : t("management.motoristasView.statusInactive", "Inativo")}
                   </span>
                 </div>
               ))}
               {drivers.length === 0 && (
                 <p style={{ textAlign: "center", color: "#999" }}>
-                  Sem registros.
+                  {t("management.motoristasView.noRecords", "Sem registros.")}
                 </p>
               )}
             </div>
 
             <div className="view-all-container">
               <button className="btn-text" onClick={onViewAll}>
-                Listagem Completa →
+                {t("management.motoristasView.viewAll", "Listagem Completa →")}
               </button>
             </div>
           </>

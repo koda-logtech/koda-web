@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "@hooks/useAuth";
 import Button from "@components/common/Button";
 import Toast from "@components/common/Toast";
@@ -9,6 +10,7 @@ import backgroundImage from "@/assets/background-login.png";
 import { useTheme } from "@hooks/useTheme";
 
 export default function Login() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { login, isAuthenticated, isLoading } = useAuth();
   const { theme, toggleTheme } = useTheme();
@@ -33,7 +35,10 @@ export default function Login() {
       await login({ email, password });
       navigate("/");
     } catch (err: any) {
-      const errorMessage = err.response?.data?.error || err.message || "Ocorreu um erro ao fazer login.";
+      const errorMessage =
+        err.response?.data?.error ||
+        err.message ||
+        t("auth.login.errorGeneric", "Ocorreu um erro ao fazer login.");
       setError(errorMessage);
     } finally {
       setLoading(false);
@@ -49,13 +54,15 @@ export default function Login() {
       <div className="login-left">
         <div className="login-left-content">
           <h1>
-            Arquitetura
+            {t("auth.login.leftTitle1", "Arquitetura")}
             <br />
-            Logística Digital.
+            {t("auth.login.leftTitle2", "Logística Digital.")}
           </h1>
           <p className="login-left-subtitle">
-            Projetando infraestrutura de dados para a próxima geração de cadeias
-            de suprimentos globais. Simplicidade técnica, precisão absoluta.
+            {t(
+              "auth.login.leftSubtitle",
+              "Projetando infraestrutura de dados para a próxima geração de cadeias de suprimentos globais. Simplicidade técnica, precisão absoluta."
+            )}
           </p>
           <div className="login-image-wrapper">
             <img src={backgroundImage} alt="Background Koda" />
@@ -71,14 +78,14 @@ export default function Login() {
         <div className="login-right-content">
           <header className="login-right-header" style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
             <div>
-              <h2>Acessar Plataforma</h2>
-              <p>Entre com suas credenciais para gerenciar ativos e fluxos.</p>
+              <h2>{t("auth.login.headerTitle", "Acessar Plataforma")}</h2>
+              <p>{t("auth.login.headerSubtitle", "Entre com suas credenciais para gerenciar ativos e fluxos.")}</p>
             </div>
 
             <button
               type="button"
-              aria-label="Alternar tema"
-              title={theme === 'light' ? 'Ativar modo escuro' : 'Ativar modo claro'}
+              aria-label={t("auth.login.toggleTheme", "Alternar tema")}
+              title={theme === 'light' ? t("auth.login.activateDarkMode", "Ativar modo escuro") : t("auth.login.activateLightMode", "Ativar modo claro")}
               onClick={() => toggleTheme()}
               className="theme-toggle-btn theme-toggle-floating"
             >
@@ -94,22 +101,22 @@ export default function Login() {
 
           <form onSubmit={handleSubmit} className="login-form">
             <Input
-              label="E-mail Corporativo"
+              label={t("auth.login.emailLabel", "E-mail Corporativo")}
               id="email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="exemplo@empresa.com"
+              placeholder={t("auth.login.emailPlaceholder", "exemplo@empresa.com")}
               required
             />
 
             <Input
-              label="Senha"
+              label={t("auth.login.passwordLabel", "Senha")}
               id="password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="***"
+              placeholder={t("auth.login.passwordPlaceholder", "***")}
               required
               containerStyle={{ marginTop: '1.5rem' }}
             />
@@ -120,14 +127,14 @@ export default function Login() {
               variant="primary"
               size="large"
             >
-              Entrar
+              {t("auth.login.submitButton", "Entrar")}
             </Button>
           </form>
 
           <div className="login-access-request">
-            <span>Ainda não possui acesso?</span>
+            <span>{t("auth.login.noAccessYet", "Ainda não possui acesso?")}</span>
             <button type="button" className="btn-outline" onClick={() => navigate('/solicitar-acesso')}>
-              Solicitar Acesso
+              {t("auth.login.requestAccessButton", "Solicitar Acesso")}
             </button>
           </div>
 
@@ -149,9 +156,10 @@ export default function Login() {
               <line x1="12" y1="17" x2="12.01" y2="17"></line>
             </svg>
             <p>
-              O acesso à plataforma KODA é restrito a parceiros homologados e
-              colaboradores diretos. Para suporte técnico, entre em contato com
-              o centro de arquitetura.
+              {t(
+                "auth.login.warningText",
+                "O acesso à plataforma KODA é restrito a parceiros homologados e colaboradores diretos. Para suporte técnico, entre em contato com o centro de arquitetura."
+              )}
             </p>
           </div>
         </div>

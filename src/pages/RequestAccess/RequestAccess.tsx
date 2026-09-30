@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import Input from '@components/common/Input';
 import Button from '@components/common/Button';
 import Toast from '@components/common/Toast';
@@ -7,6 +8,7 @@ import { useAccessRequests } from '@/hooks/api/useAccessRequests';
 import './RequestAccess.css';
 
 export default function RequestAccess() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { createRequest, isLoading } = useAccessRequests();
 
@@ -34,7 +36,10 @@ export default function RequestAccess() {
       await createRequest(formData);
       setSuccess(true);
     } catch (err: any) {
-      setError(err.message || 'Ocorreu um erro ao enviar a solicitação.');
+      setError(
+        err.message ||
+        t("auth.requestAccess.errorGeneric", "Ocorreu um erro ao enviar a solicitação.")
+      );
     }
   };
 
@@ -47,10 +52,10 @@ export default function RequestAccess() {
               <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
               <polyline points="22 4 12 14.01 9 11.01"></polyline>
             </svg>
-            <h3>Solicitação Enviada!</h3>
-            <p>Sua solicitação de acesso foi recebida com sucesso. Nossa equipe analisará e entrará em contato em breve.</p>
+            <h3>{t("auth.requestAccess.successTitle", "Solicitação Enviada!")}</h3>
+            <p>{t("auth.requestAccess.successMessage", "Sua solicitação de acesso foi recebida com sucesso. Nossa equipe analisará e entrará em contato em breve.")}</p>
             <Button variant="primary" onClick={() => navigate('/login')} size="large">
-              Voltar para o Login
+              {t("auth.requestAccess.backToLogin", "Voltar para o Login")}
             </Button>
           </div>
         </div>
@@ -64,65 +69,65 @@ export default function RequestAccess() {
 
       <div className="request-access-card">
         <div className="request-access-header">
-          <h2>Solicitar Acesso</h2>
-          <p>Preencha os dados abaixo para solicitar acesso à plataforma Koda.</p>
+          <h2>{t("auth.requestAccess.title", "Solicitar Acesso")}</h2>
+          <p>{t("auth.requestAccess.subtitle", "Preencha os dados abaixo para solicitar acesso à plataforma Koda.")}</p>
         </div>
 
         <form onSubmit={handleSubmit} className="request-access-form">
           <Input
-            label="Nome Completo"
+            label={t("auth.requestAccess.nameLabel", "Nome Completo")}
             id="nome"
             value={formData.nome}
             onChange={handleChange}
-            placeholder="Seu nome"
+            placeholder={t("auth.requestAccess.namePlaceholder", "Seu nome")}
             required
           />
 
           <Input
-            label="E-mail Corporativo"
+            label={t("auth.requestAccess.emailLabel", "E-mail Corporativo")}
             id="email"
             type="email"
             value={formData.email}
             onChange={handleChange}
-            placeholder="exemplo@empresa.com"
+            placeholder={t("auth.requestAccess.emailPlaceholder", "exemplo@empresa.com")}
             required
           />
 
           <Input
-            label="Empresa"
+            label={t("auth.requestAccess.companyLabel", "Empresa")}
             id="empresa"
             value={formData.empresa}
             onChange={handleChange}
-            placeholder="Nome da sua empresa"
+            placeholder={t("auth.requestAccess.companyPlaceholder", "Nome da sua empresa")}
             required
           />
 
           <Input
-            label="Cargo"
+            label={t("auth.requestAccess.roleLabel", "Cargo")}
             id="cargo"
             value={formData.cargo}
             onChange={handleChange}
-            placeholder="Seu cargo atual"
+            placeholder={t("auth.requestAccess.rolePlaceholder", "Seu cargo atual")}
             required
           />
 
           <div className="request-access-form-group">
-            <label htmlFor="descricao">Motivo da Solicitação</label>
+            <label htmlFor="descricao">{t("auth.requestAccess.reasonLabel", "Motivo da Solicitação")}</label>
             <textarea
               id="descricao"
               value={formData.descricao}
               onChange={handleChange}
-              placeholder="Descreva brevemente por que você precisa de acesso..."
+              placeholder={t("auth.requestAccess.reasonPlaceholder", "Descreva brevemente por que você precisa de acesso...")}
               required
             />
           </div>
 
           <div className="request-access-footer">
             <button type="button" className="btn-back-link" onClick={() => navigate('/login')}>
-              ← Voltar
+              {t("auth.requestAccess.back", "← Voltar")}
             </button>
             <Button type="submit" loading={isLoading} variant="primary">
-              Enviar Solicitação
+              {t("auth.requestAccess.submitButton", "Enviar Solicitação")}
             </Button>
           </div>
         </form>

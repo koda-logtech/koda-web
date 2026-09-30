@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import "./Toast.css";
 
 interface ToastProps {
@@ -14,6 +15,8 @@ export default function Toast({
   onClose,
   duration = 5000,
 }: ToastProps) {
+  const { t } = useTranslation();
+
   useEffect(() => {
     const timer = setTimeout(() => {
       onClose();
@@ -23,7 +26,7 @@ export default function Toast({
   }, [onClose, duration]);
 
   return (
-    <div className={`toast-container toast-${type}`}>
+    <div className={`toast-container toast-${type}`} role="alert" aria-live="assertive">
       <div className="toast-content">
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -35,6 +38,7 @@ export default function Toast({
           strokeWidth="2"
           strokeLinecap="round"
           strokeLinejoin="round"
+          aria-hidden="true"
         >
           {type === "error" ? (
             <>
@@ -52,7 +56,12 @@ export default function Toast({
         </svg>
         <span>{message}</span>
       </div>
-      <button className="toast-close" onClick={onClose}>
+      <button
+        className="toast-close"
+        onClick={onClose}
+        aria-label={t("toast.close", "Fechar")}
+        title={t("toast.close", "Fechar")}
+      >
         &times;
       </button>
     </div>

@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useAlertasNotifications } from "@/contexts/AlertasNotificationContext";
 import type { CargaAlerta } from "@/types/models";
+import { useTranslation } from "react-i18next";
 import "./NewAlertModal.css";
 
 function unwrapCarga(c: CargaAlerta["carga"]) {
@@ -15,10 +16,10 @@ function parseNum(v: number | string | null | undefined): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
-function formatWhen(iso: string): string {
+function formatWhen(iso: string, locale: string = "pt-BR"): string {
   try {
     const d = new Date(iso);
-    return d.toLocaleString("pt-BR", {
+    return d.toLocaleString(locale, {
       day: "2-digit",
       month: "2-digit",
       year: "numeric",
@@ -37,6 +38,8 @@ interface NewAlertModalProps {
 }
 
 export default function NewAlertModal({ onOpenAlertasPage }: NewAlertModalProps) {
+  const { t, i18n } = useTranslation();
+  const currentLocale = i18n.language?.startsWith("en") ? "en-US" : "pt-BR";
   const { pendingNewAlerts, dismissCurrentNewAlert, dismissAllNewAlerts } =
     useAlertasNotifications();
 
@@ -56,7 +59,7 @@ export default function NewAlertModal({ onOpenAlertasPage }: NewAlertModalProps)
   if (!current) return null;
 
   const carga = unwrapCarga(current.carga);
-  const tipoCarga = carga?.tipo?.trim() || "Carga sem tipo";
+  const tipoCarga = carga?.tipo?.trim() || t("newAlertModal.noType", "Carga sem tipo");
   const pico = parseNum(current.temperatura_pico);
   const inicio = parseNum(current.temperatura_inicio);
   const min = parseNum(current.limite_minimo);
@@ -93,15 +96,17 @@ export default function NewAlertModal({ onOpenAlertasPage }: NewAlertModalProps)
             </svg>
           </div>
           <div>
-            <p className="new-alert-eyebrow">Novo alerta térmico</p>
+            <p className="new-alert-eyebrow">{t("newAlertModal.eyebrow", "Novo alerta térmico")}</p>
             <h2 id="new-alert-title" className="new-alert-title">
-              Temperatura {isAlta ? "ACIMA do máximo" : "ABAIXO do mínimo"}
+              {isAlta
+                ? t("newAlertModal.aboveMax", "Temperatura ACIMA do máximo")
+                : t("newAlertModal.belowMin", "Temperatura ABAIXO do mínimo")}
             </h2>
           </div>
           {remaining > 0 && (
             <span
               className="new-alert-queue-pill"
-              title={`Mais ${remaining} alerta(s) na fila`}
+              title={t("newAlertModal.moreInQueue", "Mais {{count}} alerta(s) na fila", { count: remaining })}
             >
               +{remaining}
             </span>
@@ -109,34 +114,38 @@ export default function NewAlertModal({ onOpenAlertasPage }: NewAlertModalProps)
         </div>
 
         <p id="new-alert-desc" className="new-alert-desc">
-          A carga <strong>{tipoCarga}</strong> (Carga #{current.id_carga}) saiu da faixa de
-          temperatura permitida e disparou o alerta <strong>#{current.id}</strong>.
+          {t("newAlertModal.desc1", "A carga")} <strong>{tipoCarga}</strong>{" "}
+          {t("newAlertModal.desc2", "(Carga #{{cargaId}}) saiu da faixa de temperatura permitida e disparou o alerta", {
+            cargaId: current.id_carga?.toString() || "",
+          })}{" "}
+          <strong>#{current.id}</strong>
+          {t("newAlertModal.desc3", ".")}
         </p>
 
         <div className="new-alert-grid">
           <div className="new-alert-cell">
-            <span className="new-alert-cell-label">Pico registado</span>
+            <span className="new-alert-cell-label">{t("newAlertModal.recordedPeak", "Pico registado")}</span>
             <span className={`new-alert-cell-value new-alert-cell-value--${current.tipo}`}>
               {pico !== null ? `${pico.toFixed(1)}°C` : "—"}
             </span>
           </div>
           <div className="new-alert-cell">
-            <span className="new-alert-cell-label">Temperatura inicial</span>
+            <span className="new-alert-cell-label">{t("newAlertModal.initialTemp", "Temperatura inicial")}</span>
             <span className="new-alert-cell-value">
               {inicio !== null ? `${inicio.toFixed(1)}°C` : "—"}
             </span>
           </div>
           <div className="new-alert-cell">
-            <span className="new-alert-cell-label">Faixa permitida</span>
+            <span className="new-alert-cell-label">{t("newAlertModal.allowedRange", "Faixa permitida")}</span>
             <span className="new-alert-cell-value">
               {min !== null ? `${min.toFixed(1)}°C` : "—"} –{" "}
               {max !== null ? `${max.toFixed(1)}°C` : "—"}
             </span>
           </div>
           <div className="new-alert-cell">
-            <span className="new-alert-cell-label">Aberto em</span>
+            <span className="new-alert-cell-label">{t("newAlertModal.openedAt", "Aberto em")}</span>
             <span className="new-alert-cell-value new-alert-cell-value--meta">
-              {formatWhen(current.aberto_at)}
+              {formatWhen(current.aberto_at, currentLocale)}
             </span>
           </div>
         </div>
@@ -148,7 +157,7 @@ export default function NewAlertModal({ onOpenAlertasPage }: NewAlertModalProps)
               className="new-alert-btn new-alert-btn--ghost"
               onClick={dismissAllNewAlerts}
             >
-              Dispensar todos ({pendingNewAlerts.length})
+              {t("newAlertModal.dismissAll", "Dispensar todos ({{count}})", { count: pendingNewAlerts.length })}
             </button>
           )}
           {onOpenAlertasPage && (
@@ -160,7 +169,7 @@ export default function NewAlertModal({ onOpenAlertasPage }: NewAlertModalProps)
                 onOpenAlertasPage();
               }}
             >
-              Ver na lista
+              {t("newAlertModal.viewInList", "Ver na lista")}
             </button>
           )}
           <button
@@ -169,7 +178,9 @@ export default function NewAlertModal({ onOpenAlertasPage }: NewAlertModalProps)
             onClick={dismissCurrentNewAlert}
             autoFocus
           >
-            {remaining > 0 ? "Próximo alerta" : "Entendi"}
+            {remaining > 0
+              ? t("newAlertModal.nextAlert", "Próximo alerta")
+              : t("newAlertModal.gotIt", "Entendi")}
           </button>
         </div>
       </div>
