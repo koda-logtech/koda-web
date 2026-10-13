@@ -1,0 +1,96 @@
+name: E2E (Playwright)
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: e2e-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  playwright:
+    name: Playwright
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    env:
+      CI: true
+      KODA_SERVER_DIR: ./koda-server
+      VITE_API_URL: http://localhost:3000
+      E2E_ADMIN_EMAIL: ${{ secrets.E2E_ADMIN_EMAIL }}
+      E2E_ADMIN_PASSWORD: ${{ secrets.E2E_ADMIN_PASSWORD }}
+
+    steps:
+      - name: Checkout koda-web
+        uses: actions/checkout@v4
+
+      - name: Checkout koda-server
+        uses: actions/checkout@v4
+        with:
+          repository: koda-logtech/koda-server
+          path: koda-server
+          ref: main
+
+      - name: Setup Node.js (web)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Setup Node.js (server)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: koda-server/package-lock.json
+
+      - name: Install dependencies (web)
+        run: npm ci
+
+      - name: Install dependencies (server)
+        run: npm ci
+        working-directory: koda-server
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Verify E2E secrets (sem imprimir valores)
+        run: |
+          set -euo pipefail
+          missing=0
+          [ -n "${E2E_SERVER_ENV_FILE}" ] || { echo "Secret ausente: E2E_SERVER_ENV_FILE"; missing=1; }
+          [ -n "${E2E_ADMIN_EMAIL}" ] || { echo "Secret ausente: E2E_ADMIN_EMAIL"; missing=1; }
+          [ -n "${E2E_ADMIN_PASSWORD}" ] || { echo "Secret ausente: E2E_ADMIN_PASSWORD"; missing=1; }
+          [ "$missing" -eq 0 ] || exit 1
+        env:
+          E2E_SERVER_ENV_FILE: ${{ secrets.E2E_SERVER_ENV_FILE }}
+          E2E_ADMIN_EMAIL: ${{ secrets.E2E_ADMIN_EMAIL }}
+          E2E_ADMIN_PASSWORD: ${{ secrets.E2E_ADMIN_PASSWORD }}
+
+      - name: Create server .env from secret
+        run: bash .github/scripts/write-server-env.sh koda-server/.env
+        env:
+          E2E_SERVER_ENV_FILE: ${{ secrets.E2E_SERVER_ENV_FILE }}
+
+      - name: Run E2E tests
+        run: npm run test:e2e
+
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
