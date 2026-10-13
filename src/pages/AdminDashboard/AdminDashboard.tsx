@@ -8,6 +8,7 @@ import Loading from '@/components/common/Loading';
 import Toast from '@/components/common/Toast';
 import RejectRequestModal from './components/RejectRequestModal';
 import ReasonDetailsModal from './components/ReasonDetailsModal';
+import AdminUsersPanel from './components/AdminUsersPanel';
 import './AdminDashboard.css';
 
 function formatDateTime(dateStr?: string, locale: string = 'pt-BR') {
@@ -37,8 +38,14 @@ export default function AdminDashboard() {
   const [processingAction, setProcessingAction] = useState<{ id: string; action: 'approve' | 'reject' } | null>(null);
   const [rejectModalRequest, setRejectModalRequest] = useState<AccessRequest | null>(null);
   const [reasonDetailsRequest, setReasonDetailsRequest] = useState<AccessRequest | null>(null);
+  const [usersRefreshSignal, setUsersRefreshSignal] = useState(0);
 
   const currentLocale = i18n.language?.startsWith('en') ? 'en-US' : 'pt-BR';
+
+  const handleRefreshAll = () => {
+    fetchRequests();
+    setUsersRefreshSignal((n) => n + 1);
+  };
 
   useEffect(() => {
     fetchRequests();
@@ -95,7 +102,7 @@ export default function AdminDashboard() {
         <div className="admin-header-actions">
           <Button
             variant="secondary"
-            onClick={fetchRequests}
+            onClick={handleRefreshAll}
             loading={isFetching}
             loadingText={t("admin.dashboard.refreshing", "Atualizando...")}
             disabled={processingAction !== null}
@@ -243,12 +250,7 @@ export default function AdminDashboard() {
           )}
 
           {activeTab === 'usuarios' && (
-            <div className="empty-state">
-              <p>{t("admin.dashboard.usersInProgress", "Módulo de gerenciamento de usuários em desenvolvimento.")}</p>
-              <p style={{ fontSize: '0.875rem', marginTop: '0.5rem' }}>
-                {t("admin.dashboard.usersInProgressSub", "Aqui você poderá visualizar, bloquear e criar acessos manualmente.")}
-              </p>
-            </div>
+            <AdminUsersPanel refreshSignal={usersRefreshSignal} />
           )}
         </div>
       </main>
