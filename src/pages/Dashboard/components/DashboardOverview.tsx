@@ -1,5 +1,8 @@
 import { useTranslation } from "react-i18next";
 import { useEffect, useMemo, useState } from "react";
+import { useAlertasNotifications } from "@/contexts/AlertasNotificationContext";
+import { useDashboardTelemetriaRealtime } from "@/contexts/DashboardTelemetriaRealtimeContext";
+import { liveRefetchInterval } from "@/utils/liveRefetchInterval";
 import Button from "@components/common/Button";
 import Loading from "@components/common/Loading";
 import { useTelemetriaAuditoriaPorCarga } from "@controllers/cargaController";
@@ -79,6 +82,9 @@ function toMapTrip(row: EntregaCompleta, nowMs: number): DashboardMapTrip | null
 
 export default function DashboardOverview() {
   const { t } = useTranslation();
+  const { isAlertasRealtimeHealthy } = useAlertasNotifications();
+  const { isRealtimeHealthy: isTelemetriaRealtimeHealthy, setSelectedCargaId } =
+    useDashboardTelemetriaRealtime();
 
   const mapboxToken = (window.__ENV__?.VITE_MAPBOX_TOKEN || import.meta.env.VITE_MAPBOX_TOKEN)?.trim();
   const hasMap = Boolean(mapboxToken);
@@ -96,14 +102,14 @@ export default function DashboardOverview() {
   }, []);
 
   const { data: entregasRaw = [], isLoading, dataUpdatedAt } = useEntregasCompleto(1, FETCH_LIMIT, {
-    refetchInterval: DASHBOARD_LIVE_REFETCH_MS,
-    refetchIntervalInBackground: true,
+    refetchInterval: liveRefetchInterval(DASHBOARD_LIVE_REFETCH_MS, isTelemetriaRealtimeHealthy),
+    refetchIntervalInBackground: !isTelemetriaRealtimeHealthy,
   });
   const entregas = entregasRaw as EntregaCompleta[];
 
   const { data: armazensRaw = [] } = useArmazens(1, 100, {
-    refetchInterval: DASHBOARD_LIVE_REFETCH_MS,
-    refetchIntervalInBackground: true,
+    refetchInterval: liveRefetchInterval(DASHBOARD_LIVE_REFETCH_MS, isTelemetriaRealtimeHealthy),
+    refetchIntervalInBackground: !isTelemetriaRealtimeHealthy,
   });
   const armazensParceirosMapa = useMemo(
     () => armazensAtivosComCoordenadas(armazensRaw as Armazem[]),
@@ -124,8 +130,8 @@ export default function DashboardOverview() {
   );
 
   const { data: alertasAtivos = 0 } = useAlertasCount("aberto", {
-    refetchInterval: ALERTAS_LIVE_REFETCH_MS,
-    refetchIntervalInBackground: true,
+    refetchInterval: liveRefetchInterval(ALERTAS_LIVE_REFETCH_MS, isAlertasRealtimeHealthy),
+    refetchIntervalInBackground: !isAlertasRealtimeHealthy,
     refetchOnWindowFocus: true,
   });
 
@@ -209,8 +215,15 @@ export default function DashboardOverview() {
     return typeof id === "number" && id > 0 ? id : null;
   }, [liveTrips, selectedEntregaId]);
 
+  useEffect(() => {
+    setSelectedCargaId(selectedCargaId);
+  }, [selectedCargaId, setSelectedCargaId]);
+
   const auditoriaPorCarga = useTelemetriaAuditoriaPorCarga(selectedCargaId, {
-    refetchInterval: selectedCargaId != null ? DASHBOARD_LIVE_REFETCH_MS : undefined,
+    refetchInterval:
+      selectedCargaId != null
+        ? liveRefetchInterval(DASHBOARD_LIVE_REFETCH_MS, isTelemetriaRealtimeHealthy)
+        : undefined,
   });
 
   const traveledRouteGeometry = useMemo(() => {
@@ -291,14 +304,20 @@ export default function DashboardOverview() {
         <div className="title-group">
           <h1>{t("dashboardOverview.title", "Visão Geral da Operação")}</h1>
           <p className="subtitle">
-            {t(
-              "dashboardOverview.liveSubtitle",
-              "Monitoramento ao vivo • Dados do servidor às {{time}} • Atualização a cada {{seconds}}s",
-              {
-                time: subtitleAtualizacao,
-                seconds: DASHBOARD_LIVE_REFETCH_MS / 1000,
-              }
-            )}
+            {isTelemetriaRealtimeHealthy
+              ? t(
+                  "dashboardOverview.liveSubtitleRealtime",
+                  "Monitoramento em tempo real • Dados do servidor às {{time}}",
+                  { time: subtitleAtualizacao },
+                )
+              : t(
+                  "dashboardOverview.liveSubtitle",
+                  "Monitoramento ao vivo • Dados do servidor às {{time}} • Atualização a cada {{seconds}}s",
+                  {
+                    time: subtitleAtualizacao,
+                    seconds: DASHBOARD_LIVE_REFETCH_MS / 1000,
+                  },
+                )}
           </p>
         </div>
         <div className="button-group">

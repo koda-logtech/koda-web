@@ -7,12 +7,16 @@ import {
   useMemo,
   useRef,
   useState,
-} from "react";
+} from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   ALERTAS_LIVE_REFETCH_MS,
   useAlertas,
-} from "@controllers/alertaController";
-import type { CargaAlerta } from "@/types/models";
+} from '@controllers/alertaController';
+import { alertaService } from '@services/alertaService';
+import { useSupabasePostgresChannel } from '@/hooks/useSupabasePostgresChannel';
+import { liveRefetchInterval } from '@/utils/liveRefetchInterval';
+import type { CargaAlerta, CargaAlertaStatus } from '@/types/models';
 
 interface AlertasNotificationContextValue {
   /** Alertas atualmente abertos no servidor (lista exibida no sininho). */
@@ -25,6 +29,8 @@ interface AlertasNotificationContextValue {
   dismissCurrentNewAlert: () => void;
   /** Dispensa toda a fila. */
   dismissAllNewAlerts: () => void;
+  /** Canal Realtime de alertas ativo (fallback = polling). */
+  isAlertasRealtimeHealthy: boolean;
 }
 
 const AlertasNotificationContext = createContext<
@@ -32,7 +38,7 @@ const AlertasNotificationContext = createContext<
 >(undefined);
 
 /** Storage key — IDs já apresentados em modal nesta sessão. */
-const SEEN_STORAGE_KEY = "kodaweb.alertas.seenModalIds.v1";
+const SEEN_STORAGE_KEY = 'kodaweb.alertas.seenModalIds.v1';
 
 function loadSeenIds(): Set<number> {
   try {
@@ -40,7 +46,7 @@ function loadSeenIds(): Set<number> {
     if (!raw) return new Set();
     const arr = JSON.parse(raw);
     if (!Array.isArray(arr)) return new Set();
-    return new Set(arr.filter((x) => typeof x === "number"));
+    return new Set(arr.filter((x) => typeof x === 'number'));
   } catch {
     return new Set();
   }
@@ -70,7 +76,7 @@ function playAlertBeep() {
     const ctx = new AudioCtx();
     const o = ctx.createOscillator();
     const g = ctx.createGain();
-    o.type = "sine";
+    o.type = 'sine';
     o.frequency.setValueAtTime(880, ctx.currentTime);
     o.frequency.exponentialRampToValueAtTime(440, ctx.currentTime + 0.35);
     g.gain.setValueAtTime(0.0001, ctx.currentTime);
@@ -93,12 +99,80 @@ interface ProviderProps {
 }
 
 export function AlertasNotificationProvider({ children, enabled = true }: ProviderProps) {
+  const queryClient = useQueryClient();
+  const seenIdsRef = useRef<Set<number>>(loadSeenIds());
+  const isFirstLoadRef = useRef(true);
+  const [pendingNewAlerts, setPendingNewAlerts] = useState<CargaAlerta[]>([]);
+
+  const queueAlertIfNew = useCallback(
+    (alert: CargaAlerta) => {
+      if (!enabled || alert.status !== 'aberto') return;
+
+      const seen = seenIdsRef.current;
+
+      if (isFirstLoadRef.current) {
+        seen.add(alert.id);
+        persistSeenIds(seen);
+        return;
+      }
+
+      if (seen.has(alert.id)) return;
+
+      setPendingNewAlerts((prev) => {
+        if (prev.some((p) => p.id === alert.id)) return prev;
+        return [...prev, alert];
+      });
+      seen.add(alert.id);
+      persistSeenIds(seen);
+      playAlertBeep();
+    },
+    [enabled],
+  );
+
+  const queueAlertIfNewRef = useRef(queueAlertIfNew);
+  queueAlertIfNewRef.current = queueAlertIfNew;
+
+  const { isRealtimeHealthy: isAlertasRealtimeHealthy } = useSupabasePostgresChannel({
+    channelName: 'koda-web:carga_alertas',
+    enabled,
+    bindings: [
+      { event: 'INSERT', table: 'carga_alertas' },
+      { event: 'UPDATE', table: 'carga_alertas' },
+    ],
+    onPayload: () => {},
+    onBatch: (payloads) => {
+      void queryClient.invalidateQueries({ queryKey: ['alertas'] });
+
+      for (const payload of payloads) {
+        const row = payload.new as Record<string, unknown> | undefined;
+        if (!row || typeof row.id !== 'number') continue;
+        const status = row.status as CargaAlertaStatus | undefined;
+        const oldStatus = (payload.old as Record<string, unknown> | undefined)?.status;
+        const shouldNotify =
+          status === 'aberto' &&
+          (payload.eventType === 'INSERT' ||
+            (payload.eventType === 'UPDATE' && oldStatus !== 'aberto'));
+
+        if (!shouldNotify) continue;
+
+        void alertaService
+          .getById(row.id)
+          .then((full) => {
+            queueAlertIfNewRef.current(full);
+          })
+          .catch(() => {});
+      }
+    },
+  });
+
   const { data = [] } = useAlertas(
-    { status: "aberto", page: 1, limit: 100 },
+    { status: 'aberto', page: 1, limit: 100 },
     {
       enabled,
       staleTime: 0,
-      refetchInterval: enabled ? ALERTAS_LIVE_REFETCH_MS : false,
+      refetchInterval: enabled
+        ? liveRefetchInterval(ALERTAS_LIVE_REFETCH_MS, isAlertasRealtimeHealthy)
+        : false,
       refetchIntervalInBackground: true,
       refetchOnWindowFocus: true,
     },
@@ -106,18 +180,11 @@ export function AlertasNotificationProvider({ children, enabled = true }: Provid
 
   const alertasAbertos = data as CargaAlerta[];
 
-  const seenIdsRef = useRef<Set<number>>(loadSeenIds());
-  const isFirstLoadRef = useRef(true);
-  const [pendingNewAlerts, setPendingNewAlerts] = useState<CargaAlerta[]>([]);
-
   useEffect(() => {
     if (!enabled) return;
 
     const currentIds = new Set(alertasAbertos.map((a) => a.id));
 
-    // Limpa IDs do storage que não estão mais abertos — assim, se o mesmo
-    // alerta reabrir (mesmo id é improvável; mas se um novo aparecer com id
-    // antigo, voltamos a alertar).
     const seen = seenIdsRef.current;
     let seenChanged = false;
     for (const id of Array.from(seen)) {
@@ -128,15 +195,12 @@ export function AlertasNotificationProvider({ children, enabled = true }: Provid
     }
 
     if (isFirstLoadRef.current) {
-      // Na primeira carga não consideramos nada como "novo" — apenas
-      // marcamos tudo como já visto para não disparar modal em F5.
       for (const id of currentIds) seen.add(id);
       seenChanged = true;
       isFirstLoadRef.current = false;
-    } else {
+    } else if (!isAlertasRealtimeHealthy) {
       const novos = alertasAbertos.filter((a) => !seen.has(a.id));
       if (novos.length > 0) {
-        // Adiciona à fila e marca como vistos para não duplicar.
         setPendingNewAlerts((prev) => {
           const prevIds = new Set(prev.map((p) => p.id));
           const adicionais = novos.filter((n) => !prevIds.has(n.id));
@@ -149,10 +213,8 @@ export function AlertasNotificationProvider({ children, enabled = true }: Provid
     }
 
     if (seenChanged) persistSeenIds(seen);
-  }, [alertasAbertos, enabled]);
+  }, [alertasAbertos, enabled, isAlertasRealtimeHealthy]);
 
-  // Mantém a fila de pendentes limpa: se o alerta deixou de ser "aberto"
-  // (resolvido/cancelado), também sai do modal.
   useEffect(() => {
     setPendingNewAlerts((prev) => {
       if (prev.length === 0) return prev;
@@ -177,8 +239,15 @@ export function AlertasNotificationProvider({ children, enabled = true }: Provid
       pendingNewAlerts,
       dismissCurrentNewAlert,
       dismissAllNewAlerts,
+      isAlertasRealtimeHealthy,
     }),
-    [alertasAbertos, pendingNewAlerts, dismissCurrentNewAlert, dismissAllNewAlerts],
+    [
+      alertasAbertos,
+      pendingNewAlerts,
+      dismissCurrentNewAlert,
+      dismissAllNewAlerts,
+      isAlertasRealtimeHealthy,
+    ],
   );
 
   return (
@@ -192,7 +261,7 @@ export function useAlertasNotifications(): AlertasNotificationContextValue {
   const ctx = useContext(AlertasNotificationContext);
   if (!ctx) {
     throw new Error(
-      "useAlertasNotifications deve ser usado dentro de <AlertasNotificationProvider>",
+      'useAlertasNotifications deve ser usado dentro de <AlertasNotificationProvider>',
     );
   }
   return ctx;

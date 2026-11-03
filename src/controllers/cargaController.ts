@@ -65,7 +65,7 @@ export const useTelemetriaAuditoria = (page: number, limit: number) => {
 
 export const useTelemetriaAuditoriaPorCarga = (
   idCarga: number | null,
-  options: { refetchInterval?: number } = {},
+  options: { refetchInterval?: number | false } = {},
 ) => {
   return useQuery({
     queryKey: ["carga-telemetria-auditoria", "por-carga", idCarga],

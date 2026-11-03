@@ -19,9 +19,7 @@ interface CargaCreateModalProps {
 }
 
 function caminhoesDisponiveisParaCarga(lista: CaminhaoCompleto[]): CaminhaoCompleto[] {
-  return lista.filter(
-    (c) => c.status === "disponivel" && (c.id_carga == null || c.id_carga === 0),
-  );
+  return lista.filter((c) => c.status === "disponivel");
 }
 
 export default function CargaCreateModal({ isOpen, onClose }: CargaCreateModalProps) {
@@ -113,11 +111,16 @@ export default function CargaCreateModal({ isOpen, onClose }: CargaCreateModalPr
         try {
           await updateCaminhao.mutateAsync({
             id: idCaminhao,
-            payload: {
-              id_carga: idCarga,
-              status: "em_espera",
-            },
+            payload: { id_carga: idCarga },
           });
+          try {
+            await updateCaminhao.mutateAsync({
+              id: idCaminhao,
+              payload: { status: "em_espera" },
+            });
+          } catch {
+            // Bancos sem migration em_espera (chk_status antigo): vínculo da carga já foi salvo.
+          }
         } catch (err) {
           addToast({
             message: `${t("modals.cargaCreate.linkError", "Carga criada, mas não foi possível vincular ao caminhão:")} ${getApiErrorMessage(err)}`,

@@ -40,12 +40,16 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
+  workers: 1,
+  expect: { timeout: 20_000 },
   reporter: process.env.CI ? [["github"], ["html", { open: "never" }]] : [["html", { open: "on-failure" }]],
   use: {
     baseURL: "http://localhost:5173",
-    trace: "on-first-retry",
+    locale: "pt-BR",
+    headless: true,
+    trace: "retain-on-failure",
     screenshot: "only-on-failure",
+    video: "retain-on-failure",
   },
   webServer: {
     command: "node scripts/e2e-stack.mjs",

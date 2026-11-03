@@ -14,6 +14,7 @@ import Management from "./components/Management";
 import NotificationBell from "@components/common/NotificationBell";
 import NewAlertModal from "@components/common/NewAlertModal";
 import { AlertasNotificationProvider } from "@/contexts/AlertasNotificationContext";
+import { DashboardTelemetriaRealtimeProvider } from "@/contexts/DashboardTelemetriaRealtimeContext";
 import "./Dashboard.css";
 
 type ActiveTab =
@@ -331,8 +332,11 @@ function Dashboard() {
 
   const goToAlertas = () => setActiveTab("Alertas");
 
+  const liveEnabled = Boolean(user);
+
   return (
-    <AlertasNotificationProvider>
+    <AlertasNotificationProvider enabled={liveEnabled}>
+    <DashboardTelemetriaRealtimeProvider enabled={liveEnabled}>
     <div className="dashboard-layout">
       <NotificationBell onOpenAlertasPage={goToAlertas} />
       <NewAlertModal onOpenAlertasPage={goToAlertas} />
@@ -652,6 +656,7 @@ function Dashboard() {
         </main>
       </div>
     </div>
+    </DashboardTelemetriaRealtimeProvider>
     </AlertasNotificationProvider>
   );
 }

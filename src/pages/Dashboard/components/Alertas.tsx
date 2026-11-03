@@ -7,6 +7,8 @@ import {
   useAlertas,
   useCancelarAlerta,
 } from "@controllers/alertaController";
+import { useAlertasNotifications } from "@/contexts/AlertasNotificationContext";
+import { liveRefetchInterval } from "@/utils/liveRefetchInterval";
 import type {
   CargaAlerta,
   CargaAlertaStatus,
@@ -97,14 +99,15 @@ function TipoBadge({ tipo }: { tipo: CargaAlertaTipo }) {
 
 export default function Alertas() {
   const { t } = useTranslation();
+  const { isAlertasRealtimeHealthy } = useAlertasNotifications();
 
   const { data: rawRows = [], isLoading, isError, refetch } = useAlertas(
     { page: 1, limit: FETCH_LIMIT },
     {
       staleTime: 0,
-      refetchInterval: ALERTAS_LIVE_REFETCH_MS,
+      refetchInterval: liveRefetchInterval(ALERTAS_LIVE_REFETCH_MS, isAlertasRealtimeHealthy),
       refetchOnWindowFocus: true,
-      refetchIntervalInBackground: true,
+      refetchIntervalInBackground: !isAlertasRealtimeHealthy,
     },
   );
   const rows = rawRows as CargaAlerta[];

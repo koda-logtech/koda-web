@@ -60,5 +60,11 @@ test.describe("dashboard — navegação principal", () => {
     const dashboard = new DashboardPage(page);
     await dashboard.clickSidebar(/Auditoria|Audit/i);
     await expect(page.getByRole("heading", { name: /^Auditoria$|^Audit$/i })).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: /Exportar Dossiê \(PDF\)|Export Dossier \(PDF\)/i }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: /Exportar Dados \(CSV\)|Export Data \(CSV\)/i }),
+    ).toBeVisible();
   });
 });

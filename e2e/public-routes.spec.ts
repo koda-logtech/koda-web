@@ -1,6 +1,7 @@
 import { test, expect } from "@playwright/test";
 
 test.describe("rotas públicas", () => {
+  test.use({ storageState: { cookies: [], origins: [] } });
   test("solicitar acesso exibe formulário", async ({ page }) => {
     await page.goto("/solicitar-acesso");
     await expect(page.getByRole("heading", { name: /Solicitar Acesso|Request Access/i })).toBeVisible();

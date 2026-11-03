@@ -9,6 +9,7 @@ Conta de automação no Supabase: **`e2e-admin@koda.com`** (admin). Credenciais 
 | Comando | Descrição |
 |---------|-----------|
 | `npm run test:e2e` | Suíte completa |
+| `npm run test:e2e:headless` | Suíte completa em headless (vídeo e screenshot só quando um teste falha) |
 | `npm run test:e2e -- e2e/smoke.spec.ts` | Apenas smoke (login, sem autenticar) |
 | `npm run test:e2e:ui` | Playwright UI |
 | `npm run test:e2e:report` | Abre o último HTML report |
@@ -66,6 +67,10 @@ Job separado do `ci.yml` (lint/Vitest). Deploy Cloud Run não executa E2E.
 | `public-routes.spec.ts` | Não | `/solicitar-acesso`, `/ativar-conta`, 404 |
 | `dashboard-navigation.spec.ts` | Sim | Abas do dashboard autenticado |
 | `admin-users.spec.ts` | Sim | Login, admin usuários/solicitações, atalho sidebar |
+| `operador-login-tema-logout.spec.ts` | Sim | Login, dashboard, tema dark/light e logout |
+| `operador-carga-viagem.spec.ts` | Sim | Nova carga vinculada a caminhão e nova viagem com cliente |
+| `operador-dashboard-mapa-alertas.spec.ts` | Sim | Mapa Mapbox, filtro de alertas térmicos e alerta sonoro/visual |
+| `operador-auditoria-export.spec.ts` | Sim | Auditoria e download de PDF e CSV |
 | `auth.setup.ts` | Sim | Sessão reutilizável |
 
 ## Arquivos
@@ -74,4 +79,7 @@ Job separado do `ci.yml` (lint/Vitest). Deploy Cloud Run não executa E2E.
 |---------|--------|
 | `playwright.config.ts` | Config, `webServer`, projetos setup/chromium |
 | `e2e/pages/` | Page objects |
+| `e2e/helpers/` | Select customizado e cadastros mínimos da operação |
 | `e2e/e2e-credentials.ts` | Validação de `E2E_ADMIN_*` e mensagens de erro |
+
+O `playwright.config.ts` roda o Chromium em headless. `--headed` continua disponível para debug. Em falha, o Playwright guarda screenshot, trace e vídeo em `test-results/`. O mapa do dashboard exige `VITE_MAPBOX_TOKEN` no `.env` do koda-web.

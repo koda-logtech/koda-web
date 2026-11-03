@@ -1,15 +1,28 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useQueryClient } from "@tanstack/react-query";
 import ContentHeader from "./ContentHeader";
 import Loading from "@components/common/Loading";
+import Button from "@components/common/Button";
 import { useTelemetriaAuditoria } from "@controllers/cargaController";
-import type { CargaTelemetriaAuditoria } from "@/types/models";
+import { useEntregasCompleto } from "@controllers/entregaController";
+import { useToast } from "@/contexts/ToastContext";
+import { cargaService } from "@services/cargaService";
+import { alertaService } from "@services/alertaService";
+import { exportTripDossierPdf } from "@/utils/exportTripDossierPdf";
+import { exportTripTelemetryCsv } from "@/utils/exportTripTelemetryCsv";
+import { yieldToMain } from "@/utils/tripDossierHelpers";
+import type { CargaTelemetriaAuditoria, EntregaCompleta } from "@/types/models";
 
 import "./Management.css";
 import "./Trips.css";
+import "./Alertas.css";
 
 const PAGE_SIZE = 10;
 const FETCH_LIMIT = 300;
+const ENTREGAS_FETCH_LIMIT = 100;
+
+type ExportKind = "pdf" | "csv" | null;
 
 function unwrapCarga(
   c: CargaTelemetriaAuditoria["carga"],
@@ -42,29 +55,92 @@ function formatWhen(iso: string): string {
   }
 }
 
+function formatEntregaDeliveryDate(entrega: EntregaCompleta): string {
+  const raw = entrega.data_entrega ?? entrega.updated_at;
+  if (!raw) return "—";
+  try {
+    const d = new Date(raw);
+    if (Number.isNaN(d.getTime())) return "—";
+    return d.toLocaleDateString("pt-BR");
+  } catch {
+    return "—";
+  }
+}
+
+function entregaOptionLabel(entrega: EntregaCompleta): string {
+  const placa = entrega.placa_caminhao?.trim() || "—";
+  const cliente = entrega.nome_cliente?.trim() || "—";
+  const data = formatEntregaDeliveryDate(entrega);
+  return `#${entrega.id} · ${placa} · ${cliente} · ${data}`;
+}
+
 export default function Audit() {
   const { t } = useTranslation();
+  const { addToast } = useToast();
+  const queryClient = useQueryClient();
   const { data: rawRows = [], isLoading, isError, refetch } = useTelemetriaAuditoria(1, FETCH_LIMIT);
   const rows = rawRows as CargaTelemetriaAuditoria[];
 
+  const {
+    data: entregasRaw = [],
+    isLoading: entregasLoading,
+  } = useEntregasCompleto(1, ENTREGAS_FETCH_LIMIT);
+
+  const entregasFinalizadas = useMemo(() => {
+    const list = entregasRaw as EntregaCompleta[];
+    return list.filter(
+      (e) =>
+        e.status === "entregue" &&
+        e.id_carga != null &&
+        Number.isFinite(e.id_carga) &&
+        e.id_carga > 0,
+    );
+  }, [entregasRaw]);
+
+  const [selectedEntregaId, setSelectedEntregaId] = useState<number | "">("");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
+  const [exporting, setExporting] = useState<ExportKind>(null);
+
+  useEffect(() => {
+    if (entregasFinalizadas.length === 0) {
+      setSelectedEntregaId("");
+      return;
+    }
+    setSelectedEntregaId((prev) => {
+      if (prev !== "" && entregasFinalizadas.some((e) => e.id === prev)) {
+        return prev;
+      }
+      return entregasFinalizadas[0].id;
+    });
+  }, [entregasFinalizadas]);
+
+  const selectedEntrega = useMemo(
+    () => entregasFinalizadas.find((e) => e.id === selectedEntregaId) ?? null,
+    [entregasFinalizadas, selectedEntregaId],
+  );
+
+  const selectedCargaId = selectedEntrega?.id_carga ?? null;
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q) return rows;
-    return rows.filter((row) => {
+    let base = rows;
+    if (selectedCargaId != null) {
+      base = base.filter((row) => row.id_carga === selectedCargaId);
+    }
+    if (!q) return base;
+    return base.filter((row) => {
       const c = unwrapCarga(row.carga);
       const tipo = c?.tipo?.trim().toLowerCase() ?? "";
       const idC = String(row.id_carga ?? "");
       const idReg = String(row.id ?? "");
       return tipo.includes(q) || idC.includes(q) || idReg.includes(q);
     });
-  }, [rows, search]);
+  }, [rows, search, selectedCargaId]);
 
   useEffect(() => {
     setPage(1);
-  }, [search]);
+  }, [search, selectedCargaId]);
 
   const total = filtered.length;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
@@ -83,16 +159,149 @@ export default function Audit() {
     return nums;
   }, [safePage, totalPages]);
 
+  const exportsDisabled =
+    entregasLoading || selectedEntrega == null || selectedCargaId == null || exporting !== null;
+
+  const fetchExportData = useCallback(async () => {
+    if (selectedEntrega == null || selectedCargaId == null) {
+      throw new Error("no_selection");
+    }
+    const pings = await queryClient.fetchQuery({
+      queryKey: ["carga-telemetria-auditoria", "por-carga", selectedCargaId],
+      queryFn: () => cargaService.listTelemetriaAuditoriaPorCarga(selectedCargaId),
+    });
+    const alertas = await alertaService.getAll({ id_carga: selectedCargaId, limit: 100 });
+    return { entrega: selectedEntrega, pings, alertas };
+  }, [queryClient, selectedCargaId, selectedEntrega]);
+
+  const handleExportPdf = async () => {
+    if (exportsDisabled) return;
+    setExporting("pdf");
+    try {
+      await yieldToMain();
+      const { entrega, pings, alertas } = await fetchExportData();
+      exportTripDossierPdf({ entrega, pings, alertas });
+      addToast({
+        message: t("audit.exportPdfSuccess", "Dossiê PDF gerado com sucesso."),
+        type: "success",
+      });
+      if (pings.length === 0) {
+        addToast({
+          message: t(
+            "audit.exportNoPingsInfo",
+            "Esta viagem não possui registos de telemetria na auditoria.",
+          ),
+          type: "info",
+        });
+      }
+    } catch (err) {
+      console.error("Falha ao gerar dossiê PDF:", err);
+      addToast({
+        message: t("audit.exportPdfError", "Não foi possível gerar o dossiê PDF."),
+        type: "error",
+      });
+    } finally {
+      setExporting(null);
+    }
+  };
+
+  const handleExportCsv = async () => {
+    if (exportsDisabled) return;
+    setExporting("csv");
+    try {
+      await yieldToMain();
+      const { entrega, pings } = await fetchExportData();
+      const idCarga = entrega.id_carga!;
+      exportTripTelemetryCsv({ pings, idCarga });
+      addToast({
+        message: t("audit.exportCsvSuccess", "Dados exportados em CSV com sucesso."),
+        type: "success",
+      });
+      if (pings.length === 0) {
+        addToast({
+          message: t(
+            "audit.exportNoPingsInfo",
+            "Esta viagem não possui registos de telemetria na auditoria.",
+          ),
+          type: "info",
+        });
+      }
+    } catch (err) {
+      console.error("Falha ao exportar CSV:", err);
+      addToast({
+        message: t("audit.exportCsvError", "Não foi possível exportar os dados em CSV."),
+        type: "error",
+      });
+    } finally {
+      setExporting(null);
+    }
+  };
+
+  const headerActions = (
+    <>
+      <Button
+        variant="secondary"
+        size="medium"
+        onClick={handleExportPdf}
+        disabled={exportsDisabled}
+        loading={exporting === "pdf"}
+        loadingText={t("audit.exportGenerating", "Gerando…")}
+      >
+        {t("audit.exportPdf", "Exportar Dossiê (PDF)")}
+      </Button>
+      <Button
+        variant="secondary"
+        size="medium"
+        onClick={handleExportCsv}
+        disabled={exportsDisabled}
+        loading={exporting === "csv"}
+        loadingText={t("audit.exportGenerating", "Gerando…")}
+      >
+        {t("audit.exportCsv", "Exportar Dados (CSV)")}
+      </Button>
+    </>
+  );
+
   return (
     <div className="dashboard-page trips-page">
       <ContentHeader
         title={t("audit.title", "Auditoria")}
         subtitle={t("audit.subtitle", "Registos de telemetria por carga — atualização em tempo quase real.")}
+        actions={headerActions}
       />
 
       <div className="page-content">
         <section className="trips-toolbar" aria-label={t("audit.filtersAria", "Filtros")}>
           <div className="trips-toolbar-fields">
+            <div className="alertas-filter-row">
+              <label className="trips-metric-label" htmlFor="audit-trip-select">
+                {t("audit.tripSelectLabel", "Viagem finalizada")}
+              </label>
+              <select
+                id="audit-trip-select"
+                className="alertas-filter-select"
+                value={selectedEntregaId === "" ? "" : String(selectedEntregaId)}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setSelectedEntregaId(v === "" ? "" : Number(v));
+                }}
+                disabled={entregasLoading || entregasFinalizadas.length === 0}
+                aria-label={t("audit.tripSelectAria", "Selecionar viagem finalizada para exportação")}
+              >
+                {entregasFinalizadas.length === 0 ? (
+                  <option value="">
+                    {t("audit.noFinishedTrips", "Nenhuma viagem entregue disponível")}
+                  </option>
+                ) : (
+                  entregasFinalizadas.map((e) => (
+                    <option key={e.id} value={e.id}>
+                      {entregaOptionLabel(e)}
+                    </option>
+                  ))
+                )}
+              </select>
+            </div>
+
             <div className="trips-search-row">
               <svg
                 className="trips-search-icon"
@@ -123,9 +332,16 @@ export default function Audit() {
 
           <aside className="trips-metric-card">
             <span className="trips-metric-label">{t("audit.recordsLoaded", "Registos carregados")}</span>
-            <span className="trips-metric-value">{rows.length}</span>
+            <span className="trips-metric-value">{filtered.length}</span>
             <span className="trips-metric-hint">
-              {t("audit.recordsHint", "Até {{limit}} mais recentes · atualização automática a cada 5 s", { limit: FETCH_LIMIT })}
+              {selectedCargaId != null
+                ? t("audit.recordsHintFiltered", "Filtrado pela carga #{{id}} · até {{limit}} recentes globais", {
+                    id: selectedCargaId,
+                    limit: FETCH_LIMIT,
+                  })
+                : t("audit.recordsHint", "Até {{limit}} mais recentes · atualização automática a cada 5 s", {
+                    limit: FETCH_LIMIT,
+                  })}
             </span>
           </aside>
         </section>

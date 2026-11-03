@@ -2,6 +2,7 @@ import { test, expect } from "@playwright/test";
 import { LoginPage } from "./pages/login.page";
 import { AdminPage } from "./pages/admin.page";
 import { assertE2ECredentials } from "./e2e-credentials";
+import { clickClear } from "./helpers/alerts";
 
 test.describe("admin login", () => {
   test.use({ storageState: { cookies: [], origins: [] } });
@@ -45,7 +46,7 @@ test.describe("admin usuários", () => {
 
   test("sidebar — atalho acessos admin", async ({ page }) => {
     await page.goto("/");
-    await page.locator(".dashboard-sidebar").getByRole("button", { name: /Acessos Admin|Admin Access/i }).first().click();
+    await clickClear(page.locator(".dashboard-sidebar").getByRole("button", { name: /Acessos Admin|Admin Access/i }).first());
     await expect(page).toHaveURL(/\/admin\/acessos/);
     await new AdminPage(page).expectPanelLoaded();
   });

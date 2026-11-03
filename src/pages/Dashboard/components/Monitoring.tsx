@@ -1,5 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { useEffect, useMemo, useState } from "react";
+import { useDashboardTelemetriaRealtime } from "@/contexts/DashboardTelemetriaRealtimeContext";
+import { liveRefetchInterval } from "@/utils/liveRefetchInterval";
 import Loading from "@components/common/Loading";
 import { useTelemetriaAuditoriaPorCarga } from "@controllers/cargaController";
 import { useEntregasCompleto, useEntregaDirection } from "@controllers/entregaController";
@@ -71,6 +73,8 @@ function toMapTrip(row: EntregaCompleta, nowMs: number): DashboardMapTrip | null
  */
 export default function Monitoring() {
   const { t } = useTranslation();
+  const { isRealtimeHealthy: isTelemetriaRealtimeHealthy, setSelectedCargaId } =
+    useDashboardTelemetriaRealtime();
 
   const mapboxToken = (window.__ENV__?.VITE_MAPBOX_TOKEN || import.meta.env.VITE_MAPBOX_TOKEN)?.trim();
   const hasMap = Boolean(mapboxToken);
@@ -85,14 +89,14 @@ export default function Monitoring() {
   }, []);
 
   const { data: entregasRaw = [], isLoading } = useEntregasCompleto(1, FETCH_LIMIT, {
-    refetchInterval: DASHBOARD_LIVE_REFETCH_MS,
-    refetchIntervalInBackground: true,
+    refetchInterval: liveRefetchInterval(DASHBOARD_LIVE_REFETCH_MS, isTelemetriaRealtimeHealthy),
+    refetchIntervalInBackground: !isTelemetriaRealtimeHealthy,
   });
   const entregas = entregasRaw as EntregaCompleta[];
 
   const { data: armazensRaw = [] } = useArmazens(1, 100, {
-    refetchInterval: DASHBOARD_LIVE_REFETCH_MS,
-    refetchIntervalInBackground: true,
+    refetchInterval: liveRefetchInterval(DASHBOARD_LIVE_REFETCH_MS, isTelemetriaRealtimeHealthy),
+    refetchIntervalInBackground: !isTelemetriaRealtimeHealthy,
   });
   const armazensParceirosMapa = useMemo(
     () => armazensAtivosComCoordenadas(armazensRaw as Armazem[]),
@@ -160,8 +164,15 @@ export default function Monitoring() {
     return typeof id === "number" && id > 0 ? id : null;
   }, [liveTrips, selectedEntregaId]);
 
+  useEffect(() => {
+    setSelectedCargaId(selectedCargaId);
+  }, [selectedCargaId, setSelectedCargaId]);
+
   const auditoriaPorCarga = useTelemetriaAuditoriaPorCarga(selectedCargaId, {
-    refetchInterval: selectedCargaId != null ? DASHBOARD_LIVE_REFETCH_MS : undefined,
+    refetchInterval:
+      selectedCargaId != null
+        ? liveRefetchInterval(DASHBOARD_LIVE_REFETCH_MS, isTelemetriaRealtimeHealthy)
+        : undefined,
   });
 
   const traveledRouteGeometry = useMemo(() => {
