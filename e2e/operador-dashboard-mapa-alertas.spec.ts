@@ -26,22 +26,27 @@ test.describe("operador — mapa e alertas térmicos", () => {
     const noToken = page.getByText(/Configure VITE_MAPBOX_TOKEN/i);
     await expect(canvas.or(noTrips).or(noToken).first()).toBeVisible({ timeout: 45_000 });
 
-    if (await noToken.isVisible()) {
-      throw new Error(
-        "VITE_MAPBOX_TOKEN ausente: o dashboard não renderiza o mapa Mapbox. Defina o token no .env do koda-web.",
-      );
-    }
+    const tokenConfigured = Boolean(process.env.VITE_MAPBOX_TOKEN?.trim());
+    if (!tokenConfigured) {
+      await expect(noToken).toBeVisible();
+    } else {
+      if (await noToken.isVisible()) {
+        throw new Error(
+          "VITE_MAPBOX_TOKEN ausente no Vite: o dashboard não renderiza o mapa Mapbox. O token precisa existir no ambiente antes de o webServer subir.",
+        );
+      }
 
-    if (!(await canvas.isVisible())) {
-      await criarCargaEViagem(page, dashboard, {
-        clientName: `E2E Mapa ${Date.now().toString(36)}`,
-        coords: { lat: "-23.55", lng: "-46.63" },
-      });
-      await dashboard.clickSidebar(/^Dashboard$/i);
-      await expect(mapSection).toBeVisible();
-    }
+      if (!(await canvas.isVisible())) {
+        await criarCargaEViagem(page, dashboard, {
+          clientName: `E2E Mapa ${Date.now().toString(36)}`,
+          coords: { lat: "-23.55", lng: "-46.63" },
+        });
+        await dashboard.clickSidebar(/^Dashboard$/i);
+        await expect(mapSection).toBeVisible();
+      }
 
-    await expect(canvas).toBeVisible({ timeout: 30_000 });
+      await expect(canvas).toBeVisible({ timeout: 30_000 });
+    }
 
     await dashboard.clickSidebar(/Alertas|Alerts/i);
     await expect(page.getByRole("heading", { name: /Alertas térmicos|Thermal alerts/i })).toBeVisible();

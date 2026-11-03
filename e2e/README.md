@@ -43,15 +43,16 @@ Workflow: `.github/workflows/e2e.yml` (checkout `koda-web` + `koda-server`, runn
 
 ### GitHub Secrets (repo **koda-web** → Settings → Secrets and variables → **Actions** → **New repository secret**)
 
-Criar **três** secrets, um por vez. O **Name** é exatamente o da primeira coluna; o **Secret** é o valor.
+Criar os três secrets obrigatórios, um por vez. O **Name** é exatamente o da primeira coluna; o **Secret** é o valor. `VITE_MAPBOX_TOKEN` é opcional.
 
 | Name (copiar igual) | Secret (valor) |
 |---------------------|----------------|
 | `E2E_ADMIN_EMAIL` | `e2e-admin@koda.com` |
 | `E2E_ADMIN_PASSWORD` | Senha da conta E2E (texto simples, sem aspas) |
 | `E2E_SERVER_ENV_FILE` | Abra o `koda-server/.env` no editor, selecione **tudo** (Cmd+A), copie e cole no campo Secret — várias linhas, igual ao arquivo local |
+| `VITE_MAPBOX_TOKEN` | Opcional. Token público do Mapbox (`pk.`). Sem ele, o CI confere o aviso de mapa não configurado e segue para os filtros de alerta. Com ele, o teste exige o canvas do Mapbox. |
 
-Não use prefixo `secrets.` no nome; não crie um único JSON com os três. Cada linha do `.env` do server no terceiro secret permanece como no arquivo (`KEY=valor`).
+Não use prefixo `secrets.` no nome; não crie um único JSON com os secrets. Cada linha do `.env` do server em `E2E_SERVER_ENV_FILE` permanece como no arquivo (`KEY=valor`).
 
 Após o push da branch com `e2e.yml` para `main` (ou PR), o job **E2E (Playwright)** roda no Actions. Falta de secret → passo “Verify E2E secrets” falha listando só o **nome** do secret ausente.
 
@@ -82,4 +83,4 @@ Job separado do `ci.yml` (lint/Vitest). Deploy Cloud Run não executa E2E.
 | `e2e/helpers/` | Select customizado e cadastros mínimos da operação |
 | `e2e/e2e-credentials.ts` | Validação de `E2E_ADMIN_*` e mensagens de erro |
 
-O `playwright.config.ts` roda o Chromium em headless. `--headed` continua disponível para debug. Em falha, o Playwright guarda screenshot, trace e vídeo em `test-results/`. O mapa do dashboard exige `VITE_MAPBOX_TOKEN` no `.env` do koda-web.
+O `playwright.config.ts` roda o Chromium em headless. `--headed` continua disponível para debug. Em falha, o Playwright guarda screenshot, trace e vídeo em `test-results/`. Com `VITE_MAPBOX_TOKEN` no `.env` local ou no secret do CI, o teste do dashboard exige o canvas do Mapbox. Sem o token, ele confere a mensagem de configuração e continua nos filtros de alerta.

@@ -49,6 +49,8 @@ export function useSupabasePostgresChannel<T extends Record<string, unknown> = R
   onPayloadRef.current = onPayload;
   onBatchRef.current = onBatch;
 
+  const bindingsKey = JSON.stringify(bindings);
+
   useEffect(() => {
     if (!enabled) {
       setIsRealtimeHealthy(false);
@@ -82,7 +84,8 @@ export function useSupabasePostgresChannel<T extends Record<string, unknown> = R
 
     channel = supabase.channel(channelName);
 
-    for (const binding of bindings) {
+    const activeBindings = JSON.parse(bindingsKey) as PostgresChangeBinding[];
+    for (const binding of activeBindings) {
       channel = channel.on(
         'postgres_changes',
         {
@@ -114,7 +117,7 @@ export function useSupabasePostgresChannel<T extends Record<string, unknown> = R
         void supabase.removeChannel(channel);
       }
     };
-  }, [channelName, enabled, debounceMs, JSON.stringify(bindings)]);
+  }, [channelName, enabled, debounceMs, bindingsKey]);
 
   return { isRealtimeHealthy };
 }

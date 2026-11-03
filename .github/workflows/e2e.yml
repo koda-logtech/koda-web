@@ -26,6 +26,7 @@ jobs:
       CI: true
       KODA_SERVER_DIR: ./koda-server
       VITE_API_URL: http://localhost:3000
+      VITE_MAPBOX_TOKEN: ${{ secrets.VITE_MAPBOX_TOKEN }}
       E2E_ADMIN_EMAIL: ${{ secrets.E2E_ADMIN_EMAIL }}
       E2E_ADMIN_PASSWORD: ${{ secrets.E2E_ADMIN_PASSWORD }}
 
